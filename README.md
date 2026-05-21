@@ -1,20 +1,50 @@
 # SLAP$TAX
 
-FR: Concept d'application mobile de competition sociale basee sur des mini-jeux rapides, des defis entre amis et des tournois a forte intensite.  
-EN: Mobile social competition app concept built around fast mini-games, friend challenges, and tournament tension.
+FR: Plateforme mobile de competition sociale entre amis, construite autour de mini-jeux rapides, de defis 1v1 et de tournois a forte tension.  
+EN: Mobile social competition platform built around fast mini-games, 1v1 friend challenges, and high-tension tournaments.
+
+Tagline: `Tape. Encaisse. Encaisse encore.`
+
+## Why This Project
+
+FR: Les jeux casual existent deja. Ce qui manque, c'est une experience qui combine en meme temps:
+- rivalite sociale reelle,
+- sessions tres courtes,
+- profondeur strategique,
+- et boucle de revanche instantanee.
+
+EN: Casual games already exist. The gap is a product that combines:
+- real social rivalry,
+- very short sessions,
+- strategic depth,
+- and an instant rematch loop.
 
 ## Pitch
 
-FR: SLAP$TAX transforme la rivalite amicale en affrontements courts et nerveux.  
-EN: SLAP$TAX turns friendly rivalry into short, high-energy battles.
+FR: SLAP$TAX transforme la rivalite amicale en affrontements courts, intenses et memorables.  
+EN: SLAP$TAX turns friendly rivalry into short, high-energy, memorable battles.
 
 Core idea:
 - Challenge a friend in direct 1v1 matches.
 - Compete in tournament brackets.
 - Mix reflexes, strategy, and social pressure in a strong street-style brand universe.
 
-Tagline:
-- `Tape. Encaisse. Encaisse encore.`
+## Product Core
+
+### 1) Direct Challenge (1v1)
+- Best of 3 format.
+- Ban/Pick game selection flow.
+- Winner takes the pot (after platform fee in real-money mode).
+
+### 2) Tournament Mode
+- Single-elimination bracket.
+- Same mini-game per round for fairness.
+- Clear progression and high-stakes final.
+
+### 3) Strategic Layer
+- Player stats per mini-game.
+- Ban/Pick mind games.
+- Meta progression beyond pure reflexes.
 
 ## Statut du projet / Project Status
 
@@ -30,6 +60,23 @@ EN: This repository currently contains:
 
 FR: Le projet est a un stade concept/prototype, pas encore une application prete pour la production.  
 EN: This is an early concept/prototype stage, not a production-ready app.
+
+## Business Model Snapshot
+
+FR/EN:
+- Tournament fee target: `~6% to 8%`.
+- Direct challenge fee target: `~12% to 15%`.
+- Core logic: the platform wins when players play, not through ads-first design.
+
+## Repo Map
+
+- `SLAPTAX_Concept.md`: main concept reference.
+- `SLAPTAX_Concept_Code.txt`: JS script used to generate DOCX concept output.
+- `SLAPTAX_Document_Presentation_Complet.md`: full master presentation.
+- `SLAPTAX_Presentation_Investisseur.md`: investor-focused version.
+- `SLAPTAX_Presentation_Partenaire_Technique.md`: technical partner version.
+- `SLAPTAX_Presentation_Public_Presse.md`: public/press version.
+- `slapbattle.html`: interactive visual prototype.
 
 ## Roadmap (haut niveau / high level)
 
@@ -54,16 +101,6 @@ EN: This is an early concept/prototype stage, not a production-ready app.
 - Sponsored tournaments.
 - Geographic expansion.
 
-## Structure du repository / Repository Structure
-
-- `SLAPTAX_Concept.md`: main concept reference.
-- `SLAPTAX_Concept_Code.txt`: JS script used to generate DOCX concept output.
-- `SLAPTAX_Document_Presentation_Complet.md`: full master presentation.
-- `SLAPTAX_Presentation_Investisseur.md`: investor-focused version.
-- `SLAPTAX_Presentation_Partenaire_Technique.md`: technical partner version.
-- `SLAPTAX_Presentation_Public_Presse.md`: public/press version.
-- `slapbattle.html`: interactive visual prototype.
-
 ## Lancer le prototype HTML / Run the HTML Prototype
 
 No build step required.
@@ -80,6 +117,13 @@ python3 -m http.server 8080
 
 Then open:
 - `http://localhost:8080/slapbattle.html`
+
+## Suggested Next Milestones
+
+1. Ship a playable V0 with 5-8 polished mini-games.
+2. Validate retention and rematch rate before scaling scope.
+3. Add payment/compliance stack only after PMF signals.
+4. Launch creator-led tournaments for distribution.
 
 ## Note legale / Legal Note
 
