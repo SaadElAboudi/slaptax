@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLAP$TAX — Hit Em & Take Their Stack</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik+Dirt&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --yellow: #FFE600;
+    --orange: #FF5C00;
+    --red: #FF1A1A;
+    --white: #F5F0E8;
+    --gray: #1a1a1a;
+    --mid: #2a2a2a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.6;
+  }
+
+  /* TAPE DIAGONAL LINES */
+  .tape-bg {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -55deg,
+      transparent,
+      transparent 40px,
+      rgba(255,230,0,0.015) 40px,
+      rgba(255,230,0,0.015) 41px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--yellow);
+  }
+
+  .logo {
+    font-family: 'Rubik Dirt', cursive;
+    font-size: 2.2rem;
+    color: var(--yellow);
+    text-shadow: 4px 4px 0px var(--orange);
+    letter-spacing: -1px;
+    animation: logoFlicker 4s infinite;
+  }
+
+  @keyframes logoFlicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.6; }
+    97% { opacity: 1; }
+    98% { opacity: 0.4; }
+    99% { opacity: 1; }
+  }
+
+  .logo span {
+    color: var(--orange);
+    text-shadow: 4px 4px 0px var(--red);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .live-badge {
+    background: var(--red);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    animation: blink 1.2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .wallet-btn {
+    background: transparent;
+    border: 2px solid var(--yellow);
+    color: var(--yellow);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.1s;
+  }
+
+  .wallet-btn:hover {
+    background: var(--yellow);
+    color: var(--black);
+  }
+
+  /* MAIN LAYOUT */
+  .app {
+    position: relative;
+    z-index: 10;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  /* HERO TITLE */
+  .hero {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 6px;
+    color: var(--orange);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .hero-title {
+    font-family: 'Black Ops One', cursive;
+    font-size: clamp(3rem, 10vw, 6.5rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .hero-title .accent {
+    color: var(--yellow);
+    -webkit-text-stroke: 2px var(--orange);
+    display: block;
+  }
+
+  .hero-sub {
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: rgba(245,240,232,0.5);
+    letter-spacing: 1px;
+    max-width: 380px;
+    margin-inline: auto;
+    line-height: 1.7;
+  }
+
+  /* BATTLE ARENA */
+  .arena {
+    background: var(--gray);
+    border: 3px solid var(--yellow);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .arena::after {
+    content: 'VS';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Black Ops One', cursive;
+    font-size: 2.8rem;
+    color: var(--yellow);
+    text-shadow: 0 0 30px rgba(255,230,0,0.6), 0 0 60px rgba(255,92,0,0.4);
+    z-index: 5;
+    animation: vsPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes vsPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.12); }
+  }
+
+  .arena-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 260px;
+  }
+
+  .fighter {
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+  }
+
+  .fighter.left {
+    border-right: 3px solid var(--yellow);
+    background: linear-gradient(135deg, rgba(255,230,0,0.04) 0%, transparent 60%);
+  }
+
+  .fighter.right {
+    background: linear-gradient(225deg, rgba(255,92,0,0.04) 0%, transparent 60%);
+  }
+
+  .fighter-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fighter.left .fighter-avatar {
+    color: var(--yellow);
+    box-shadow: 0 0 20px rgba(255,230,0,0.3);
+  }
+
+  .fighter.right .fighter-avatar {
+    color: var(--orange);
+    box-shadow: 0 0 20px rgba(255,92,0,0.3);
+  }
+
+  .fighter-avatar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent 60%);
+  }
+
+  .fighter-name {
+    font-family: 'Black Ops One', cursive;
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .fighter.left .fighter-name { color: var(--yellow); }
+  .fighter.right .fighter-name { color: var(--orange); }
+
+  .fighter-tag {
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+  }
+
+  /* HEALTH BAR */
+  .health-wrap {
+    width: 100%;
+  }
+
+  .health-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    color: rgba(245,240,232,0.4);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+
+  .health-bar {
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .health-fill {
+    height: 100%;
+    transition: width 0.4s cubic-bezier(0.2, 0, 0, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .health-fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+    animation: healthShine 2s ease-in-out infinite;
+  }
+
+  @keyframes healthShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+
+  .fighter.left .health-fill {
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+  }
+
+  .fighter.right .health-fill {
+    background: linear-gradient(90deg, var(--orange), var(--red));
+    margin-left: auto;
+    direction: rtl;
+  }
+
+  /* STAKE SECTION */
+  .stake-section {
+    background: var(--mid);
+    border: 2px solid rgba(255,230,0,0.3);
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+
+  .stake-label {
+    font-size: 0.65rem;
+    letter-spacing: 5px;
+    color: var(--yellow);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .stake-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,230,0,0.2);
+  }
+
+  .stake-amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stake-btn {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.15);
+    color: var(--white);
+    font-family: 'Black Ops One', cursive;
+    font-size: 1.2rem;
+    padding: 16px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stake-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--yellow);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.15s;
+    z-index: 0;
+  }
+
+  .stake-btn:hover::before,
+  .stake-btn.active::before {
+    transform: scaleY(1);
+  }
+
+  .stake-btn:hover,
+  .stake-btn.active {
+    color: var(--black);
+    border-color: var(--yellow);
+  }
+
+  .stake-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .stake-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    display: block;
+    opacity: 0.6;
+    font-weight: 400;
+  }
+
+  .stake-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px;
+    background: rgba(255,230,0,0.04);
+    border: 1px solid rgba(255,230,0,0.15);
+  }
+
+  .stake-you, .stake-them {
+    text-align: center;
+  }
+
+  .stake-amount {
+    font-family: 'Black Ops One', cursive;
+    font-size: 2.4rem;
+    color: var(--yellow);
+  }
+
+  .stake-player {
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    color: rgba(245,240,232,0.4);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .stake-arrow {
+    font-family: 'Black Ops One', cursive;
+    font-size: 1.2rem;
+    color: var(--orange);
+  }
+
+  .pot-total {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.7rem;
+    color: rgba(245,240,232,0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .pot-total strong {
+    color: var(--white);
+    font-size: 1rem;
+  }
+
+  /* SLAP BUTTON */
+  .slap-zone {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .slap-btn {
+    background: var(--yellow);
+    border: none;
+    color: var(--black);
+    font-family: 'Black Ops One', cursive;
+    font-size: 2rem;
+    padding: 24px 64px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    position: relative;
+    box-shadow: 6px 6px 0px var(--orange), 12px 12px 0px rgba(255,92,0,0.3);
+    transition: all 0.08s;
+    overflow: hidden;
+  }
+
+  .slap-btn::before {
+    content: '✋';
+    position: absolute;
+    font-size: 4rem;
+    opacity: 0.08;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-20deg);
+  }
+
+  .slap-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px var(--orange), 16px 16px 0px rgba(255,92,0,0.3);
+  }
+
+  .slap-btn:active {
+    transform: translate(6px, 6px);
+    box-shadow: 0px 0px 0px var(--orange);
+  }
+
+  .slap-btn.slappping {
+    animation: slapEffect 0.3s ease-out;
+  }
+
+  @keyframes slapEffect {
+    0% { transform: translate(-2px, -2px) rotate(-3deg) scale(0.95); }
+    40% { transform: translate(8px, 4px) rotate(2deg) scale(1.05); }
+    70% { transform: translate(-2px, 0px) rotate(-1deg) scale(1.02); }
+    100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  }
+
+  .slap-hint {
+    font-size: 0.65rem;
+    color: rgba(245,240,232,0.3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 12px;
+  }
+
+  /* SLAP FX overlay */
+  .slap-fx {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .slap-word {
+    font-family: 'Black Ops One', cursive;
+    font-size: 12vw;
+    color: var(--yellow);
+    text-shadow: 6px 6px 0 var(--orange), 0 0 60px rgba(255,230,0,0.8);
+    opacity: 0;
+    transform: scale(0.5) rotate(-8deg);
+    transition: none;
+  }
+
+  .slap-word.show {
+    animation: slapWord 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+
+  @keyframes slapWord {
+    0% { opacity: 0; transform: scale(0.3) rotate(-12deg); }
+    30% { opacity: 1; transform: scale(1.3) rotate(5deg); }
+    60% { opacity: 1; transform: scale(1) rotate(-2deg); }
+    100% { opacity: 0; transform: scale(0.8) rotate(0deg); }
+  }
+
+  /* RECENT MATCHES */
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 6px;
+    color: var(--orange);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::before {
+    content: '▶';
+    color: var(--yellow);
+    font-size: 0.5rem;
+  }
+
+  .matches {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+
+  .match-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--gray);
+    border-left: 3px solid transparent;
+    font-size: 0.75rem;
+    transition: border-color 0.2s;
+  }
+
+  .match-row:hover {
+    border-left-color: var(--yellow);
+  }
+
+  .match-row.win { border-left-color: var(--yellow); }
+  .match-row.loss { border-left-color: var(--red); }
+
+  .match-time {
+    color: rgba(245,240,232,0.3);
+    font-size: 0.65rem;
+    width: 50px;
+    flex-shrink: 0;
+  }
+
+  .match-players {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .match-result {
+    font-family: 'Black Ops One', cursive;
+    font-size: 0.9rem;
+    padding: 2px 10px;
+  }
+
+  .match-result.win { color: var(--yellow); }
+  .match-result.loss { color: var(--red); }
+
+  .match-cash {
+    font-family: 'Black Ops One', cursive;
+    color: var(--yellow);
+    font-size: 1rem;
+  }
+
+  .match-cash.loss { color: rgba(245,240,232,0.3); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(10,10,10,0.95);
+    border-top: 2px solid var(--yellow);
+    display: flex;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 8px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: rgba(245,240,232,0.3);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: color 0.15s;
+    gap: 6px;
+  }
+
+  .nav-item.active {
+    color: var(--yellow);
+    background: rgba(255,230,0,0.05);
+  }
+
+  .nav-item:hover {
+    color: var(--white);
+  }
+
+  .nav-icon {
+    font-size: 1.3rem;
+  }
+
+  /* LEADERBOARD TAG */
+  .lb-badge {
+    position: absolute;
+    top: -4px;
+    right: 10px;
+    background: var(--red);
+    color: white;
+    font-size: 0.5rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* STICKERS */
+  .sticker {
+    position: fixed;
+    font-family: 'Black Ops One', cursive;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 8;
+  }
+
+  .sticker-1 {
+    top: 15%;
+    right: 4%;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: rgba(255,92,0,0.15);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .sticker-2 {
+    bottom: 20%;
+    left: 2%;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: rgba(255,230,0,0.1);
+    writing-mode: vertical-lr;
+  }
+
+  /* SCREEN FLASH */
+  .screen-flash {
+    position: fixed;
+    inset: 0;
+    background: var(--yellow);
+    pointer-events: none;
+    z-index: 800;
+    opacity: 0;
+  }
+
+  .screen-flash.flash {
+    animation: flashEffect 0.25s ease-out;
+  }
+
+  @keyframes flashEffect {
+    0% { opacity: 0.5; }
+    100% { opacity: 0; }
+  }
+
+  /* SCROLL ANIMATION */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .arena { animation: slideIn 0.5s ease-out 0.1s both; }
+  .stake-section { animation: slideIn 0.5s ease-out 0.2s both; }
+  .slap-zone { animation: slideIn 0.5s ease-out 0.3s both; }
+
+  /* TICKER */
+  .ticker {
+    background: var(--yellow);
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-bottom: 32px;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 20s linear infinite;
+    color: var(--black);
+    font-family: 'Black Ops One', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* HP display */
+  .hp-counter {
+    font-family: 'Black Ops One', cursive;
+    font-size: 1.8rem;
+  }
+
+  .fighter.left .hp-counter { color: var(--yellow); }
+  .fighter.right .hp-counter { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="tape-bg"></div>
+<div class="screen-flash" id="flash"></div>
+
+<div class="slap-fx">
+  <div class="slap-word" id="slapWord">SLAP!</div>
+</div>
+
+<div class="sticker-1">NO MERCY — STREET CODE</div>
+<div class="sticker-2">COLLECT OR GET COLLECTED</div>
+
+<header>
+  <div class="logo">SLAP<span>$</span>TAX</div>
+  <div class="header-right">
+    <div class="live-badge">● LIVE</div>
+    <button class="wallet-btn">💰 24.50€</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <div class="hero">
+    <div class="hero-eyebrow">// Le jeu qui te fait payer tes dettes</div>
+    <h1 class="hero-title">
+      TAPE.<br>
+      <span class="accent">ENCAISSE.</span>
+    </h1>
+    <p class="hero-sub">Mise ta thune. Donne des baffes. Récupère la mise de ton pote. Simple. Brutal. Légal.</p>
+  </div>
+
+  <div class="ticker">
+    <span class="ticker-inner">
+      💥 KENZO a claqué RICO pour 10€ &nbsp;&nbsp;★&nbsp;&nbsp; 👋 DARIA encaisse une baffe × 5€ &nbsp;&nbsp;★&nbsp;&nbsp; 💸 POT DU SOIR : 87€ &nbsp;&nbsp;★&nbsp;&nbsp; 🔥 STREAK: MEHDI 7 gifles d'affilée &nbsp;&nbsp;★&nbsp;&nbsp; ☠️ SÉBASTIEN → -35€ en une soirée &nbsp;&nbsp;★&nbsp;&nbsp; 💥 KENZO a claqué RICO pour 10€ &nbsp;&nbsp;★&nbsp;&nbsp; 👋 DARIA encaisse une baffe × 5€ &nbsp;&nbsp;★&nbsp;&nbsp; 💸 POT DU SOIR : 87€ &nbsp;&nbsp;★&nbsp;&nbsp; 🔥 STREAK: MEHDI 7 gifles d'affilée &nbsp;&nbsp;★&nbsp;&nbsp; ☠️ SÉBASTIEN → -35€ en une soirée &nbsp;&nbsp;★&nbsp;&nbsp;
+    </span>
+  </div>
+
+  <!-- ARENA -->
+  <div class="arena">
+    <div class="arena-inner">
+      <div class="fighter left">
+        <div class="fighter-avatar">😤</div>
+        <div class="fighter-name">TOI</div>
+        <div class="fighter-tag">@slapper.01</div>
+        <div class="hp-counter" id="hpLeft">100</div>
+        <div class="health-wrap">
+          <div class="health-label"><span>HP</span><span id="hpLeftPct">100%</span></div>
+          <div class="health-bar">
+            <div class="health-fill" id="fillLeft" style="width:100%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="fighter right">
+        <div class="fighter-avatar">😈</div>
+        <div class="fighter-name">RICO</div>
+        <div class="fighter-tag">@rico.skate</div>
+        <div class="hp-counter" id="hpRight">100</div>
+        <div class="health-wrap">
+          <div class="health-label"><span>HP</span><span id="hpRightPct">100%</span></div>
+          <div class="health-bar">
+            <div class="health-fill" id="fillRight" style="width:100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAKE -->
+  <div class="stake-section">
+    <div class="stake-label">Choisir la mise</div>
+    <div class="stake-amounts">
+      <button class="stake-btn" onclick="setStake(2)"><span>2€<span class="stake-sub">casual</span></span></button>
+      <button class="stake-btn active" onclick="setStake(5)"><span>5€<span class="stake-sub">standard</span></span></button>
+      <button class="stake-btn" onclick="setStake(10)"><span>10€<span class="stake-sub">chaud</span></span></button>
+      <button class="stake-btn" onclick="setStake(20)"><span>20€<span class="stake-sub">INSANE</span></span></button>
+    </div>
+    <div class="stake-display">
+      <div class="stake-you">
+        <div class="stake-amount" id="stakeDisplay">5€</div>
+        <div class="stake-player">Ta mise</div>
+      </div>
+      <div class="stake-arrow">⟶ FIGHT ⟵</div>
+      <div class="stake-them">
+        <div class="stake-amount" id="stakeDisplay2">5€</div>
+        <div class="stake-player">Sa mise</div>
+      </div>
+    </div>
+    <div class="pot-total">Pot total : <strong id="potTotal">10€</strong> · Gagnant emporte <strong id="winTotal">8.50€</strong> <span style="opacity:0.4">(frais 15%)</span></div>
+  </div>
+
+  <!-- SLAP BUTTON -->
+  <div class="slap-zone">
+    <button class="slap-btn" id="slapBtn" onclick="doSlap()">
+      👋 GIFLE-LE
+    </button>
+    <div class="slap-hint">appuie fort · chacun son tour · last man standing</div>
+  </div>
+
+  <!-- RECENT -->
+  <div class="section-title">Tes derniers combats</div>
+  <div class="matches">
+    <div class="match-row win">
+      <div class="match-time">14min</div>
+      <div class="match-players">TOI <span style="opacity:0.4;margin:0 6px">vs</span> DARIA</div>
+      <div class="match-result win">WIN</div>
+      <div class="match-cash">+8.50€</div>
+    </div>
+    <div class="match-row loss">
+      <div class="match-time">1h</div>
+      <div class="match-players">TOI <span style="opacity:0.4;margin:0 6px">vs</span> MEHDI</div>
+      <div class="match-result loss">KO</div>
+      <div class="match-cash loss">-10€</div>
+    </div>
+    <div class="match-row win">
+      <div class="match-time">3h</div>
+      <div class="match-players">TOI <span style="opacity:0.4;margin:0 6px">vs</span> KENZO</div>
+      <div class="match-result win">WIN</div>
+      <div class="match-cash">+17€</div>
+    </div>
+    <div class="match-row win">
+      <div class="match-time">hier</div>
+      <div class="match-players">TOI <span style="opacity:0.4;margin:0 6px">vs</span> SOFIA</div>
+      <div class="match-result win">WIN</div>
+      <div class="match-cash">+4.25€</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active">
+    <span class="nav-icon">⚔️</span>
+    Fight
+  </button>
+  <button class="nav-item" style="position:relative;">
+    <span class="nav-icon">🏆</span>
+    Classement
+    <span class="lb-badge">3</span>
+  </button>
+  <button class="nav-item">
+    <span class="nav-icon">👥</span>
+    Potes
+  </button>
+  <button class="nav-item">
+    <span class="nav-icon">💳</span>
+    Wallet
+  </button>
+</nav>
+
+<script>
+  let currentStake = 5;
+  let hpLeft = 100;
+  let hpRight = 100;
+  let turn = 'left'; // left = toi
+  let slapCount = 0;
+  const words = ['SLAP!', 'BOUM!', 'PAF!', 'AÏEUH!', 'CLAC!', '💥REKT!'];
+
+  function setStake(val) {
+    currentStake = val;
+    document.querySelectorAll('.stake-btn').forEach(b => b.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('stakeDisplay').textContent = val + '€';
+    document.getElementById('stakeDisplay2').textContent = val + '€';
+    const pot = val * 2;
+    const win = (pot * 0.85).toFixed(2);
+    document.getElementById('potTotal').textContent = pot + '€';
+    document.getElementById('winTotal').textContent = win + '€';
+  }
+
+  function doSlap() {
+    if (hpLeft <= 0 || hpRight <= 0) return;
+
+    const btn = document.getElementById('slapBtn');
+    btn.classList.add('slappping');
+    setTimeout(() => btn.classList.remove('slappping'), 350);
+
+    // Flash
+    const flash = document.getElementById('flash');
+    flash.classList.remove('flash');
+    void flash.offsetWidth;
+    flash.classList.add('flash');
+
+    // Word
+    const word = document.getElementById('slapWord');
+    word.textContent = words[slapCount % words.length];
+    word.classList.remove('show');
+    void word.offsetWidth;
+    word.classList.add('show');
+    slapCount++;
+
+    // Damage to enemy
+    const dmg = Math.floor(Math.random() * 25) + 15;
+    if (turn === 'left') {
+      hpRight = Math.max(0, hpRight - dmg);
+      updateHP('right', hpRight);
+      turn = 'right';
+      btn.textContent = '⏳ RICO RIPOSTE...';
+      btn.style.opacity = '0.5';
+      btn.style.pointerEvents = 'none';
+      setTimeout(() => {
+        const dmg2 = Math.floor(Math.random() * 20) + 10;
+        hpLeft = Math.max(0, hpLeft - dmg2);
+        updateHP('left', hpLeft);
+        turn = 'left';
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = '';
+        if (hpLeft <= 0) {
+          btn.textContent = '💀 T\'as pris cher...';
+          btn.style.background = '#FF1A1A';
+          btn.style.color = '#fff';
+        } else if (hpRight <= 0) {
+          btn.textContent = '🤑 RICO EST DOWN!';
+          btn.style.background = '#FFE600';
+        } else {
+          btn.textContent = '👋 GIFLE-LE';
+        }
+      }, 1400);
+    }
+
+    if (hpRight <= 0) {
+      btn.textContent = '🤑 RICO EST DOWN!';
+      btn.style.background = '#FFE600';
+      btn.style.pointerEvents = 'none';
+    }
+  }
+
+  function updateHP(side, val) {
+    const fill = document.getElementById('fill' + (side === 'left' ? 'Left' : 'Right'));
+    const pct = document.getElementById('hp' + (side === 'left' ? 'Left' : 'Right') + 'Pct');
+    const counter = document.getElementById('hp' + (side === 'left' ? 'Left' : 'Right'));
+    fill.style.width = val + '%';
+    pct.textContent = val + '%';
+    counter.textContent = val;
+
+    // Shake arena on hit
+    const arena = document.querySelector('.arena');
+    arena.style.transform = 'translate(-2px, 1px)';
+    setTimeout(() => { arena.style.transform = 'translate(2px, -1px)'; }, 50);
+    setTimeout(() => { arena.style.transform = ''; }, 100);
+  }
+</script>
+</body>
+</html>
