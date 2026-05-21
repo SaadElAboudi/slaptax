@@ -105,8 +105,13 @@ FR/EN:
 
 No build step required.
 
+### MVP Quick Demo
+- File: `slaptax_mvp.html`
+- Includes: playable Bo3 duel, tournament simulation, wallet, stats, and local history persistence.
+
 ### Option 1: Open directly
 1. Open `slapbattle.html` in your browser.
+2. Open `slaptax_mvp.html` in your browser.
 
 ### Option 2: Run a local static server (recommended)
 From the project folder:
@@ -117,6 +122,7 @@ python3 -m http.server 8080
 
 Then open:
 - `http://localhost:8080/slapbattle.html`
+- `http://localhost:8080/slaptax_mvp.html`
 
 ## Suggested Next Milestones
 
