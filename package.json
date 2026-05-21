@@ -1,0 +1,14 @@
+{
+    "name": "slaptax-mvp",
+    "version": "0.1.0",
+    "private": true,
+    "description": "SLAPTAX MVP API server",
+    "main": "api/server.js",
+    "scripts": {
+        "start": "node api/server.js",
+        "dev": "node api/server.js"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}
