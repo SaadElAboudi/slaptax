@@ -209,6 +209,80 @@
             animation: ticker 22s linear infinite;
         }
 
+        .impact-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .impact-word {
+            font-family: 'Black Ops One', cursive;
+            font-size: clamp(3rem, 13vw, 8rem);
+            letter-spacing: 0.06em;
+            color: var(--accent);
+            text-shadow: 6px 6px 0 var(--accent2), 0 0 30px rgba(255, 230, 0, 0.5);
+            transform: scale(0.7) rotate(-6deg);
+            opacity: 0;
+        }
+
+        .impact-word.show {
+            animation: impactWord 0.65s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .impact-word.loss {
+            color: #ffb3bb;
+            text-shadow: 6px 6px 0 #ff1a1a, 0 0 30px rgba(255, 26, 26, 0.45);
+        }
+
+        @keyframes impactWord {
+            0% {
+                opacity: 0;
+                transform: scale(0.4) rotate(-10deg);
+            }
+
+            30% {
+                opacity: 1;
+                transform: scale(1.2) rotate(5deg);
+            }
+
+            80% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        .screen-flash {
+            position: fixed;
+            inset: 0;
+            background: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 55;
+        }
+
+        .screen-flash.show {
+            animation: flash 0.24s ease-out;
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 0.45;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
         @keyframes ticker {
             0% {
                 transform: translateX(0);
@@ -684,10 +758,15 @@
     </header>
 
     <div class="ticker">
-        <div class="ticker-inner">
+        <div class="ticker-inner" id="tickerInner">
             KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
             KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
         </div>
+    </div>
+
+    <div class="screen-flash" id="screenFlash"></div>
+    <div class="impact-layer">
+        <div class="impact-word" id="impactWord">SLAP</div>
     </div>
 
     <div class="container">
@@ -717,17 +796,17 @@
             <div class="guide-step">
                 <div class="guide-step-index">1</div>
                 <h3>Configure your run</h3>
-                <p>Set your player name, choose a stake, and confirm your wallet can cover the entry.</p>
+                <p>Name, stake, go. Keep enough wallet for several back-to-back runs.</p>
             </div>
             <div class="guide-step">
                 <div class="guide-step-index">2</div>
                 <h3>Play duel or tournament</h3>
-                <p>Launch a Best-of-3 duel or simulate a full bracket. Results are persisted by the API.</p>
+                <p>Best-of-3 for fast reps, bracket mode for volatility and bigger spikes.</p>
             </div>
             <div class="guide-step">
                 <div class="guide-step-index">3</div>
                 <h3>Track performance</h3>
-                <p>Check history, win rate, and net results to validate the loop before extending the MVP.</p>
+                <p>Watch win rate and net flow. Tune stake based on signal, not emotion.</p>
             </div>
         </section>
 
@@ -894,6 +973,9 @@
         const el = {
             apiBadge: document.getElementById("apiBadge"),
             topWallet: document.getElementById("topWallet"),
+            tickerInner: document.getElementById("tickerInner"),
+            impactWord: document.getElementById("impactWord"),
+            screenFlash: document.getElementById("screenFlash"),
             apiStatusValue: document.getElementById("apiStatusValue"),
             coverageValue: document.getElementById("coverageValue"),
             lastNetValue: document.getElementById("lastNetValue"),
@@ -986,6 +1068,20 @@
             logEl.prepend(p);
         }
 
+        function playImpact(word, isLoss = false) {
+            el.impactWord.textContent = word;
+            el.impactWord.classList.remove("show", "loss");
+            if (isLoss) {
+                el.impactWord.classList.add("loss");
+            }
+            void el.impactWord.offsetWidth;
+            el.impactWord.classList.add("show");
+
+            el.screenFlash.classList.remove("show");
+            void el.screenFlash.offsetWidth;
+            el.screenFlash.classList.add("show");
+        }
+
         function fmtMoney(v) {
             return `EUR ${v.toFixed(2)}`;
         }
@@ -1024,7 +1120,22 @@
             el.kpiLosses.textContent = state.stats?.losses || 0;
             el.kpiWinRate.textContent = `${state.stats?.winRate || 0}%`;
 
+            renderTicker();
             renderHistory();
+        }
+
+        function renderTicker() {
+            const rows = (state.history || []).slice(0, 4);
+            if (!rows.length) {
+                el.tickerInner.textContent = "API BATTLE MODE ACTIVE • Play your first duel • Track your net in real time • API BATTLE MODE ACTIVE • Play your first duel • Track your net in real time •";
+                return;
+            }
+
+            const text = rows.map((h) => {
+                const amount = `${h.net >= 0 ? "+" : "-"}EUR ${Math.abs(h.net).toFixed(2)}`;
+                return `${h.type} ${h.result} ${amount}`;
+            }).join(" • ");
+            el.tickerInner.textContent = `${text} • ${text} •`;
         }
 
         function renderHistory() {
@@ -1096,6 +1207,7 @@
                 el.startDuelBtn.disabled = true;
                 el.duelLog.innerHTML = "";
                 setStatus(el.duelStatus, "Playing duel...", "loading");
+                el.duelState.textContent = "FIGHTING";
 
                 const res = await apiCall("POST", "/duel/play", { stake: state.stake });
 
@@ -1117,8 +1229,10 @@
 
                 if (duel.won) {
                     setStatus(el.duelStatus, `Victory! Net: +EUR ${duel.net.toFixed(2)}`, "ok");
+                    playImpact("SLAP WIN");
                 } else {
                     setStatus(el.duelStatus, `Defeat. Net: -EUR ${Math.abs(duel.net).toFixed(2)}`, "error");
+                    playImpact("KO", true);
                 }
 
                 render();
@@ -1151,8 +1265,10 @@
 
                 if (trn.champion) {
                     setStatus(el.tournamentStatus, `Champion! Net: +EUR ${trn.net.toFixed(2)}`, "ok");
+                    playImpact("JACKPOT");
                 } else {
                     setStatus(el.tournamentStatus, `Finished at round ${trn.reachedRound}. Net: -EUR ${Math.abs(trn.net).toFixed(2)}`, "error");
+                    playImpact("OUT", true);
                 }
 
                 render();
