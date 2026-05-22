@@ -31,6 +31,16 @@
             min-height: 100vh;
         }
 
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(255, 212, 0, 0.04), transparent 20%),
+                radial-gradient(circle at 80% 10%, rgba(255, 122, 0, 0.12), transparent 30%);
+        }
+
         .container {
             width: min(980px, 94vw);
             margin: 24px auto 80px;
@@ -49,6 +59,33 @@
 
         .hero-left {
             flex: 1;
+        }
+
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .hero-stat {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(12, 16, 21, 0.45);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        .hero-stat-label {
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .hero-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
         }
 
         .title {
@@ -111,6 +148,11 @@
             border-radius: 14px;
             background: var(--panel);
             padding: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+        }
+
+        .card.soft {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
         }
 
         .label {
@@ -124,6 +166,16 @@
         .value {
             font-weight: 700;
             font-size: 1.3rem;
+        }
+
+        .value.money {
+            color: var(--accent);
+        }
+
+        .subvalue {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.83rem;
         }
 
         .row {
@@ -208,6 +260,65 @@
             display: block;
         }
 
+        .guide {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .guide-step {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(17, 23, 34, 0.95), rgba(21, 27, 34, 0.9));
+            padding: 14px;
+        }
+
+        .guide-step-index {
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #111;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .guide-step h3 {
+            margin: 0 0 6px;
+            font-size: 1rem;
+        }
+
+        .guide-step p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 1.06rem;
+        }
+
+        .section-head p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 0.86rem;
+        }
+
         .duel-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -230,6 +341,14 @@
             margin: 8px 0;
         }
 
+        .score-card-you .score {
+            color: var(--accent);
+        }
+
+        .score-card-bot .score {
+            color: var(--accent2);
+        }
+
         .status {
             margin-top: 10px;
             color: var(--muted);
@@ -237,20 +356,28 @@
             padding: 8px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.2);
+            border: 1px solid transparent;
         }
 
         .status.loading {
             color: var(--info);
+            border-color: rgba(96, 165, 250, 0.24);
         }
 
         .status.ok {
             color: var(--ok);
             background: rgba(75, 212, 123, 0.1);
+            border-color: rgba(75, 212, 123, 0.24);
         }
 
         .status.error {
             color: var(--bad);
             background: rgba(255, 90, 104, 0.1);
+            border-color: rgba(255, 90, 104, 0.24);
+        }
+
+        .status.neutral {
+            border-color: rgba(255, 255, 255, 0.08);
         }
 
         .log {
@@ -275,6 +402,68 @@
 
         .log-item.bad {
             color: var(--bad);
+        }
+
+        .history-result {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .history-result.win {
+            color: var(--ok);
+            background: rgba(75, 212, 123, 0.12);
+        }
+
+        .history-result.loss {
+            color: var(--bad);
+            background: rgba(255, 90, 104, 0.12);
+        }
+
+        .money-positive {
+            color: var(--ok);
+            font-weight: 700;
+        }
+
+        .money-negative {
+            color: var(--bad);
+            font-weight: 700;
+        }
+
+        .helper-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .helper-box {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(17, 23, 34, 0.86);
+        }
+
+        .helper-box strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .helper-box p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .empty-note {
+            color: var(--muted);
+            text-align: center;
+            padding: 16px;
         }
 
         table {
@@ -316,6 +505,12 @@
                 flex-direction: column;
             }
 
+            .hero-meta,
+            .guide,
+            .helper-grid {
+                grid-template-columns: 1fr;
+            }
+
             .top-grid {
                 grid-template-columns: 1fr;
             }
@@ -337,12 +532,44 @@
             <div class="hero-left">
                 <h1 class="title">SLAP$TAX MVP</h1>
                 <p class="subtitle">API-connected demo: real backend, duel sim, tournament sim, persistent wallet.</p>
+                <div class="hero-meta">
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">API Status</div>
+                        <div class="hero-stat-value" id="apiStatusValue">Checking...</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">Wallet Coverage</div>
+                        <div class="hero-stat-value" id="coverageValue">-</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">Last Net Result</div>
+                        <div class="hero-stat-value" id="lastNetValue">No match yet</div>
+                    </div>
+                </div>
             </div>
             <div class="api-badge connected" id="apiBadge">● API CONNECTED</div>
         </section>
 
+        <section class="guide">
+            <div class="guide-step">
+                <div class="guide-step-index">1</div>
+                <h3>Configure your run</h3>
+                <p>Set your player name, choose a stake, and confirm your wallet can cover the entry.</p>
+            </div>
+            <div class="guide-step">
+                <div class="guide-step-index">2</div>
+                <h3>Play duel or tournament</h3>
+                <p>Launch a Best-of-3 duel or simulate a full bracket. Results are persisted by the API.</p>
+            </div>
+            <div class="guide-step">
+                <div class="guide-step-index">3</div>
+                <h3>Track performance</h3>
+                <p>Check history, win rate, and net results to validate the loop before extending the MVP.</p>
+            </div>
+        </section>
+
         <section class="top-grid">
-            <div class="card">
+            <div class="card soft">
                 <div class="label">Player Setup</div>
                 <div class="row">
                     <input id="nameInput" type="text" maxlength="20" placeholder="Player name" />
@@ -351,12 +578,13 @@
                 <div class="small" style="margin-top: 8px;">Current: <span id="playerName">Player</span></div>
             </div>
 
-            <div class="card">
+            <div class="card soft">
                 <div class="label">Wallet</div>
-                <div class="value" id="walletValue">EUR 25.00</div>
+                <div class="value money" id="walletValue">EUR 25.00</div>
+                <div class="subvalue" id="walletHint">Ready for play.</div>
             </div>
 
-            <div class="card">
+            <div class="card soft">
                 <div class="label">Stake</div>
                 <div class="row">
                     <select id="stakeSelect">
@@ -367,6 +595,7 @@
                     </select>
                     <button id="resetBtn">Reset</button>
                 </div>
+                <div class="subvalue" id="stakeHint">Standard run.</div>
             </div>
         </section>
 
@@ -377,30 +606,62 @@
         </div>
 
         <section id="duel" class="panel active">
+            <div class="section-head">
+                <div>
+                    <h2>Direct Challenge</h2>
+                    <p>Fastest way to validate the core risk/reward loop.</p>
+                </div>
+            </div>
+            <div class="helper-grid">
+                <div class="helper-box">
+                    <strong>What happens here</strong>
+                    <p>The API simulates a Best-of-3 duel against a bot, applies the current stake, updates your wallet, and stores the result in history.</p>
+                </div>
+                <div class="helper-box">
+                    <strong>Suggested use</strong>
+                    <p>Play several runs at 5 EUR first, then compare win rate and bankroll sensitivity in the Stats tab.</p>
+                </div>
+            </div>
             <div class="row">
                 <button class="btn-main" id="startDuelBtn">Start Best-of-3</button>
                 <span class="pill" id="duelState">Idle</span>
             </div>
 
             <div class="duel-grid">
-                <div class="card">
+                <div class="card score-card-you">
                     <div class="label">You</div>
                     <div class="score" id="playerScore">0</div>
                     <div class="small">Rounds won: <span id="playerRounds">0</span></div>
                 </div>
 
-                <div class="card">
+                <div class="card score-card-bot">
                     <div class="label">Opponent Bot</div>
                     <div class="score" id="botScore">0</div>
                     <div class="small">Rounds won: <span id="botRounds">0</span></div>
                 </div>
             </div>
 
-            <div class="status" id="duelStatus">Press "Start Best-of-3" to begin.</div>
+            <div class="status neutral" id="duelStatus">Press "Start Best-of-3" to begin.</div>
             <div class="log" id="duelLog"></div>
         </section>
 
         <section id="tournament" class="panel">
+            <div class="section-head">
+                <div>
+                    <h2>Tournament Simulation</h2>
+                    <p>Bracket-based run with current stake and wallet impact.</p>
+                </div>
+            </div>
+            <div class="helper-grid">
+                <div class="helper-box">
+                    <strong>What happens here</strong>
+                    <p>You pay the current entry fee, the API simulates an 8, 16, or 32-player bracket, then computes payout if you win the whole run.</p>
+                </div>
+                <div class="helper-box">
+                    <strong>Suggested use</strong>
+                    <p>Use tournaments to stress-test reward spikes and bankroll volatility after a few duel sessions.</p>
+                </div>
+            </div>
             <div class="row" style="margin-bottom: 8px;">
                 <select id="bracketSize">
                     <option value="8" selected>8 players</option>
@@ -410,7 +671,7 @@
                 <button class="btn-main" id="simulateTournamentBtn">Simulate</button>
             </div>
             <div class="small">Entry fee uses current stake. Platform fee: 6%.</div>
-            <div class="status" id="tournamentStatus"></div>
+            <div class="status neutral" id="tournamentStatus">Choose a bracket size, then simulate a run.</div>
             <div class="log" id="tournamentLog"></div>
         </section>
 
@@ -465,10 +726,15 @@
 
         const el = {
             apiBadge: document.getElementById("apiBadge"),
+            apiStatusValue: document.getElementById("apiStatusValue"),
+            coverageValue: document.getElementById("coverageValue"),
+            lastNetValue: document.getElementById("lastNetValue"),
             nameInput: document.getElementById("nameInput"),
             playerName: document.getElementById("playerName"),
             walletValue: document.getElementById("walletValue"),
+            walletHint: document.getElementById("walletHint"),
             stakeSelect: document.getElementById("stakeSelect"),
+            stakeHint: document.getElementById("stakeHint"),
             saveProfileBtn: document.getElementById("saveProfileBtn"),
             resetBtn: document.getElementById("resetBtn"),
 
@@ -520,17 +786,24 @@
 
         async function init() {
             try {
-                const data = await apiCall("GET", "/state");
-                state = { ...state, ...data };
+                await refreshState();
                 state.connected = true;
                 el.apiBadge.classList.add("connected");
+                el.apiBadge.textContent = "API CONNECTED";
+                el.apiStatusValue.textContent = "Live and reachable";
                 render();
             } catch (err) {
                 state.connected = false;
                 el.apiBadge.classList.remove("connected");
                 el.apiBadge.textContent = "⚠ API OFFLINE";
-                addLog(el.duelLog, `Cannot reach API at ${API_BASE}. Fallback mode.`);
+                el.apiStatusValue.textContent = "Offline";
+                setStatus(el.duelStatus, `Cannot reach API at ${API_BASE}. Start the backend to use this MVP.`, "error");
             }
+        }
+
+        async function refreshState() {
+            const data = await apiCall("GET", "/state");
+            state = { ...state, ...data };
         }
 
         function setStatus(el, text, type) {
@@ -549,10 +822,33 @@
             return `EUR ${v.toFixed(2)}`;
         }
 
+        function getLastNetLabel() {
+            if (!state.history || state.history.length === 0) return "No match yet";
+            const last = state.history[0];
+            return `${last.net >= 0 ? "+" : "-"}${fmtMoney(Math.abs(last.net)).replace("EUR ", "EUR ")}`;
+        }
+
+        function getStakeHint(stake) {
+            if (stake === 2) return "Low-friction entry.";
+            if (stake === 5) return "Standard run.";
+            if (stake === 10) return "Higher tension.";
+            return "High-risk test run.";
+        }
+
         function render() {
             el.playerName.textContent = state.playerName;
             el.walletValue.textContent = fmtMoney(state.wallet);
             el.stakeSelect.value = String(state.stake);
+            el.apiStatusValue.textContent = state.connected ? "Live and reachable" : "Offline";
+
+            const coverage = state.stake > 0 ? Math.floor(state.wallet / state.stake) : 0;
+            el.coverageValue.textContent = `${coverage} entries at current stake`;
+            el.lastNetValue.textContent = getLastNetLabel();
+            el.walletHint.textContent = coverage > 0
+                ? `${coverage} entry${coverage > 1 ? "s" : ""} available at EUR ${state.stake}.`
+                : "Wallet too low for current stake.";
+            el.stakeHint.textContent = getStakeHint(state.stake);
+            el.duelState.textContent = state.connected ? "Ready" : "Backend required";
 
             el.kpiMatches.textContent = state.stats?.matches || 0;
             el.kpiWins.textContent = state.stats?.wins || 0;
@@ -566,19 +862,20 @@
             el.historyBody.innerHTML = "";
             if (!state.history || state.history.length === 0) {
                 const tr = document.createElement("tr");
-                tr.innerHTML = `<td colspan="5" class="small">No matches yet.</td>`;
+                                tr.innerHTML = `<td colspan="5" class="empty-note">No matches yet. Play a duel or run a tournament to generate data.</td>`;
                 el.historyBody.appendChild(tr);
                 return;
             }
 
             state.history.slice(0, 20).forEach((h) => {
                 const tr = document.createElement("tr");
-                const netClass = h.net >= 0 ? "good" : "bad";
+                                const netClass = h.net >= 0 ? "money-positive" : "money-negative";
+                                const resultClass = h.result === "WIN" ? "win" : "loss";
                 tr.innerHTML = `
           <td>${h.type}</td>
-          <td>${h.result}</td>
+                    <td><span class="history-result ${resultClass}">${h.result}</span></td>
           <td>EUR ${h.stake}</td>
-          <td class="log-item ${netClass}">${h.net >= 0 ? "+" : ""}EUR ${h.net.toFixed(2)}</td>
+                    <td class="${netClass}">${h.net >= 0 ? "+" : ""}EUR ${h.net.toFixed(2)}</td>
           <td>${new Date(h.date).toLocaleString()}</td>
         `;
                 el.historyBody.appendChild(tr);
@@ -599,12 +896,14 @@
             if (!name) return;
             try {
                 el.saveProfileBtn.disabled = true;
+                setStatus(el.duelStatus, "Saving player profile...", "loading");
                 const res = await apiCall("POST", "/profile", { playerName: name });
                 state.playerName = res.playerName;
                 el.nameInput.value = "";
+                setStatus(el.duelStatus, `Profile updated. Welcome, ${state.playerName}.`, "ok");
                 render();
             } catch (err) {
-                addLog(el.duelLog, `Error saving profile: ${err.message}`, "bad");
+                setStatus(el.duelStatus, `Error saving profile: ${err.message}`, "error");
             } finally {
                 el.saveProfileBtn.disabled = false;
             }
@@ -615,8 +914,10 @@
             try {
                 await apiCall("POST", "/stake", { stake });
                 state.stake = stake;
+                setStatus(el.duelStatus, `Stake updated to EUR ${stake}.`, "ok");
+                render();
             } catch (err) {
-                addLog(el.duelLog, `Error setting stake: ${err.message}`, "bad");
+                setStatus(el.duelStatus, `Error setting stake: ${err.message}`, "error");
                 el.stakeSelect.value = String(state.stake);
             }
         });
@@ -631,13 +932,14 @@
 
                 state.wallet = res.wallet;
                 state.stats = res.stats;
-                state.history = res.history || state.history;
+                await refreshState();
 
                 const duel = res.duel;
                 el.playerScore.textContent = String(duel.playerRounds);
                 el.botScore.textContent = String(duel.botRounds);
                 el.playerRounds.textContent = String(duel.playerRounds);
                 el.botRounds.textContent = String(duel.botRounds);
+                el.duelState.textContent = duel.won ? "Win registered" : "Loss registered";
 
                 duel.rounds.forEach((r) => {
                     const outcome = r.winner === "PLAYER" ? "WIN" : "LOSS";
@@ -671,7 +973,7 @@
 
                 state.wallet = res.wallet;
                 state.stats = res.stats;
-                state.history = res.history || state.history;
+                await refreshState();
 
                 const trn = res.tournament;
                 trn.run.forEach((r) => {
@@ -696,14 +998,20 @@
             if (!confirm("Reset all data?")) return;
             try {
                 await apiCall("POST", "/reset");
-                state = { playerName: "Player", wallet: 25, stake: 5, connected: true };
+                await refreshState();
+                state.connected = true;
                 el.duelLog.innerHTML = "";
                 el.tournamentLog.innerHTML = "";
-                el.duelStatus.textContent = "";
-                el.tournamentStatus.textContent = "";
+                setStatus(el.duelStatus, "State reset. Ready for a new run.", "ok");
+                setStatus(el.tournamentStatus, "Choose a bracket size, then simulate a run.", "neutral");
+                el.playerScore.textContent = "0";
+                el.botScore.textContent = "0";
+                el.playerRounds.textContent = "0";
+                el.botRounds.textContent = "0";
+                el.duelState.textContent = "Ready";
                 render();
             } catch (err) {
-                addLog(el.duelLog, `Error resetting: ${err.message}`, "bad");
+                setStatus(el.duelStatus, `Error resetting: ${err.message}`, "error");
             }
         });
 
