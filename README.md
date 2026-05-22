@@ -106,7 +106,24 @@ FR/EN:
 No build step required.
 
 ### MVP Quick Demo
-- File: `slaptax_mvp.html`
+- File: `slaptax_mvp.html` (localStorage backend)
+- File: `slaptax_mvp_connected.html` (API-connected, requires running server)
+
+### Run the Full-Stack MVP
+
+**Terminal 1: Start API**
+```bash
+npm start
+```
+Runs on `http://localhost:8787`
+
+**Terminal 2: View Frontend** (requires API running)
+Open `http://localhost:8080/slaptax_mvp_connected.html` in browser.
+
+Or run simple static server:
+```bash
+python3 -m http.server 8080
+```
 - Includes: playable Bo3 duel, tournament simulation, wallet, stats, and local history persistence.
 
 ### Option 1: Open directly
