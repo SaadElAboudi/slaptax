@@ -5,6 +5,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SLAP$TAX MVP - API Connected</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rubik+Dirt&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg: #0b0f14;
@@ -25,10 +28,12 @@
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Space Mono', monospace;
             background: radial-gradient(circle at 20% -10%, #1f2937, var(--bg) 40%);
             color: var(--text);
             min-height: 100vh;
+            overflow-x: hidden;
+            cursor: crosshair;
         }
 
         body::before {
@@ -44,6 +49,87 @@
         .container {
             width: min(980px, 94vw);
             margin: 24px auto 80px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .tape-bg {
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(-55deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255, 230, 0, 0.02) 40px,
+                    rgba(255, 230, 0, 0.02) 41px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent);
+            background: rgba(10, 10, 10, 0.86);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand {
+            font-family: 'Rubik Dirt', cursive;
+            font-size: 1.8rem;
+            color: var(--accent);
+            letter-spacing: -1px;
+            text-shadow: 3px 3px 0 var(--accent2);
+        }
+
+        .brand .dollar {
+            color: var(--accent2);
+            text-shadow: 3px 3px 0 #ff1a1a;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-dot {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: #fff;
+            background: #ff1a1a;
+            padding: 5px 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 999px;
+            animation: blink 1.2s step-end infinite;
+        }
+
+        .wallet-chip {
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
         }
 
         .hero {
@@ -90,14 +176,47 @@
 
         .title {
             margin: 0 0 6px;
-            font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+            font-size: clamp(2rem, 6vw, 4rem);
             letter-spacing: 0.04em;
+            font-family: 'Black Ops One', cursive;
+            text-transform: uppercase;
         }
 
         .subtitle {
             margin: 0;
             color: var(--muted);
             font-size: 0.96rem;
+        }
+
+        .ticker {
+            margin: 0 auto 14px;
+            width: min(980px, 94vw);
+            background: var(--accent);
+            color: #111;
+            overflow: hidden;
+            white-space: nowrap;
+            border-radius: 10px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ticker-inner {
+            display: inline-block;
+            padding: 8px 0;
+            font-family: 'Black Ops One', cursive;
+            letter-spacing: 3px;
+            font-size: 0.75rem;
+            animation: ticker 22s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
         }
 
         .api-badge {
@@ -224,6 +343,8 @@
             color: #111;
             font-weight: 700;
             border: none;
+            font-family: 'Black Ops One', cursive;
+            letter-spacing: 1px;
         }
 
         .tabs {
@@ -239,6 +360,9 @@
             color: var(--muted);
             padding: 8px 14px;
             border-radius: 999px;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            letter-spacing: 0.03em;
         }
 
         .tab.active {
@@ -339,6 +463,7 @@
             font-size: 1.65rem;
             font-weight: 700;
             margin: 8px 0;
+            font-family: 'Black Ops One', cursive;
         }
 
         .score-card-you .score {
@@ -451,6 +576,7 @@
         .helper-box strong {
             display: block;
             margin-bottom: 6px;
+            color: var(--accent);
         }
 
         .helper-box p {
@@ -464,6 +590,26 @@
             color: var(--muted);
             text-align: center;
             padding: 16px;
+        }
+
+        .hero,
+        .panel,
+        .card,
+        .guide-step,
+        .helper-box {
+            animation: slideIn 0.45s ease-out both;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         table {
@@ -527,11 +673,28 @@
 </head>
 
 <body>
+    <div class="tape-bg"></div>
+
+    <header class="topbar">
+        <div class="brand">SLAP<span class="dollar">$</span>TAX</div>
+        <div class="topbar-right">
+            <span class="live-dot">LIVE</span>
+            <span class="wallet-chip" id="topWallet">EUR 25.00</span>
+        </div>
+    </header>
+
+    <div class="ticker">
+        <div class="ticker-inner">
+            KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
+            KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
+        </div>
+    </div>
+
     <div class="container">
         <section class="hero">
             <div class="hero-left">
                 <h1 class="title">SLAP$TAX MVP</h1>
-                <p class="subtitle">API-connected demo: real backend, duel sim, tournament sim, persistent wallet.</p>
+                <p class="subtitle">Street-style API arena: duel, tournament, wallet pressure, and real persistence.</p>
                 <div class="hero-meta">
                     <div class="hero-stat">
                         <div class="hero-stat-label">API Status</div>
@@ -600,9 +763,9 @@
         </section>
 
         <div class="tabs">
-            <button class="tab active" data-tab="duel">Duel</button>
-            <button class="tab" data-tab="tournament">Tournament</button>
-            <button class="tab" data-tab="stats">Stats</button>
+            <button class="tab active" data-tab="duel">Fight 1v1</button>
+            <button class="tab" data-tab="tournament">Bracket</button>
+            <button class="tab" data-tab="stats">Track Record</button>
         </div>
 
         <section id="duel" class="panel active">
@@ -615,11 +778,13 @@
             <div class="helper-grid">
                 <div class="helper-box">
                     <strong>What happens here</strong>
-                    <p>The API simulates a Best-of-3 duel against a bot, applies the current stake, updates your wallet, and stores the result in history.</p>
+                    <p>The API simulates a Best-of-3 duel against a bot, applies the current stake, updates your wallet,
+                        and stores the result in history.</p>
                 </div>
                 <div class="helper-box">
                     <strong>Suggested use</strong>
-                    <p>Play several runs at 5 EUR first, then compare win rate and bankroll sensitivity in the Stats tab.</p>
+                    <p>Play several runs at 5 EUR first, then compare win rate and bankroll sensitivity in the Stats
+                        tab.</p>
                 </div>
             </div>
             <div class="row">
@@ -655,11 +820,13 @@
             <div class="helper-grid">
                 <div class="helper-box">
                     <strong>What happens here</strong>
-                    <p>You pay the current entry fee, the API simulates an 8, 16, or 32-player bracket, then computes payout if you win the whole run.</p>
+                    <p>You pay the current entry fee, the API simulates an 8, 16, or 32-player bracket, then computes
+                        payout if you win the whole run.</p>
                 </div>
                 <div class="helper-box">
                     <strong>Suggested use</strong>
-                    <p>Use tournaments to stress-test reward spikes and bankroll volatility after a few duel sessions.</p>
+                    <p>Use tournaments to stress-test reward spikes and bankroll volatility after a few duel sessions.
+                    </p>
                 </div>
             </div>
             <div class="row" style="margin-bottom: 8px;">
@@ -726,6 +893,7 @@
 
         const el = {
             apiBadge: document.getElementById("apiBadge"),
+            topWallet: document.getElementById("topWallet"),
             apiStatusValue: document.getElementById("apiStatusValue"),
             coverageValue: document.getElementById("coverageValue"),
             lastNetValue: document.getElementById("lastNetValue"),
@@ -838,6 +1006,7 @@
         function render() {
             el.playerName.textContent = state.playerName;
             el.walletValue.textContent = fmtMoney(state.wallet);
+            el.topWallet.textContent = fmtMoney(state.wallet);
             el.stakeSelect.value = String(state.stake);
             el.apiStatusValue.textContent = state.connected ? "Live and reachable" : "Offline";
 
@@ -862,15 +1031,15 @@
             el.historyBody.innerHTML = "";
             if (!state.history || state.history.length === 0) {
                 const tr = document.createElement("tr");
-                                tr.innerHTML = `<td colspan="5" class="empty-note">No matches yet. Play a duel or run a tournament to generate data.</td>`;
+                tr.innerHTML = `<td colspan="5" class="empty-note">No matches yet. Play a duel or run a tournament to generate data.</td>`;
                 el.historyBody.appendChild(tr);
                 return;
             }
 
             state.history.slice(0, 20).forEach((h) => {
                 const tr = document.createElement("tr");
-                                const netClass = h.net >= 0 ? "money-positive" : "money-negative";
-                                const resultClass = h.result === "WIN" ? "win" : "loss";
+                const netClass = h.net >= 0 ? "money-positive" : "money-negative";
+                const resultClass = h.result === "WIN" ? "win" : "loss";
                 tr.innerHTML = `
           <td>${h.type}</td>
                     <td><span class="history-result ${resultClass}">${h.result}</span></td>
