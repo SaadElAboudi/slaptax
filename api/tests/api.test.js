@@ -47,6 +47,7 @@ test("health endpoint is reachable", async () => {
         assert.equal(status, 200);
         assert.equal(data.ok, true);
         assert.equal(data.service, "slaptax-mvp-api");
+        assert.equal(data.schemaVersion, 2);
     });
 });
 
@@ -54,9 +55,31 @@ test("state includes stats", async () => {
     await withServer(async (baseUrl) => {
         const { status, data } = await jfetch(baseUrl, "GET", "/api/state");
         assert.equal(status, 200);
+        assert.equal(data.schemaVersion, 2);
+        assert.equal(data.currency, "SLAP$");
         assert.equal(data.playerName, "Player");
         assert.equal(data.wallet, 25);
+        assert.equal(Array.isArray(data.users), true);
+        assert.equal(data.users.length, 1);
         assert.deepEqual(data.stats, { matches: 0, wins: 0, losses: 0, winRate: 0 });
+    });
+});
+
+test("can create and select users", async () => {
+    await withServer(async (baseUrl) => {
+        const created = await jfetch(baseUrl, "POST", "/api/users", { playerName: "Rico" });
+        assert.equal(created.status, 200);
+        assert.equal(created.data.user.playerName, "Rico");
+
+        const listed = await jfetch(baseUrl, "GET", "/api/users");
+        assert.equal(listed.status, 200);
+        assert.equal(listed.data.users.length, 2);
+        const target = listed.data.users.find((u) => u.playerName === "Player");
+        assert.ok(target);
+
+        const selected = await jfetch(baseUrl, "POST", "/api/session/select-user", { userId: target.id });
+        assert.equal(selected.status, 200);
+        assert.equal(selected.data.activeUserId, target.id);
     });
 });
 
@@ -96,7 +119,7 @@ test("tournament validation rejects unsupported size", async () => {
 
 test("reset restores default state", async () => {
     await withServer(async (baseUrl) => {
-        await jfetch(baseUrl, "POST", "/api/profile", { playerName: "Saad" });
+        await jfetch(baseUrl, "POST", "/api/users", { playerName: "Saad" });
         await jfetch(baseUrl, "POST", "/api/wallet/topup", { amount: 25 });
 
         const reset = await jfetch(baseUrl, "POST", "/api/reset");
@@ -106,5 +129,6 @@ test("reset restores default state", async () => {
         assert.equal(state.data.playerName, "Player");
         assert.equal(state.data.wallet, 25);
         assert.equal(state.data.history.length, 0);
+        assert.equal(state.data.users.length, 1);
     });
 });

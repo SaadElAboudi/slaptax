@@ -29,6 +29,25 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "GET" && url.pathname === "/api/users") {
+            json(res, 200, service.listUsers());
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/users") {
+            const body = await parseBody(req);
+            const result = service.createUser(body.playerName);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/session/select-user") {
+            const body = await parseBody(req);
+            const result = service.selectUser(body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
         if (req.method === "POST" && url.pathname === "/api/profile") {
             const body = await parseBody(req);
             const result = service.setProfile(body.playerName);

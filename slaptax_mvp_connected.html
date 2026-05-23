@@ -753,14 +753,14 @@
         <div class="brand">SLAP<span class="dollar">$</span>TAX</div>
         <div class="topbar-right">
             <span class="live-dot">LIVE</span>
-            <span class="wallet-chip" id="topWallet">EUR 25.00</span>
+            <span class="wallet-chip" id="topWallet">SLAP$ 25.00</span>
         </div>
     </header>
 
     <div class="ticker">
         <div class="ticker-inner" id="tickerInner">
-            KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
-            KENZO clapped RICO for EUR 10 • DARIA keeps a 4-win streak • POT LIVE: EUR 87 • API BATTLE MODE ACTIVE •
+            KENZO clapped RICO for SLAP$ 10 • DARIA keeps a 4-win streak • POT LIVE: SLAP$ 87 • API BATTLE MODE ACTIVE •
+            KENZO clapped RICO for SLAP$ 10 • DARIA keeps a 4-win streak • POT LIVE: SLAP$ 87 • API BATTLE MODE ACTIVE •
         </div>
     </div>
 
@@ -815,14 +815,18 @@
                 <div class="label">Player Setup</div>
                 <div class="row">
                     <input id="nameInput" type="text" maxlength="20" placeholder="Player name" />
-                    <button id="saveProfileBtn">Save</button>
+                    <button id="saveProfileBtn">Create</button>
+                </div>
+                <div class="row" style="margin-top: 8px;">
+                    <select id="userSelect"></select>
+                    <button id="selectUserBtn">Switch</button>
                 </div>
                 <div class="small" style="margin-top: 8px;">Current: <span id="playerName">Player</span></div>
             </div>
 
             <div class="card soft">
                 <div class="label">Wallet</div>
-                <div class="value money" id="walletValue">EUR 25.00</div>
+                <div class="value money" id="walletValue">SLAP$ 25.00</div>
                 <div class="subvalue" id="walletHint">Ready for play.</div>
             </div>
 
@@ -830,10 +834,10 @@
                 <div class="label">Stake</div>
                 <div class="row">
                     <select id="stakeSelect">
-                        <option value="2">EUR 2</option>
-                        <option value="5" selected>EUR 5</option>
-                        <option value="10">EUR 10</option>
-                        <option value="20">EUR 20</option>
+                        <option value="2">SLAP$ 2</option>
+                        <option value="5" selected>SLAP$ 5</option>
+                        <option value="10">SLAP$ 10</option>
+                        <option value="20">SLAP$ 20</option>
                     </select>
                     <button id="resetBtn">Reset</button>
                 </div>
@@ -862,7 +866,7 @@
                 </div>
                 <div class="helper-box">
                     <strong>Suggested use</strong>
-                    <p>Play several runs at 5 EUR first, then compare win rate and bankroll sensitivity in the Stats
+                    <p>Play several runs at 5 SLAP$ first, then compare win rate and bankroll sensitivity in the Stats
                         tab.</p>
                 </div>
             </div>
@@ -964,9 +968,14 @@
         const RETRY_COUNT = 2;
 
         let state = {
+            schemaVersion: 2,
+            currency: "SLAP$",
+            activeUserId: "",
+            users: [],
             playerName: "Player",
             wallet: 25,
             stake: 5,
+            history: [],
             connected: false,
         };
 
@@ -980,12 +989,14 @@
             coverageValue: document.getElementById("coverageValue"),
             lastNetValue: document.getElementById("lastNetValue"),
             nameInput: document.getElementById("nameInput"),
+            userSelect: document.getElementById("userSelect"),
             playerName: document.getElementById("playerName"),
             walletValue: document.getElementById("walletValue"),
             walletHint: document.getElementById("walletHint"),
             stakeSelect: document.getElementById("stakeSelect"),
             stakeHint: document.getElementById("stakeHint"),
             saveProfileBtn: document.getElementById("saveProfileBtn"),
+            selectUserBtn: document.getElementById("selectUserBtn"),
             resetBtn: document.getElementById("resetBtn"),
 
             startDuelBtn: document.getElementById("startDuelBtn"),
@@ -1083,13 +1094,14 @@
         }
 
         function fmtMoney(v) {
-            return `EUR ${v.toFixed(2)}`;
+            const unit = state.currency || "SLAP$";
+            return `${unit} ${v.toFixed(2)}`;
         }
 
         function getLastNetLabel() {
             if (!state.history || state.history.length === 0) return "No match yet";
             const last = state.history[0];
-            return `${last.net >= 0 ? "+" : "-"}${fmtMoney(Math.abs(last.net)).replace("EUR ", "EUR ")}`;
+            return `${last.net >= 0 ? "+" : "-"}${fmtMoney(Math.abs(last.net))}`;
         }
 
         function getStakeHint(stake) {
@@ -1105,12 +1117,13 @@
             el.topWallet.textContent = fmtMoney(state.wallet);
             el.stakeSelect.value = String(state.stake);
             el.apiStatusValue.textContent = state.connected ? "Live and reachable" : "Offline";
+            renderUserSelect();
 
             const coverage = state.stake > 0 ? Math.floor(state.wallet / state.stake) : 0;
             el.coverageValue.textContent = `${coverage} entries at current stake`;
             el.lastNetValue.textContent = getLastNetLabel();
             el.walletHint.textContent = coverage > 0
-                ? `${coverage} entry${coverage > 1 ? "s" : ""} available at EUR ${state.stake}.`
+                ? `${coverage} entry${coverage > 1 ? "s" : ""} available at ${(state.currency || "SLAP$")} ${state.stake}.`
                 : "Wallet too low for current stake.";
             el.stakeHint.textContent = getStakeHint(state.stake);
             el.duelState.textContent = state.connected ? "Ready" : "Backend required";
@@ -1132,10 +1145,24 @@
             }
 
             const text = rows.map((h) => {
-                const amount = `${h.net >= 0 ? "+" : "-"}EUR ${Math.abs(h.net).toFixed(2)}`;
+                const amount = `${h.net >= 0 ? "+" : "-"}${(state.currency || "SLAP$")} ${Math.abs(h.net).toFixed(2)}`;
                 return `${h.type} ${h.result} ${amount}`;
             }).join(" • ");
             el.tickerInner.textContent = `${text} • ${text} •`;
+        }
+
+        function renderUserSelect() {
+            const users = Array.isArray(state.users) ? state.users : [];
+            el.userSelect.innerHTML = "";
+            if (users.length === 0) return;
+
+            users.forEach((u) => {
+                const option = document.createElement("option");
+                option.value = u.id;
+                option.textContent = `${u.playerName} (${fmtMoney(u.wallet)})`;
+                if (u.id === state.activeUserId) option.selected = true;
+                el.userSelect.appendChild(option);
+            });
         }
 
         function renderHistory() {
@@ -1154,8 +1181,8 @@
                 tr.innerHTML = `
           <td>${h.type}</td>
                     <td><span class="history-result ${resultClass}">${h.result}</span></td>
-          <td>EUR ${h.stake}</td>
-                    <td class="${netClass}">${h.net >= 0 ? "+" : ""}EUR ${h.net.toFixed(2)}</td>
+          <td>${(state.currency || "SLAP$")} ${h.stake}</td>
+                    <td class="${netClass}">${h.net >= 0 ? "+" : ""}${(state.currency || "SLAP$")} ${h.net.toFixed(2)}</td>
           <td>${new Date(h.date).toLocaleString()}</td>
         `;
                 el.historyBody.appendChild(tr);
@@ -1176,16 +1203,33 @@
             if (!name) return;
             try {
                 el.saveProfileBtn.disabled = true;
-                setStatus(el.duelStatus, "Saving player profile...", "loading");
-                const res = await apiCall("POST", "/profile", { playerName: name });
-                state.playerName = res.playerName;
+                setStatus(el.duelStatus, "Creating player profile...", "loading");
+                const res = await apiCall("POST", "/users", { playerName: name });
+                await apiCall("POST", "/session/select-user", { userId: res.activeUserId });
+                await refreshState();
                 el.nameInput.value = "";
-                setStatus(el.duelStatus, `Profile updated. Welcome, ${state.playerName}.`, "ok");
+                setStatus(el.duelStatus, `Profile created. Welcome, ${state.playerName}.`, "ok");
                 render();
             } catch (err) {
-                setStatus(el.duelStatus, `Error saving profile: ${err.message}`, "error");
+                setStatus(el.duelStatus, `Error creating profile: ${err.message}`, "error");
             } finally {
                 el.saveProfileBtn.disabled = false;
+            }
+        });
+
+        el.selectUserBtn.addEventListener("click", async () => {
+            const userId = el.userSelect.value;
+            if (!userId) return;
+            try {
+                el.selectUserBtn.disabled = true;
+                await apiCall("POST", "/session/select-user", { userId });
+                await refreshState();
+                setStatus(el.duelStatus, `Switched to ${state.playerName}.`, "ok");
+                render();
+            } catch (err) {
+                setStatus(el.duelStatus, `Error switching profile: ${err.message}`, "error");
+            } finally {
+                el.selectUserBtn.disabled = false;
             }
         });
 
@@ -1194,7 +1238,7 @@
             try {
                 await apiCall("POST", "/stake", { stake });
                 state.stake = stake;
-                setStatus(el.duelStatus, `Stake updated to EUR ${stake}.`, "ok");
+                setStatus(el.duelStatus, `Stake updated to ${(state.currency || "SLAP$")} ${stake}.`, "ok");
                 render();
             } catch (err) {
                 setStatus(el.duelStatus, `Error setting stake: ${err.message}`, "error");
@@ -1228,10 +1272,10 @@
                 });
 
                 if (duel.won) {
-                    setStatus(el.duelStatus, `Victory! Net: +EUR ${duel.net.toFixed(2)}`, "ok");
+                    setStatus(el.duelStatus, `Victory! Net: +${(state.currency || "SLAP$")} ${duel.net.toFixed(2)}`, "ok");
                     playImpact("SLAP WIN");
                 } else {
-                    setStatus(el.duelStatus, `Defeat. Net: -EUR ${Math.abs(duel.net).toFixed(2)}`, "error");
+                    setStatus(el.duelStatus, `Defeat. Net: -${(state.currency || "SLAP$")} ${Math.abs(duel.net).toFixed(2)}`, "error");
                     playImpact("KO", true);
                 }
 
@@ -1264,10 +1308,10 @@
                 });
 
                 if (trn.champion) {
-                    setStatus(el.tournamentStatus, `Champion! Net: +EUR ${trn.net.toFixed(2)}`, "ok");
+                    setStatus(el.tournamentStatus, `Champion! Net: +${(state.currency || "SLAP$")} ${trn.net.toFixed(2)}`, "ok");
                     playImpact("JACKPOT");
                 } else {
-                    setStatus(el.tournamentStatus, `Finished at round ${trn.reachedRound}. Net: -EUR ${Math.abs(trn.net).toFixed(2)}`, "error");
+                    setStatus(el.tournamentStatus, `Finished at round ${trn.reachedRound}. Net: -${(state.currency || "SLAP$")} ${Math.abs(trn.net).toFixed(2)}`, "error");
                     playImpact("OUT", true);
                 }
 
