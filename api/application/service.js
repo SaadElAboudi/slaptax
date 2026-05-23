@@ -7,12 +7,41 @@ const crypto = require("crypto");
 const ALLOWED_STAKES = [2, 5, 10, 20];
 const ALLOWED_TOURNAMENT_SIZES = [8, 16, 32];
 
+const MAX_DAILY_GAIN = 200; // SLAP$ max a user can earn in one calendar day
+const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
+const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
+
 function pushHistory(user, entry) {
     user.history.unshift({
         ...entry,
         date: new Date().toISOString(),
     });
     user.history = user.history.slice(0, 100);
+}
+
+/** Total net gains today (UTC day) for a user. */
+function dailyGainToday(user) {
+    const todayPrefix = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    return user.history.reduce((sum, h) => {
+        if (h.date && h.date.startsWith(todayPrefix) && h.net > 0) {
+            return sum + h.net;
+        }
+        return sum;
+    }, 0);
+}
+
+/** Apply wallet floor: if wallet < WALLET_FLOOR, top up to WALLET_FLOOR_CREDIT. */
+function applyWalletFloor(user) {
+    if (user.wallet < WALLET_FLOOR) {
+        user.wallet = toMoney2(user.wallet + WALLET_FLOOR_CREDIT);
+        pushHistory(user, {
+            type: "FLOOR_CREDIT",
+            result: "CREDIT",
+            stake: 0,
+            net: WALLET_FLOOR_CREDIT,
+            note: "Wallet floor auto-credit",
+        });
+    }
 }
 
 function getActiveUser(db) {
@@ -161,7 +190,11 @@ function createService(store) {
             const duel = simulateDuel(numericStake, stats);
 
             if (duel.won) {
-                activeUser.wallet = toMoney2(activeUser.wallet + duel.payout);
+                const gainToday = dailyGainToday(activeUser);
+                const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
+                const cappedPayout = toMoney2(Math.min(duel.payout, numericStake + allowedGain));
+                activeUser.wallet = toMoney2(activeUser.wallet + cappedPayout);
+                duel.net = toMoney2(cappedPayout - numericStake);
             }
 
             pushHistory(activeUser, {
@@ -170,6 +203,8 @@ function createService(store) {
                 stake: numericStake,
                 net: duel.net,
             });
+
+            applyWalletFloor(activeUser);
 
             store.write(db);
 
@@ -299,7 +334,15 @@ function createService(store) {
             const winnerNet = toMoney2(payout - stake);
             const loserNet = toMoney2(-stake);
 
-            winner.wallet = toMoney2(winner.wallet + payout);
+            // Anti-inflation: cap daily gains
+            const winnerBeforeCap = winner;
+            const gainToday = dailyGainToday(winnerBeforeCap);
+            const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
+            const cappedPayout = toMoney2(Math.min(payout, stake + allowedGain));
+            const cappedWinnerNet = toMoney2(cappedPayout - stake);
+            const capApplied = cappedPayout < payout;
+
+            winner.wallet = toMoney2(winner.wallet + cappedPayout);
 
             const date = new Date().toISOString();
             pushHistory(challenger, {
@@ -308,7 +351,8 @@ function createService(store) {
                 opponentId: duel.opponentId,
                 opponentName: opponent.playerName,
                 stake,
-                net: played.won ? winnerNet : loserNet,
+                net: played.won ? cappedWinnerNet : loserNet,
+                ...(played.won && capApplied ? { capApplied: true } : {}),
             });
             pushHistory(opponent, {
                 type: "DUEL_P2P",
@@ -316,8 +360,13 @@ function createService(store) {
                 opponentId: duel.challengerId,
                 opponentName: challenger.playerName,
                 stake,
-                net: played.won ? loserNet : winnerNet,
+                net: played.won ? loserNet : cappedWinnerNet,
+                ...(!played.won && capApplied ? { capApplied: true } : {}),
             });
+
+            // Wallet floor guard
+            applyWalletFloor(challenger);
+            applyWalletFloor(opponent);
 
             duel.status = "done";
             duel.winnerId = winnerId;
@@ -388,6 +437,85 @@ function createService(store) {
                 ],
                 wins: rivalry.wins,
                 last5: rivalry.last5,
+            };
+        },
+
+        // ── Sprint 3: KPI analytics ──────────────────────────────────────────
+
+        getAnalyticsKpi() {
+            const db = store.read();
+            const duels = db.duels || [];
+            const playedDuels = duels.filter((d) => d.status === "done");
+
+            // Rematch rate: duels that have a subsequent rematch duel grouped by same pair
+            const rematchedIds = new Set();
+            playedDuels.forEach((d) => {
+                // A rematch is a played duel whose sides are swapped vs an older duel same pair
+                const pairKey = [d.challengerId, d.opponentId].sort().join("_");
+                const predecessors = playedDuels.filter(
+                    (o) =>
+                        o.id !== d.id &&
+                        o.playedAt < d.playedAt &&
+                        [o.challengerId, o.opponentId].sort().join("_") === pairKey
+                );
+                if (predecessors.length > 0) rematchedIds.add(d.id);
+            });
+            const rematchRate =
+                playedDuels.length > 0
+                    ? Math.round((rematchedIds.size / playedDuels.length) * 100)
+                    : 0;
+
+            // Duels per active user (users with ≥1 duel)
+            const duelsPerUser = {};
+            playedDuels.forEach((d) => {
+                duelsPerUser[d.challengerId] = (duelsPerUser[d.challengerId] || 0) + 1;
+                duelsPerUser[d.opponentId] = (duelsPerUser[d.opponentId] || 0) + 1;
+            });
+            const activeUserCount = Object.keys(duelsPerUser).length;
+            const duelsPerActiveUser =
+                activeUserCount > 0
+                    ? Math.round((playedDuels.length / activeUserCount) * 10) / 10
+                    : 0;
+
+            // Losers replay rate < 24h
+            const now = Date.now();
+            const cutoff24h = 24 * 60 * 60 * 1000;
+            const lostThen24h = new Set();
+            const replayedAfterLoss24h = new Set();
+            playedDuels.forEach((d) => {
+                // Mark losers
+                if (d.loserId) {
+                    const duelTime = new Date(d.playedAt).getTime();
+                    // Find a subsequent duel by the loser within 24h
+                    const loserReplayed = playedDuels.some(
+                        (o) =>
+                            o.id !== d.id &&
+                            (o.challengerId === d.loserId || o.opponentId === d.loserId) &&
+                            new Date(o.playedAt).getTime() > duelTime &&
+                            new Date(o.playedAt).getTime() - duelTime < cutoff24h
+                    );
+                    lostThen24h.add(d.loserId + "_" + d.playedAt);
+                    if (loserReplayed) replayedAfterLoss24h.add(d.loserId + "_" + d.playedAt);
+                }
+            });
+            const losersReplayRate24h =
+                lostThen24h.size > 0
+                    ? Math.round((replayedAfterLoss24h.size / lostThen24h.size) * 100)
+                    : 0;
+
+            return {
+                ok: true,
+                kpi: {
+                    totalPlayedDuels: playedDuels.length,
+                    rematchRate,
+                    duelsPerActiveUser,
+                    losersReplayRate24h,
+                    targets: {
+                        rematchRate: 35,
+                        duelsPerActiveUser: 3,
+                        losersReplayRate24h: 30,
+                    },
+                },
             };
         },
 

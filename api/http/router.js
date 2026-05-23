@@ -123,6 +123,11 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "GET" && url.pathname === "/api/analytics/kpi") {
+            json(res, 200, service.getAnalyticsKpi());
+            return;
+        }
+
         json(res, 404, { error: "Not found" });
     };
 }

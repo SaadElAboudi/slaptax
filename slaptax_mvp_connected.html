@@ -850,6 +850,7 @@
             <button class="tab" data-tab="defy">⚔ Defy</button>
             <button class="tab" data-tab="tournament">Bracket</button>
             <button class="tab" data-tab="leaderboard">Leaderboard</button>
+            <button class="tab" data-tab="analytics">Analytics</button>
             <button class="tab" data-tab="stats">Track Record</button>
         </div>
 
@@ -927,6 +928,46 @@
             <div class="log" id="tournamentLog"></div>
         </section>
 
+        <section id="analytics" class="panel">
+            <div class="section-head">
+                <div>
+                    <h2>Retention Analytics</h2>
+                    <p>North-star KPIs to measure engagement and anti-inflation health.</p>
+                </div>
+                <button class="btn-main" id="refreshKpiBtn" style="padding:6px 14px;font-size:13px">Refresh</button>
+            </div>
+
+            <div class="kpi-grid" style="margin-bottom:16px">
+                <div class="card">
+                    <div class="label">Rematch Rate</div>
+                    <div class="value" id="kpiRematchRate">—</div>
+                    <div class="small">Target &gt; 35%</div>
+                    <div id="kpiRematchBar" style="margin-top:6px;height:6px;border-radius:3px;background:#ffffff22;overflow:hidden"><div id="kpiRematchFill" style="height:100%;background:var(--accent);width:0%;transition:width .5s"></div></div>
+                </div>
+                <div class="card">
+                    <div class="label">Duels / Active User</div>
+                    <div class="value" id="kpiDuelsPerUser">—</div>
+                    <div class="small">Target &gt; 3</div>
+                    <div id="kpiDuelsBar" style="margin-top:6px;height:6px;border-radius:3px;background:#ffffff22;overflow:hidden"><div id="kpiDuelsFill" style="height:100%;background:var(--accent);width:0%;transition:width .5s"></div></div>
+                </div>
+                <div class="card">
+                    <div class="label">Losers Replay &lt;24h</div>
+                    <div class="value" id="kpiLosersReplay">—</div>
+                    <div class="small">Target &gt; 30%</div>
+                    <div id="kpiReplayBar" style="margin-top:6px;height:6px;border-radius:3px;background:#ffffff22;overflow:hidden"><div id="kpiReplayFill" style="height:100%;background:var(--accent);width:0%;transition:width .5s"></div></div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Duels Played</div>
+                    <div class="value" id="kpiTotalDuels">—</div>
+                    <div class="small">All time</div>
+                </div>
+            </div>
+
+            <div class="card" id="kpiStatusCard" style="text-align:center;color:#888;padding:20px">
+                Loading KPIs…
+            </div>
+        </section>
+
         <section id="stats" class="panel">
             <div class="kpi-grid">
                 <div class="card">
@@ -965,6 +1006,12 @@
         </section>
 
         <section id="defy" class="panel">
+            <!-- Retention nudge: shown after a P2P loss to prompt rematch -->
+            <div id="nudgeBanner" style="display:none;background:linear-gradient(90deg,#ffd40022,#ffd40011);border:1px solid var(--accent);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:none;align-items:center;gap:12px;flex-wrap:wrap;">
+                <span style="font-size:18px">⚡</span>
+                <span id="nudgeText" style="flex:1;font-weight:600;color:var(--accent)"></span>
+                <button id="nudgeBtn" class="btn-main" style="padding:6px 14px;font-size:13px">Start Rematch</button>
+            </div>
             <div class="section-head">
                 <div>
                     <h2>Defy a Player</h2>
@@ -1117,6 +1164,18 @@
             rivalryCard: document.getElementById("rivalryCard"),
             rivalryContent: document.getElementById("rivalryContent"),
             leaderboardBody: document.getElementById("leaderboardBody"),
+            nudgeBanner: document.getElementById("nudgeBanner"),
+            nudgeText: document.getElementById("nudgeText"),
+            nudgeBtn: document.getElementById("nudgeBtn"),
+            kpiRematchRate: document.getElementById("kpiRematchRate"),
+            kpiDuelsPerUser: document.getElementById("kpiDuelsPerUser"),
+            kpiLosersReplay: document.getElementById("kpiLosersReplay"),
+            kpiTotalDuels: document.getElementById("kpiTotalDuels"),
+            kpiRematchFill: document.getElementById("kpiRematchFill"),
+            kpiDuelsFill: document.getElementById("kpiDuelsFill"),
+            kpiReplayFill: document.getElementById("kpiReplayFill"),
+            kpiStatusCard: document.getElementById("kpiStatusCard"),
+            refreshKpiBtn: document.getElementById("refreshKpiBtn"),
         };
 
         let lastDuelId = null;
@@ -1238,6 +1297,7 @@
             renderHistory();
             renderDefySelectors();
             renderLeaderboard();
+            renderAnalyticsKpi();
         }
 
         function renderTicker() {
@@ -1487,6 +1547,31 @@
             } catch (_) { /* leaderboard is non-critical */ }
         }
 
+        async function renderAnalyticsKpi() {
+            try {
+                const data = await apiCall("GET", "/analytics/kpi");
+                const { kpi } = data;
+                el.kpiRematchRate.textContent = `${kpi.rematchRate}%`;
+                el.kpiDuelsPerUser.textContent = kpi.duelsPerActiveUser;
+                el.kpiLosersReplay.textContent = `${kpi.losersReplayRate24h}%`;
+                el.kpiTotalDuels.textContent = kpi.totalPlayedDuels;
+
+                el.kpiRematchFill.style.width = `${Math.min(100, (kpi.rematchRate / kpi.targets.rematchRate) * 100).toFixed(0)}%`;
+                el.kpiDuelsFill.style.width = `${Math.min(100, (kpi.duelsPerActiveUser / kpi.targets.duelsPerActiveUser) * 100 / 1).toFixed(0)}%`;
+                el.kpiReplayFill.style.width = `${Math.min(100, (kpi.losersReplayRate24h / kpi.targets.losersReplayRate24h) * 100).toFixed(0)}%`;
+
+                const allGreen = kpi.rematchRate >= kpi.targets.rematchRate
+                    && kpi.duelsPerActiveUser >= kpi.targets.duelsPerActiveUser
+                    && kpi.losersReplayRate24h >= kpi.targets.losersReplayRate24h;
+                el.kpiStatusCard.textContent = allGreen
+                    ? "All KPI targets met. Retention is healthy."
+                    : kpi.totalPlayedDuels === 0
+                    ? "No duels played yet. Play P2P duels to generate retention data."
+                    : "Some targets not yet met — keep engaging players to push the metrics.";
+                el.kpiStatusCard.style.color = allGreen ? "var(--accent)" : "#888";
+            } catch (_) { /* analytics is non-critical */ }
+        }
+
         el.defyBtn.addEventListener("click", async () => {
             const challengerId = el.defyChallenger.value;
             const opponentId = el.defyOpponent.value;
@@ -1498,6 +1583,7 @@
             try {
                 el.defyBtn.disabled = true;
                 el.rematchBtn.style.display = "none";
+                el.nudgeBanner.style.display = "none";
                 el.defyLog.innerHTML = "";
                 el.defyResult.style.display = "none";
                 setStatus(el.defyStatus, "Creating duel...", "loading");
@@ -1532,6 +1618,7 @@
                 });
 
                 const winnerName = challengerWon ? cName : oName;
+                const loserName = challengerWon ? oName : cName;
                 if (challengerWon) {
                     setStatus(el.defyStatus, `${winnerName} wins the duel!`, "ok");
                     playImpact("SLAP WIN");
@@ -1540,6 +1627,10 @@
                     playImpact("KO", true);
                 }
                 el.defyState.textContent = `${winnerName} wins`;
+
+                // Retention nudge: show after any loss to encourage rematch
+                el.nudgeText.textContent = `${loserName} lost to ${winnerName} — rematch available now.`;
+                el.nudgeBanner.style.display = "flex";
 
                 // Load rivalry
                 try {
@@ -1555,7 +1646,7 @@
                         `;
                         el.rivalryCard.style.display = "block";
                     }
-                } catch (_) {}
+                } catch (_) { }
 
                 el.rematchBtn.style.display = "inline-block";
                 await refreshState();
@@ -1572,6 +1663,7 @@
             if (!lastDuelId) return;
             try {
                 el.rematchBtn.disabled = true;
+                el.nudgeBanner.style.display = "none";
                 el.defyLog.innerHTML = "";
                 setStatus(el.defyStatus, "Creating rematch...", "loading");
 
@@ -1629,7 +1721,7 @@
                         `;
                         el.rivalryCard.style.display = "block";
                     }
-                } catch (_) {}
+                } catch (_) { }
 
                 await refreshState();
                 render();
@@ -1639,6 +1731,13 @@
                 el.rematchBtn.disabled = false;
             }
         });
+
+        el.nudgeBtn.addEventListener("click", () => {
+            el.nudgeBanner.style.display = "none";
+            el.rematchBtn.click();
+        });
+
+        el.refreshKpiBtn.addEventListener("click", () => renderAnalyticsKpi());
 
         init();
     </script>

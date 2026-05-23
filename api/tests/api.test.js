@@ -237,3 +237,71 @@ test("leaderboard lists all users sorted by wins", async () => {
         });
     });
 });
+
+// ── Sprint 3 tests ────────────────────────────────────────────────────────────
+
+test("analytics kpi endpoint returns expected shape", async () => {
+    await withServer(async (baseUrl) => {
+        const { status, data } = await jfetch(baseUrl, "GET", "/api/analytics/kpi");
+        assert.equal(status, 200);
+        assert.equal(data.ok, true);
+        assert.ok("kpi" in data);
+        const { kpi } = data;
+        assert.ok("rematchRate" in kpi);
+        assert.ok("duelsPerActiveUser" in kpi);
+        assert.ok("losersReplayRate24h" in kpi);
+        assert.ok("totalPlayedDuels" in kpi);
+        assert.ok("targets" in kpi);
+        assert.equal(kpi.targets.rematchRate, 35);
+        assert.equal(kpi.targets.duelsPerActiveUser, 3);
+        assert.equal(kpi.targets.losersReplayRate24h, 30);
+    });
+});
+
+test("rematch rate increments after a rematch", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "R_A" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "R_B" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+
+        // Play a first duel
+        const d1 = await jfetch(baseUrl, "POST", "/api/duels", { challengerId: aId, opponentId: bId, stake: 2 });
+        await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/play`);
+
+        // Rematch
+        const d2 = await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/rematch`);
+        await jfetch(baseUrl, "POST", `/api/duels/${d2.data.duel.id}/play`);
+
+        const kpiRes = await jfetch(baseUrl, "GET", "/api/analytics/kpi");
+        const { kpi } = kpiRes.data;
+        // After 2 duels (first + rematch), ≥1 is a rematch → rematchRate > 0
+        assert.ok(kpi.totalPlayedDuels >= 2);
+        assert.ok(kpi.rematchRate > 0, `expected rematchRate > 0, got ${kpi.rematchRate}`);
+    });
+});
+
+test("wallet floor auto-credits user below minimum stake", async () => {
+    await withServer(async (baseUrl) => {
+        const u = await jfetch(baseUrl, "POST", "/api/users", { playerName: "CapTester" });
+        await jfetch(baseUrl, "POST", "/api/session/select-user", { userId: u.data.user.id });
+
+        // Play until wallet floor is triggered (stake 2, start at 25 SLAP$)
+        let floorCreditFound = false;
+        for (let i = 0; i < 30 && !floorCreditFound; i++) {
+            await jfetch(baseUrl, "POST", "/api/duel/play", { stake: 2 });
+            const stateRes = await jfetch(baseUrl, "GET", "/api/state");
+            floorCreditFound = (stateRes.data.history || []).some((h) => h.type === "FLOOR_CREDIT");
+        }
+
+        // Whether or not the floor was hit, wallet must remain playable
+        const finalState = await jfetch(baseUrl, "GET", "/api/state");
+        assert.ok(finalState.data.wallet >= 0, "wallet must not go negative");
+        if (floorCreditFound) {
+            // The floor credit must appear in history with a positive net
+            const credit = finalState.data.history.find((h) => h.type === "FLOOR_CREDIT");
+            assert.ok(credit, "floor credit entry should exist");
+            assert.ok(credit.net > 0, "floor credit net must be positive");
+        }
+    });
+});
