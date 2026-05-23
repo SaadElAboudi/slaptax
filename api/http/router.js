@@ -88,6 +88,41 @@ function createRequestHandler(service) {
             return;
         }
 
+        // ── Sprint 2: P2P duels, rematch, rivalry, leaderboard ──────────────
+
+        if (req.method === "POST" && url.pathname === "/api/duels") {
+            const body = await parseBody(req);
+            const result = service.createDuel(body.challengerId, body.opponentId, body.stake);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const playDuelMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/play$/);
+        if (req.method === "POST" && playDuelMatch) {
+            const result = service.playDuelP2P(playDuelMatch[1]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const rematchMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/rematch$/);
+        if (req.method === "POST" && rematchMatch) {
+            const result = service.rematch(rematchMatch[1]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const rivalryMatch = url.pathname.match(/^\/api\/rivalries\/([^/]+)\/vs\/([^/]+)$/);
+        if (req.method === "GET" && rivalryMatch) {
+            const result = service.getRivalry(rivalryMatch[1], rivalryMatch[2]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/api/leaderboard") {
+            json(res, 200, service.getLeaderboard());
+            return;
+        }
+
         json(res, 404, { error: "Not found" });
     };
 }

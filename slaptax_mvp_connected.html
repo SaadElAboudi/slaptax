@@ -847,7 +847,9 @@
 
         <div class="tabs">
             <button class="tab active" data-tab="duel">Fight 1v1</button>
+            <button class="tab" data-tab="defy">⚔ Defy</button>
             <button class="tab" data-tab="tournament">Bracket</button>
+            <button class="tab" data-tab="leaderboard">Leaderboard</button>
             <button class="tab" data-tab="stats">Track Record</button>
         </div>
 
@@ -961,6 +963,86 @@
                 </table>
             </div>
         </section>
+
+        <section id="defy" class="panel">
+            <div class="section-head">
+                <div>
+                    <h2>Defy a Player</h2>
+                    <p>Pick an opponent, set the stake, trigger a real P2P Bo3.</p>
+                </div>
+            </div>
+
+            <div class="top-grid" style="margin-bottom:12px">
+                <div class="card soft">
+                    <div class="label">Challenger (you)</div>
+                    <select id="defyChallenger"></select>
+                </div>
+                <div class="card soft">
+                    <div class="label">Opponent</div>
+                    <select id="defyOpponent"></select>
+                </div>
+                <div class="card soft">
+                    <div class="label">Stake</div>
+                    <select id="defyStake">
+                        <option value="2">SLAP$ 2</option>
+                        <option value="5" selected>SLAP$ 5</option>
+                        <option value="10">SLAP$ 10</option>
+                        <option value="20">SLAP$ 20</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <button class="btn-main" id="defyBtn">Defy!</button>
+                <button class="btn-main" id="rematchBtn" style="display:none">Rematch ↺</button>
+                <span class="pill" id="defyState">Pick players to start</span>
+            </div>
+
+            <div id="defyResult" class="duel-grid" style="display:none;margin-top:16px">
+                <div class="card score-card-you">
+                    <div class="label" id="defyChallengerName">Challenger</div>
+                    <div class="score" id="defyChallengerScore">0</div>
+                    <div class="small">Rounds won</div>
+                </div>
+                <div class="card score-card-bot">
+                    <div class="label" id="defyOpponentName">Opponent</div>
+                    <div class="score" id="defyOpponentScore">0</div>
+                    <div class="small">Rounds won</div>
+                </div>
+            </div>
+
+            <div class="status neutral" id="defyStatus">Select two different players, then press Defy.</div>
+            <div class="log" id="defyLog"></div>
+
+            <div id="rivalryCard" class="card" style="display:none;margin-top:16px">
+                <div class="label">Rivalry</div>
+                <div id="rivalryContent"></div>
+            </div>
+        </section>
+
+        <section id="leaderboard" class="panel">
+            <div class="section-head">
+                <div>
+                    <h2>Leaderboard</h2>
+                    <p>All-time wins ranking across profiles.</p>
+                </div>
+            </div>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Wallet</th>
+                            <th>W</th>
+                            <th>L</th>
+                            <th>Win%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -1018,7 +1100,26 @@
             kpiLosses: document.getElementById("kpiLosses"),
             kpiWinRate: document.getElementById("kpiWinRate"),
             historyBody: document.getElementById("historyBody"),
+
+            defyChallenger: document.getElementById("defyChallenger"),
+            defyOpponent: document.getElementById("defyOpponent"),
+            defyStake: document.getElementById("defyStake"),
+            defyBtn: document.getElementById("defyBtn"),
+            rematchBtn: document.getElementById("rematchBtn"),
+            defyState: document.getElementById("defyState"),
+            defyResult: document.getElementById("defyResult"),
+            defyChallengerName: document.getElementById("defyChallengerName"),
+            defyChallengerScore: document.getElementById("defyChallengerScore"),
+            defyOpponentName: document.getElementById("defyOpponentName"),
+            defyOpponentScore: document.getElementById("defyOpponentScore"),
+            defyStatus: document.getElementById("defyStatus"),
+            defyLog: document.getElementById("defyLog"),
+            rivalryCard: document.getElementById("rivalryCard"),
+            rivalryContent: document.getElementById("rivalryContent"),
+            leaderboardBody: document.getElementById("leaderboardBody"),
         };
+
+        let lastDuelId = null;
 
         const tabs = Array.from(document.querySelectorAll(".tab"));
 
@@ -1135,6 +1236,8 @@
 
             renderTicker();
             renderHistory();
+            renderDefySelectors();
+            renderLeaderboard();
         }
 
         function renderTicker() {
@@ -1341,6 +1444,199 @@
                 render();
             } catch (err) {
                 setStatus(el.duelStatus, `Error resetting: ${err.message}`, "error");
+            }
+        });
+
+        // ── Defy helpers ──────────────────────────────────────────────────────
+
+        function renderDefySelectors() {
+            const users = Array.isArray(state.users) ? state.users : [];
+            [el.defyChallenger, el.defyOpponent].forEach((sel) => {
+                const current = sel.value;
+                sel.innerHTML = "";
+                users.forEach((u) => {
+                    const opt = document.createElement("option");
+                    opt.value = u.id;
+                    opt.textContent = `${u.playerName} (${fmtMoney(u.wallet)})`;
+                    sel.appendChild(opt);
+                });
+                if (current && users.find((u) => u.id === current)) sel.value = current;
+            });
+            if (users.length >= 2 && el.defyChallenger.value === el.defyOpponent.value) {
+                el.defyOpponent.selectedIndex = 1;
+            }
+        }
+
+        async function renderLeaderboard() {
+            try {
+                const data = await apiCall("GET", "/leaderboard");
+                el.leaderboardBody.innerHTML = "";
+                (data.leaderboard || []).forEach((entry, i) => {
+                    const tr = document.createElement("tr");
+                    const isActive = entry.id === state.activeUserId;
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td>${entry.playerName}${isActive ? ' <span class="pill" style="font-size:10px;padding:2px 6px">YOU</span>' : ""}</td>
+                        <td>${fmtMoney(entry.wallet)}</td>
+                        <td class="money-positive">${entry.wins}</td>
+                        <td class="money-negative">${entry.losses}</td>
+                        <td>${entry.winRate}%</td>
+                    `;
+                    el.leaderboardBody.appendChild(tr);
+                });
+            } catch (_) { /* leaderboard is non-critical */ }
+        }
+
+        el.defyBtn.addEventListener("click", async () => {
+            const challengerId = el.defyChallenger.value;
+            const opponentId = el.defyOpponent.value;
+            const stake = Number(el.defyStake.value);
+            if (!challengerId || !opponentId || challengerId === opponentId) {
+                setStatus(el.defyStatus, "Pick two different players.", "error");
+                return;
+            }
+            try {
+                el.defyBtn.disabled = true;
+                el.rematchBtn.style.display = "none";
+                el.defyLog.innerHTML = "";
+                el.defyResult.style.display = "none";
+                setStatus(el.defyStatus, "Creating duel...", "loading");
+
+                const created = await apiCall("POST", "/duels", { challengerId, opponentId, stake });
+                lastDuelId = created.duel.id;
+
+                setStatus(el.defyStatus, "FIGHTING...", "loading");
+                el.defyState.textContent = "FIGHTING";
+
+                const res = await apiCall("POST", `/duels/${lastDuelId}/play`);
+
+                const users = Array.isArray(state.users) ? state.users : [];
+                const cUser = users.find((u) => u.id === challengerId);
+                const oUser = users.find((u) => u.id === opponentId);
+                const cName = cUser?.playerName || "Challenger";
+                const oName = oUser?.playerName || "Opponent";
+
+                const challengerWon = res.winnerId === challengerId;
+                const cRounds = res.rounds.filter((r) => r.winner === "PLAYER").length;
+                const oRounds = res.rounds.filter((r) => r.winner === "BOT").length;
+
+                el.defyChallengerName.textContent = cName;
+                el.defyOpponentName.textContent = oName;
+                el.defyChallengerScore.textContent = String(cRounds);
+                el.defyOpponentScore.textContent = String(oRounds);
+                el.defyResult.style.display = "grid";
+
+                res.rounds.forEach((r) => {
+                    const w = r.winner === "PLAYER" ? cName : oName;
+                    addLog(el.defyLog, `Round ${r.round}: ${r.player} vs ${r.bot} → ${w}`, r.winner === "PLAYER" ? "good" : "bad");
+                });
+
+                const winnerName = challengerWon ? cName : oName;
+                if (challengerWon) {
+                    setStatus(el.defyStatus, `${winnerName} wins the duel!`, "ok");
+                    playImpact("SLAP WIN");
+                } else {
+                    setStatus(el.defyStatus, `${winnerName} wins! ${cName} takes the L.`, "error");
+                    playImpact("KO", true);
+                }
+                el.defyState.textContent = `${winnerName} wins`;
+
+                // Load rivalry
+                try {
+                    const rivalry = await apiCall("GET", `/rivalries/${challengerId}/vs/${opponentId}`);
+                    if (rivalry.exists) {
+                        const cWins = rivalry.wins[challengerId] || 0;
+                        const oWins = rivalry.wins[opponentId] || 0;
+                        el.rivalryContent.innerHTML = `
+                            <div class="kpi-grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                                <div class="card"><div class="label">${cName}</div><div class="value">${cWins}</div></div>
+                                <div class="card"><div class="label">${oName}</div><div class="value">${oWins}</div></div>
+                            </div>
+                        `;
+                        el.rivalryCard.style.display = "block";
+                    }
+                } catch (_) {}
+
+                el.rematchBtn.style.display = "inline-block";
+                await refreshState();
+                render();
+            } catch (err) {
+                setStatus(el.defyStatus, `Error: ${err.message}`, "error");
+            } finally {
+                el.defyBtn.disabled = false;
+                el.defyState.textContent = "Ready";
+            }
+        });
+
+        el.rematchBtn.addEventListener("click", async () => {
+            if (!lastDuelId) return;
+            try {
+                el.rematchBtn.disabled = true;
+                el.defyLog.innerHTML = "";
+                setStatus(el.defyStatus, "Creating rematch...", "loading");
+
+                const rematch = await apiCall("POST", `/duels/${lastDuelId}/rematch`);
+                lastDuelId = rematch.duel.id;
+
+                // Sync selectors with swapped sides
+                el.defyChallenger.value = rematch.duel.challengerId;
+                el.defyOpponent.value = rematch.duel.opponentId;
+
+                const playRes = await apiCall("POST", `/duels/${lastDuelId}/play`);
+
+                const users = Array.isArray(state.users) ? state.users : [];
+                const cUser = users.find((u) => u.id === rematch.duel.challengerId);
+                const oUser = users.find((u) => u.id === rematch.duel.opponentId);
+                const cName = cUser?.playerName || "Challenger";
+                const oName = oUser?.playerName || "Opponent";
+
+                const challengerWon = playRes.winnerId === rematch.duel.challengerId;
+                const cRounds = playRes.rounds.filter((r) => r.winner === "PLAYER").length;
+                const oRounds = playRes.rounds.filter((r) => r.winner === "BOT").length;
+
+                el.defyChallengerName.textContent = cName;
+                el.defyOpponentName.textContent = oName;
+                el.defyChallengerScore.textContent = String(cRounds);
+                el.defyOpponentScore.textContent = String(oRounds);
+                el.defyResult.style.display = "grid";
+
+                playRes.rounds.forEach((r) => {
+                    const w = r.winner === "PLAYER" ? cName : oName;
+                    addLog(el.defyLog, `Round ${r.round}: ${r.player} vs ${r.bot} → ${w}`, r.winner === "PLAYER" ? "good" : "bad");
+                });
+
+                const winnerName = challengerWon ? cName : oName;
+                if (challengerWon) {
+                    setStatus(el.defyStatus, `Rematch: ${winnerName} wins!`, "ok");
+                    playImpact("SLAP WIN");
+                } else {
+                    setStatus(el.defyStatus, `Rematch: ${winnerName} wins!`, "error");
+                    playImpact("KO", true);
+                }
+
+                // Refresh rivalry
+                try {
+                    const rivalry = await apiCall("GET",
+                        `/rivalries/${rematch.duel.challengerId}/vs/${rematch.duel.opponentId}`);
+                    if (rivalry.exists) {
+                        const cWins = rivalry.wins[rematch.duel.challengerId] || 0;
+                        const oWins = rivalry.wins[rematch.duel.opponentId] || 0;
+                        el.rivalryContent.innerHTML = `
+                            <div class="kpi-grid" style="grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                                <div class="card"><div class="label">${cName}</div><div class="value">${cWins}</div></div>
+                                <div class="card"><div class="label">${oName}</div><div class="value">${oWins}</div></div>
+                            </div>
+                        `;
+                        el.rivalryCard.style.display = "block";
+                    }
+                } catch (_) {}
+
+                await refreshState();
+                render();
+            } catch (err) {
+                setStatus(el.defyStatus, `Rematch error: ${err.message}`, "error");
+            } finally {
+                el.rematchBtn.disabled = false;
             }
         });
 

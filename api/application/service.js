@@ -230,6 +230,184 @@ function createService(store) {
             const state = store.reset();
             return { ok: true, state };
         },
+
+        // ── Sprint 2: P2P duels, rematch, rivalry, leaderboard ──────────────
+
+        createDuel(challengerId, opponentId, stake) {
+            const db = store.read();
+            const challenger = db.users.find((u) => u.id === challengerId);
+            const opponent = db.users.find((u) => u.id === opponentId);
+
+            if (!challenger) return { error: "challengerId not found", code: 404 };
+            if (!opponent) return { error: "opponentId not found", code: 404 };
+            if (challengerId === opponentId) return { error: "Cannot challenge yourself", code: 400 };
+
+            const numericStake = Number(stake || challenger.stake);
+            if (!ALLOWED_STAKES.includes(numericStake)) {
+                return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+            }
+            if (challenger.wallet < numericStake) {
+                return { error: "Challenger has insufficient wallet balance", code: 400 };
+            }
+            if (opponent.wallet < numericStake) {
+                return { error: "Opponent has insufficient wallet balance", code: 400 };
+            }
+
+            const duelId = crypto.randomUUID();
+            if (!db.duels) db.duels = [];
+            const duel = {
+                id: duelId,
+                challengerId,
+                opponentId,
+                stake: numericStake,
+                status: "pending",
+                createdAt: new Date().toISOString(),
+            };
+            db.duels.push(duel);
+            store.write(db);
+            return { ok: true, duel };
+        },
+
+        playDuelP2P(duelId) {
+            const db = store.read();
+            if (!db.duels) db.duels = [];
+            const duel = db.duels.find((d) => d.id === duelId);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (duel.status !== "pending") return { error: "Duel already played", code: 400 };
+
+            const challenger = db.users.find((u) => u.id === duel.challengerId);
+            const opponent = db.users.find((u) => u.id === duel.opponentId);
+            if (!challenger || !opponent) return { error: "User not found", code: 404 };
+
+            const { stake } = duel;
+            if (challenger.wallet < stake) return { error: "Challenger has insufficient wallet balance", code: 400 };
+            if (opponent.wallet < stake) return { error: "Opponent has insufficient wallet balance", code: 400 };
+
+            challenger.wallet = toMoney2(challenger.wallet - stake);
+            opponent.wallet = toMoney2(opponent.wallet - stake);
+
+            // Simulate Bo3 — challenger has home advantage (slight)
+            const challengerStats = getStats(challenger.history);
+            const played = simulateDuel(stake, challengerStats);
+
+            const winnerId = played.won ? duel.challengerId : duel.opponentId;
+            const loserId = played.won ? duel.opponentId : duel.challengerId;
+            const winner = db.users.find((u) => u.id === winnerId);
+            const loser = db.users.find((u) => u.id === loserId);
+
+            const payout = toMoney2(stake * 2 * 0.85);
+            const winnerNet = toMoney2(payout - stake);
+            const loserNet = toMoney2(-stake);
+
+            winner.wallet = toMoney2(winner.wallet + payout);
+
+            const date = new Date().toISOString();
+            pushHistory(challenger, {
+                type: "DUEL_P2P",
+                result: played.won ? "WIN" : "LOSS",
+                opponentId: duel.opponentId,
+                opponentName: opponent.playerName,
+                stake,
+                net: played.won ? winnerNet : loserNet,
+            });
+            pushHistory(opponent, {
+                type: "DUEL_P2P",
+                result: played.won ? "LOSS" : "WIN",
+                opponentId: duel.challengerId,
+                opponentName: challenger.playerName,
+                stake,
+                net: played.won ? loserNet : winnerNet,
+            });
+
+            duel.status = "done";
+            duel.winnerId = winnerId;
+            duel.loserId = loserId;
+            duel.rounds = played.rounds;
+            duel.playedAt = date;
+
+            // Update rivalry cache
+            if (!db.rivalries) db.rivalries = {};
+            const pairKey = [duel.challengerId, duel.opponentId].sort().join("_");
+            if (!db.rivalries[pairKey]) {
+                db.rivalries[pairKey] = {
+                    users: [duel.challengerId, duel.opponentId],
+                    wins: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
+                    last5: [],
+                };
+            }
+            db.rivalries[pairKey].wins[winnerId] = (db.rivalries[pairKey].wins[winnerId] || 0) + 1;
+            db.rivalries[pairKey].last5.unshift({ winnerId, date });
+            db.rivalries[pairKey].last5 = db.rivalries[pairKey].last5.slice(0, 5);
+
+            store.write(db);
+
+            return {
+                ok: true,
+                duel,
+                winnerId,
+                loserId,
+                challengerWallet: challenger.wallet,
+                opponentWallet: opponent.wallet,
+                rounds: played.rounds,
+            };
+        },
+
+        rematch(duelId) {
+            const db = store.read();
+            if (!db.duels) return { error: "Duel not found", code: 404 };
+            const original = db.duels.find((d) => d.id === duelId);
+            if (!original) return { error: "Duel not found", code: 404 };
+            if (original.status !== "done") return { error: "Original duel not finished", code: 400 };
+
+            // Swap sides for fairness
+            return this.createDuel(original.opponentId, original.challengerId, original.stake);
+        },
+
+        getRivalry(userAId, userBId) {
+            const db = store.read();
+            const pairKey = [userAId, userBId].sort().join("_");
+            const rivalry = db.rivalries && db.rivalries[pairKey];
+            if (!rivalry) {
+                return {
+                    ok: true,
+                    exists: false,
+                    users: [userAId, userBId],
+                    wins: { [userAId]: 0, [userBId]: 0 },
+                    last5: [],
+                };
+            }
+            const userA = db.users.find((u) => u.id === userAId);
+            const userB = db.users.find((u) => u.id === userBId);
+            return {
+                ok: true,
+                exists: true,
+                pairKey,
+                users: [
+                    { id: userAId, playerName: userA?.playerName || userAId },
+                    { id: userBId, playerName: userB?.playerName || userBId },
+                ],
+                wins: rivalry.wins,
+                last5: rivalry.last5,
+            };
+        },
+
+        getLeaderboard() {
+            const db = store.read();
+            const board = db.users.map((u) => {
+                const stats = getStats(u.history);
+                return {
+                    id: u.id,
+                    playerName: u.playerName,
+                    wallet: u.wallet,
+                    wins: stats.wins,
+                    losses: stats.losses,
+                    winRate: stats.winRate,
+                    matches: stats.matches,
+                };
+            });
+            board.sort((a, b) => b.wins - a.wins || b.winRate - a.winRate);
+            return { ok: true, leaderboard: board };
+        },
     };
 }
 

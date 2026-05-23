@@ -132,3 +132,108 @@ test("reset restores default state", async () => {
         assert.equal(state.data.users.length, 1);
     });
 });
+
+// ── Sprint 2: P2P duel flow ──────────────────────────────────────────────────
+
+test("can create a P2P duel between two users", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "Kenzo" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "Rico" });
+
+        const { data } = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 5,
+        });
+
+        assert.equal(data.ok, true);
+        assert.equal(data.duel.status, "pending");
+        assert.equal(data.duel.stake, 5);
+    });
+});
+
+test("playing a P2P duel updates both wallets and history", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "A" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "B" });
+
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 5,
+        });
+
+        const played = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
+
+        assert.equal(played.status, 200);
+        assert.equal(played.data.duel.status, "done");
+        assert.ok(played.data.winnerId);
+
+        const total = played.data.challengerWallet + played.data.opponentWallet;
+        // Total wallets should be less than initial 50 (platform fee 15%)
+        assert.ok(total < 50);
+    });
+});
+
+test("rematch swaps challengerId and opponentId", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "A" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "B" });
+
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 5,
+        });
+        await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
+
+        const rematch = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`);
+
+        assert.equal(rematch.status, 200);
+        // Sides are swapped: original opponentId becomes new challengerId
+        assert.equal(rematch.data.duel.challengerId, b.data.user.id);
+        assert.equal(rematch.data.duel.opponentId, a.data.user.id);
+    });
+});
+
+test("rivalry is tracked after P2P duel", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "A" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "B" });
+
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 5,
+        });
+        await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
+
+        const rivalry = await jfetch(baseUrl, "GET",
+            `/api/rivalries/${a.data.user.id}/vs/${b.data.user.id}`);
+
+        assert.equal(rivalry.status, 200);
+        assert.equal(rivalry.data.exists, true);
+        assert.equal(rivalry.data.last5.length, 1);
+        const totalWins = (rivalry.data.wins[a.data.user.id] || 0) +
+            (rivalry.data.wins[b.data.user.id] || 0);
+        assert.equal(totalWins, 1);
+    });
+});
+
+test("leaderboard lists all users sorted by wins", async () => {
+    await withServer(async (baseUrl) => {
+        await jfetch(baseUrl, "POST", "/api/users", { playerName: "Extra" });
+
+        const lb = await jfetch(baseUrl, "GET", "/api/leaderboard");
+
+        assert.equal(lb.status, 200);
+        assert.equal(Array.isArray(lb.data.leaderboard), true);
+        assert.ok(lb.data.leaderboard.length >= 2);
+        lb.data.leaderboard.forEach((entry) => {
+            assert.ok("playerName" in entry);
+            assert.ok("wallet" in entry);
+            assert.ok("wins" in entry);
+            assert.ok("winRate" in entry);
+        });
+    });
+});
