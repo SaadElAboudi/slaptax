@@ -1,21 +1,17 @@
 {
-    "playerName": "Player",
-    "wallet": 61.1,
-    "stake": 5,
-    "history": [
-        {
-            "type": "TOURNAMENT",
-            "result": "WIN",
-            "stake": 5,
-            "net": 32.6,
-            "date": "2026-05-21T20:42:27.529Z"
-        },
-        {
-            "type": "DUEL",
-            "result": "WIN",
-            "stake": 5,
-            "net": 3.5,
-            "date": "2026-05-21T20:41:52.518Z"
-        }
-    ]
+  "schemaVersion": 2,
+  "currency": "SLAP$",
+  "activeUserId": "local-player",
+  "users": [
+    {
+      "id": "local-player",
+      "playerName": "Player",
+      "wallet": 25,
+      "stake": 5,
+      "history": []
+    }
+  ],
+  "duels": [],
+  "rivalries": {},
+  "challenges": []
 }

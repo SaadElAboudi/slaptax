@@ -1,0 +1,115 @@
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    border-bottom: 2px solid var(--accent);
+    background: rgba(10, 10, 10, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.brand {
+    font-family: 'Rubik Dirt', cursive;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: var(--accent);
+    letter-spacing: -1px;
+    text-shadow: 3px 3px 0 var(--accent2);
+    user-select: none;
+}
+
+.dollar {
+    color: var(--accent2);
+    text-shadow: 3px 3px 0 #ff1a1a;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.liveDot {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #fff;
+    background: #ff1a1a;
+    padding: 5px 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 999px;
+    animation: blink 1.2s step-end infinite;
+}
+
+.walletChip {
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, rgba(255, 212, 0, 0.14), rgba(255, 122, 0, 0.1));
+    box-shadow: inset 0 0 0 1px rgba(255, 212, 0, 0.4), 0 2px 8px rgba(255, 212, 0, 0.08);
+    transition: box-shadow var(--transition);
+}
+
+.walletChip.online {
+    box-shadow: inset 0 0 0 1px rgba(75, 212, 123, 0.4), 0 2px 8px rgba(75, 212, 123, 0.08);
+    border-color: rgba(75, 212, 123, 0.6);
+}
+
+.serverDot {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+}
+
+.serverDot.ok {
+    color: var(--ok);
+    background: rgba(75, 212, 123, 0.1);
+}
+
+.serverDot.bad {
+    color: var(--bad);
+    background: rgba(255, 90, 104, 0.1);
+}
+
+.langBtn {
+    border: 1px solid var(--line);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+}
+
+.langBtn:hover {
+    border-color: var(--accent);
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 8px 12px;
+    }
+
+    .serverDot {
+        display: none;
+    }
+
+    .langBtn {
+        padding: 4px 8px;
+        font-size: 0.64rem;
+    }
+}

@@ -1,0 +1,51 @@
+.tapeBg {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(-55deg,
+            transparent,
+            transparent 40px,
+            rgba(255, 230, 0, 0.018) 40px,
+            rgba(255, 230, 0, 0.018) 41px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.container {
+    width: 100%;
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+    position: relative;
+    z-index: 10;
+}
+
+.panelArea {
+    margin-top: 4px;
+}
+
+/* Desktop: duel panel wider content area */
+@media (min-width: 1025px) {
+    .panelArea {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 860px) {
+    .container {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding: 0;
+        padding-bottom: 24px;
+    }
+}

@@ -48,18 +48,20 @@ Core idea:
 
 ## Statut du projet / Project Status
 
-FR: Ce repository contient actuellement:
-- Des documents de concept produit.
-- Des presentations ciblees (investisseur, partenaire technique, public/presse).
-- Un prototype visuel HTML (`slapbattle.html`).
+FR: Ce repository contient maintenant une version MVP jouable:
+- une app React/Vite dans `web/`,
+- une API Node.js sans framework dans `api/`,
+- une persistence JSON locale dans `data/mvp_db.json`,
+- des prototypes HTML historiques conserves comme reference.
 
-EN: This repository currently contains:
-- Product concept documents.
-- Target-audience presentation documents (investor, technical partner, public/press).
-- A visual HTML prototype (`slapbattle.html`).
+EN: This repository now contains a playable MVP:
+- a React/Vite app in `web/`,
+- a framework-free Node.js API in `api/`,
+- local JSON persistence in `data/mvp_db.json`,
+- legacy HTML prototypes kept as reference.
 
-FR: Le projet est a un stade concept/prototype, pas encore une application prete pour la production.  
-EN: This is an early concept/prototype stage, not a production-ready app.
+FR: Le projet reste un prototype produit. Les soldes, mises et gains sont des credits de demo (`SLAP$`), pas de l'argent reel.  
+EN: This is still a product prototype. Balances, stakes, and payouts are demo credits (`SLAP$`), not real money.
 
 ## Business Model Snapshot
 
@@ -70,6 +72,9 @@ FR/EN:
 
 ## Repo Map
 
+- `web/`: current React/Vite frontend.
+- `api/`: MVP backend API.
+- `data/mvp_db.json`: sanitized local seed state.
 - `SLAPTAX_Concept.md`: main concept reference.
 - `SLAPTAX_Concept_Code.txt`: JS script used to generate DOCX concept output.
 - `SLAPTAX_Document_Presentation_Complet.md`: full master presentation.
@@ -101,7 +106,44 @@ FR/EN:
 - Sponsored tournaments.
 - Geographic expansion.
 
-## Lancer le prototype HTML / Run the HTML Prototype
+## Run The App
+
+### 1) Install frontend dependencies
+
+```bash
+cd web
+npm install
+```
+
+### 2) Start the API
+
+From the repo root:
+
+```bash
+npm start
+```
+
+The API listens on `http://localhost:8787`.
+
+### 3) Start the web app
+
+In another terminal:
+
+```bash
+cd web
+npm run dev
+```
+
+Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
+
+### Checks
+
+```bash
+npm test
+cd web && npm run build
+```
+
+## Lancer les prototypes HTML / Run the HTML Prototypes
 
 No build step required.
 

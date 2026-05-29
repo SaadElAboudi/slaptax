@@ -117,6 +117,23 @@ test("tournament validation rejects unsupported size", async () => {
     });
 });
 
+test("tournament supports draft and roster rounds", async () => {
+    await withServer(async (baseUrl) => {
+        const result = await jfetch(baseUrl, "POST", "/api/tournament/simulate", {
+            size: 8,
+            stake: 5,
+            draft: { ban: "mindgame", pick: "quickdraw" },
+        });
+
+        assert.equal(result.status, 200);
+        assert.equal(result.data.ok, true);
+        assert.ok(result.data.tournament.draftSummary);
+        assert.ok(Array.isArray(result.data.tournament.games));
+        assert.ok(result.data.tournament.games.includes("quickdraw"));
+        assert.ok(result.data.tournament.run.every((round) => round.gameId));
+    });
+});
+
 test("reset restores default state", async () => {
     await withServer(async (baseUrl) => {
         await jfetch(baseUrl, "POST", "/api/users", { playerName: "Saad" });
@@ -144,11 +161,17 @@ test("can create a P2P duel between two users", async () => {
             challengerId: a.data.user.id,
             opponentId: b.data.user.id,
             stake: 5,
+            draft: {
+                challenger: { ban: "mindgame", pick: "quickdraw" },
+                opponent: { ban: "precision", pick: "speedsort" },
+            },
         });
 
         assert.equal(data.ok, true);
         assert.equal(data.duel.status, "pending");
         assert.equal(data.duel.stake, 5);
+        assert.equal(data.duel.draft.challenger.ban, "mindgame");
+        assert.equal(data.duel.draft.opponent.pick, "speedsort");
     });
 });
 
@@ -168,6 +191,9 @@ test("playing a P2P duel updates both wallets and history", async () => {
         assert.equal(played.status, 200);
         assert.equal(played.data.duel.status, "done");
         assert.ok(played.data.winnerId);
+        assert.ok(Array.isArray(played.data.games));
+        assert.ok(played.data.games.length >= 2);
+        assert.ok(played.data.rounds.every((round) => ["precision", "quickdraw", "mindgame", "speedsort", "duelnumeric"].includes(round.gameId)));
 
         const total = played.data.challengerWallet + played.data.opponentWallet;
         // Total wallets should be less than initial 50 (platform fee 15%)
@@ -184,6 +210,10 @@ test("rematch swaps challengerId and opponentId", async () => {
             challengerId: a.data.user.id,
             opponentId: b.data.user.id,
             stake: 5,
+            draft: {
+                challenger: { ban: "quickdraw", pick: "precision" },
+                opponent: { ban: "mindgame", pick: "duelnumeric" },
+            },
         });
         await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
 
@@ -193,6 +223,7 @@ test("rematch swaps challengerId and opponentId", async () => {
         // Sides are swapped: original opponentId becomes new challengerId
         assert.equal(rematch.data.duel.challengerId, b.data.user.id);
         assert.equal(rematch.data.duel.opponentId, a.data.user.id);
+        assert.ok(rematch.data.duel.draft);
     });
 });
 
@@ -217,6 +248,84 @@ test("rivalry is tracked after P2P duel", async () => {
         const totalWins = (rivalry.data.wins[a.data.user.id] || 0) +
             (rivalry.data.wins[b.data.user.id] || 0);
         assert.equal(totalWins, 1);
+    });
+});
+
+test("challenge inbox lists pending incoming challenge", async () => {
+    await withServer(async (baseUrl) => {
+        const challenger = await jfetch(baseUrl, "POST", "/api/users", { playerName: "InboxA" });
+        const opponent = await jfetch(baseUrl, "POST", "/api/users", { playerName: "InboxB" });
+
+        const created = await jfetch(baseUrl, "POST", "/api/challenges", {
+            challengerId: challenger.data.user.id,
+            opponentId: opponent.data.user.id,
+            stake: 5,
+            draft: {
+                challenger: { ban: "mindgame", pick: "quickdraw" },
+                opponent: { ban: "precision", pick: "speedsort" },
+            },
+        });
+
+        assert.equal(created.status, 200);
+        assert.equal(created.data.challenge.status, "pending");
+
+        const inbox = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/challenges?userId=${opponent.data.user.id}&status=pending`
+        );
+        assert.equal(inbox.status, 200);
+        assert.equal(inbox.data.challenges.length, 1);
+        assert.equal(inbox.data.challenges[0].direction, "incoming");
+        assert.equal(inbox.data.challenges[0].challengerName, "InboxA");
+    });
+});
+
+test("opponent can accept or decline challenge", async () => {
+    await withServer(async (baseUrl) => {
+        const challenger = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ActA" });
+        const opponent = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ActB" });
+
+        const c1 = await jfetch(baseUrl, "POST", "/api/challenges", {
+            challengerId: challenger.data.user.id,
+            opponentId: opponent.data.user.id,
+            stake: 2,
+        });
+
+        const accepted = await jfetch(
+            baseUrl,
+            "POST",
+            `/api/challenges/${c1.data.challenge.id}/accept`,
+            { userId: opponent.data.user.id }
+        );
+        assert.equal(accepted.status, 200);
+        assert.equal(accepted.data.challenge.status, "accepted");
+        assert.equal(accepted.data.duel.status, "pending");
+
+        const played = await jfetch(baseUrl, "POST", `/api/duels/${accepted.data.duel.id}/play`);
+        assert.equal(played.status, 200);
+
+        const c2 = await jfetch(baseUrl, "POST", "/api/challenges", {
+            challengerId: challenger.data.user.id,
+            opponentId: opponent.data.user.id,
+            stake: 2,
+        });
+        const declined = await jfetch(
+            baseUrl,
+            "POST",
+            `/api/challenges/${c2.data.challenge.id}/decline`,
+            { userId: opponent.data.user.id }
+        );
+        assert.equal(declined.status, 200);
+        assert.equal(declined.data.challenge.status, "declined");
+
+        const pending = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/challenges?userId=${opponent.data.user.id}&status=pending`
+        );
+        assert.equal(pending.status, 200);
+        assert.equal(pending.data.challenges.length, 0);
     });
 });
 
@@ -303,5 +412,31 @@ test("wallet floor auto-credits user below minimum stake", async () => {
             assert.ok(credit, "floor credit entry should exist");
             assert.ok(credit.net > 0, "floor credit net must be positive");
         }
+    });
+});
+
+test("reflex duel endpoint settles real played result", async () => {
+    await withServer(async (baseUrl) => {
+        const u = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ReflexUser" });
+        await jfetch(baseUrl, "POST", "/api/session/select-user", { userId: u.data.user.id });
+
+        const res = await jfetch(baseUrl, "POST", "/api/duel/reflex", {
+            stake: 2,
+            won: true,
+            rounds: [
+                { round: 1, playerReactionMs: 350, botReactionMs: 700, winner: "PLAYER" },
+                { round: 2, playerReactionMs: 410, botReactionMs: 560, winner: "PLAYER" },
+                { round: 3, playerReactionMs: 510, botReactionMs: 420, winner: "BOT" },
+            ],
+        });
+
+        assert.equal(res.status, 200);
+        assert.equal(res.data.ok, true);
+        assert.equal(res.data.duel.won, true);
+        assert.equal(res.data.duel.playerRounds, 2);
+        assert.equal(res.data.duel.botRounds, 1);
+        const state = await jfetch(baseUrl, "GET", "/api/state");
+        assert.equal(state.data.history[0].type, "DUEL_REFLEX");
+        assert.equal(state.data.history[0].note, "Reflex Best-of-3");
     });
 });

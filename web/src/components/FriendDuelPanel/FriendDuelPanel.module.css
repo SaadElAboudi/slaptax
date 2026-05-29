@@ -1,0 +1,259 @@
+.panel {
+    border: 1px solid rgba(255, 212, 0, 0.2);
+    border-radius: 16px;
+    background: rgba(10, 14, 20, 0.84);
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+}
+
+.head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.sub {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.meta {
+    margin: 6px 0 0;
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-family: 'Space Mono', monospace;
+}
+
+.kpi {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 6px 10px;
+    white-space: nowrap;
+}
+
+.form {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.form select,
+.form input {
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(8, 11, 16, 0.9);
+    color: var(--text);
+    padding: 8px 10px;
+}
+
+.messageField {
+    grid-column: 1 / -1;
+}
+
+.draftHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 8px;
+}
+
+.draftHeader strong {
+    font-size: 0.82rem;
+    color: var(--text);
+}
+
+.draftHeader span {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.draftGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.draftCard {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+.draftCard h4 {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--accent);
+}
+
+.draftCard label {
+    display: grid;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.draftHint {
+    margin: 8px 0 0;
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.inlineCreate {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+}
+
+.inlineCreate button {
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+}
+
+.actions button {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.actions .main {
+    border-color: rgba(255, 212, 0, 0.45);
+    color: var(--accent);
+}
+
+.error {
+    margin: 0;
+    color: #f87171;
+    font-size: 0.82rem;
+}
+
+.result {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.roundsPlayed {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.roundPill {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 212, 0, 0.24);
+    background: rgba(255, 212, 0, 0.08);
+    color: var(--text);
+    padding: 4px 10px;
+    font-size: 0.74rem;
+    font-family: 'Space Mono', monospace;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.columns h3 {
+    margin: 0 0 6px;
+    font-size: 0.9rem;
+}
+
+.empty {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.challenge {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.challenge strong {
+    display: block;
+    font-size: 0.88rem;
+}
+
+.challenge span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.inlineActions {
+    display: flex;
+    gap: 8px;
+}
+
+.inlineActions button {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font-size: 0.76rem;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+@media (max-width: 767px) {
+    .head {
+        flex-direction: column;
+    }
+
+    .kpi {
+        white-space: normal;
+    }
+
+    .form {
+        grid-template-columns: 1fr;
+    }
+
+    .draftGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .columns {
+        grid-template-columns: 1fr;
+    }
+}

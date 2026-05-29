@@ -1,0 +1,116 @@
+.moveBtn {
+    transition: box-shadow 0.25s, background 0.25s, transform 0.18s;
+    box-shadow: 0 0 0 0 transparent;
+}
+
+.moveBtn.win {
+    box-shadow: 0 0 24px 6px #ffd700cc, 0 0 0 4px #00eaff99;
+    background: linear-gradient(135deg, #ffd700 60%, #00eaff 100%);
+    transform: scale(1.06);
+}
+
+.moveBtn.loss {
+    box-shadow: 0 0 18px 2px #f43f5ecc, 0 0 0 2px #f43f5e99;
+    background: linear-gradient(135deg, #f43f5e 60%, #facc15 100%);
+    transform: scale(0.97);
+}
+
+.feedback {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffd700;
+    text-shadow: 0 2px 12px #00eaff99, 0 0 2px #fff;
+    margin: 18px 0 0 0;
+    min-height: 32px;
+    letter-spacing: 0.02em;
+    animation: feedbackPop 0.5s;
+}
+
+@keyframes feedbackPop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.2;
+    }
+
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.crowdLine {
+    font-size: 1.1rem;
+    color: #00eaff;
+    text-shadow: 0 2px 8px #ffd70099;
+    margin: 8px 0 0 0;
+    min-height: 24px;
+    font-style: italic;
+    animation: crowdFade 0.7s;
+}
+
+@keyframes crowdFade {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.flashWin {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, #ffd70088 0%, transparent 70%);
+    animation: flashWinAnim 0.5s;
+    z-index: 20;
+}
+
+@keyframes flashWinAnim {
+    0% {
+        opacity: 0.7;
+    }
+
+    80% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.flashLoss {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, #f43f5e88 0%, transparent 70%);
+    animation: flashLossAnim 0.5s;
+    z-index: 20;
+}
+
+@keyframes flashLossAnim {
+    0% {
+        opacity: 0.6;
+    }
+
+    80% {
+        opacity: 0.2;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

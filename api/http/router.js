@@ -15,7 +15,8 @@ function createRequestHandler(service) {
         }
 
         if (req.method === "GET" && url.pathname === "/api/state") {
-            json(res, 200, service.getState());
+            const userId = url.searchParams.get("userId") || null;
+            json(res, 200, service.getState(userId));
             return;
         }
 
@@ -57,7 +58,7 @@ function createRequestHandler(service) {
 
         if (req.method === "POST" && url.pathname === "/api/stake") {
             const body = await parseBody(req);
-            const result = service.setStake(body.stake);
+            const result = service.setStake(body.stake, body.userId || null);
             json(res, result.code || 200, result);
             return;
         }
@@ -76,9 +77,16 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "POST" && url.pathname === "/api/duel/reflex") {
+            const body = await parseBody(req);
+            const result = service.resolveReflexDuel(body.stake, body.won, body.rounds, body.userId || null);
+            json(res, result.code || 200, result);
+            return;
+        }
+
         if (req.method === "POST" && url.pathname === "/api/tournament/simulate") {
             const body = await parseBody(req);
-            const result = service.simulateTournament(body.size, body.stake);
+            const result = service.simulateTournament(body.size, body.stake, body.draft || null);
             json(res, result.code || 200, result);
             return;
         }
@@ -92,7 +100,65 @@ function createRequestHandler(service) {
 
         if (req.method === "POST" && url.pathname === "/api/duels") {
             const body = await parseBody(req);
-            const result = service.createDuel(body.challengerId, body.opponentId, body.stake);
+            const result = service.createDuel(body.challengerId, body.opponentId, body.stake, body.draft);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/challenges") {
+            const body = await parseBody(req);
+            const result = service.createChallenge(
+                body.challengerId,
+                body.opponentId,
+                body.stake,
+                body.draft,
+                body.message
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/api/challenges") {
+            const userId = url.searchParams.get("userId");
+            const status = url.searchParams.get("status") || "pending";
+            const result = service.listChallenges(userId, status);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/api/progression/challenges") {
+            const userId = url.searchParams.get("userId");
+            const result = service.getChallengeProgress(userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/progression/challenges/sync") {
+            const body = await parseBody(req);
+            const result = service.syncChallengeProgress(body.userId, body.daily, body.season);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/progression/challenges/claim") {
+            const body = await parseBody(req);
+            const result = service.claimChallengeReward(body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const acceptChallengeMatch = url.pathname.match(/^\/api\/challenges\/([^/]+)\/accept$/);
+        if (req.method === "POST" && acceptChallengeMatch) {
+            const body = await parseBody(req);
+            const result = service.acceptChallenge(acceptChallengeMatch[1], body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const declineChallengeMatch = url.pathname.match(/^\/api\/challenges\/([^/]+)\/decline$/);
+        if (req.method === "POST" && declineChallengeMatch) {
+            const body = await parseBody(req);
+            const result = service.declineChallenge(declineChallengeMatch[1], body.userId);
             json(res, result.code || 200, result);
             return;
         }

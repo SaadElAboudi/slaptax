@@ -5,6 +5,7 @@ const { createRequestHandler } = require("./http/router");
 const { json } = require("./http/io");
 
 const PORT = Number(process.env.PORT || 8787);
+const HOST = process.env.HOST || "0.0.0.0";
 
 function createServer(options = {}) {
     const dbPath = options.dbPath || DB_PATH;
@@ -28,9 +29,9 @@ function createServer(options = {}) {
 
 if (require.main === module) {
     const server = createServer();
-    server.listen(PORT, () => {
+    server.listen(PORT, HOST, () => {
         // Keep startup line simple for quick copy/paste testing.
-        process.stdout.write(`SLAP$TAX API listening on http://localhost:${PORT}\n`);
+        process.stdout.write(`SLAP$TAX API listening on http://${HOST}:${PORT}\n`);
     });
 }
 

@@ -29,6 +29,9 @@ function makeDefaultState() {
         ...defaultState,
         activeUserId: user.id,
         users: [user],
+        duels: [],
+        rivalries: {},
+        challenges: [],
     };
 }
 
@@ -40,7 +43,12 @@ function migrateState(raw) {
         if (!raw.activeUserId || !raw.users.find((u) => u.id === raw.activeUserId)) {
             return { ...raw, activeUserId: raw.users[0].id };
         }
-        return raw;
+        return {
+            ...raw,
+            duels: Array.isArray(raw.duels) ? raw.duels : [],
+            rivalries: raw.rivalries && typeof raw.rivalries === "object" ? raw.rivalries : {},
+            challenges: Array.isArray(raw.challenges) ? raw.challenges : [],
+        };
     }
 
     if (raw && typeof raw === "object" && Array.isArray(raw.history)) {
@@ -57,6 +65,9 @@ function migrateState(raw) {
             currency: "SLAP$",
             activeUserId: migratedUser.id,
             users: [migratedUser],
+            duels: [],
+            rivalries: {},
+            challenges: [],
         };
     }
 

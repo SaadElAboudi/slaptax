@@ -1,0 +1,22 @@
+.wrap {
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-lg);
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.emoji {
+    font-size: 2.4rem;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 12px 0 6px;
+}
+
+.sub {
+    font-size: 0.88rem;
+}

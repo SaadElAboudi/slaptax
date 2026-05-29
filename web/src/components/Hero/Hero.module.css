@@ -1,0 +1,132 @@
+.hero {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    background: linear-gradient(120deg, rgba(255, 212, 0, 0.08), rgba(255, 122, 0, 0.08));
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.left {
+    flex: 1;
+}
+
+.title {
+    font-family: 'Black Ops One', cursive;
+    font-size: clamp(1.8rem, 5vw, 3.2rem);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 0.94rem;
+    margin-bottom: 8px;
+}
+
+.roster {
+    color: var(--text);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 1200px) {
+    .meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 860px) {
+    .meta {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stat {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(12, 16, 21, 0.45);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.45;
+    border-radius: 2px 2px 0 0;
+}
+
+.statLabel {
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    margin-bottom: 6px;
+}
+
+.statValue {
+    font-size: 0.96rem;
+    font-weight: 700;
+}
+
+.ok {
+    color: var(--ok);
+}
+
+.bad {
+    color: var(--bad);
+}
+
+.right {
+    display: flex;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.apiBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--info);
+    background: rgba(96, 165, 250, 0.1);
+    color: var(--info);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.apiBadge.connected {
+    border-color: var(--ok);
+    color: var(--ok);
+    background: rgba(75, 212, 123, 0.1);
+}
+
+@media (max-width: 767px) {
+    .hero {
+        display: none;
+    }
+}

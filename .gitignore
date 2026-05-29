@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+web/node_modules/
+
+# Frontend build artifacts
+web/dist/
+web/tsconfig.tsbuildinfo
+
+# Local runtime files
+.slaptax_api.pid
+.slaptax_api.port
+
+# macOS
+.DS_Store

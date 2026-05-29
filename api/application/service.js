@@ -1,5 +1,5 @@
 const { getStats } = require("../domain/stats");
-const { simulateDuel, simulateTournament } = require("../domain/simulations");
+const { simulateDuel, simulateTournament, simulateP2PDuel } = require("../domain/simulations");
 const { toMoney2 } = require("../shared/money");
 const { SCHEMA_VERSION } = require("../infrastructure/db");
 const crypto = require("crypto");
@@ -10,6 +10,156 @@ const ALLOWED_TOURNAMENT_SIZES = [8, 16, 32];
 const MAX_DAILY_GAIN = 200; // SLAP$ max a user can earn in one calendar day
 const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
 const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
+
+const DRAFT_GAMES = [
+    { id: "precision", label: "Precision Rush" },
+    { id: "quickdraw", label: "Quickdraw" },
+    { id: "mindgame", label: "Mind Game" },
+    { id: "speedsort", label: "Speed Sort" },
+    { id: "duelnumeric", label: "Duel Numeric" },
+];
+
+const DRAFT_GAME_ALIASES = {
+    reflex: "quickdraw",
+    timing: "mindgame",
+    precision: "precision",
+    parry: "mindgame",
+    zone: "speedsort",
+    crown: "duelnumeric",
+};
+
+const SKILL_POOLS = [
+    { id: "rookie", label: "Rookie", stakeCap: 5 },
+    { id: "confirmed", label: "Confirmed", stakeCap: 10 },
+    { id: "expert", label: "Expert", stakeCap: 20 },
+];
+
+const DAILY_CHALLENGE_TASKS = [
+    { id: "round_wins", label: "Win 3 rounds", target: 3, rewardXp: 120 },
+    { id: "perfect_rounds", label: "Hit 2 perfect rounds", target: 2, rewardXp: 140 },
+    { id: "duel_complete", label: "Complete 1 Best-of-3", target: 1, rewardXp: 100 },
+];
+
+function clampInt(value, min, max) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return min;
+    return Math.min(max, Math.max(min, Math.round(n)));
+}
+
+function getTodayKeyUtc() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function getSeasonIdUtc() {
+    return new Date().toISOString().slice(0, 7);
+}
+
+function buildDailyChallengeTemplate(dayKey) {
+    return {
+        dayKey,
+        claimed: false,
+        tasks: DAILY_CHALLENGE_TASKS.map((task) => ({
+            ...task,
+            progress: 0,
+        })),
+    };
+}
+
+function buildSeasonTemplate(seasonId) {
+    return {
+        id: seasonId,
+        points: 0,
+    };
+}
+
+function normalizeDailyFromIncoming(baseDaily, incomingDaily) {
+    const source = incomingDaily && typeof incomingDaily === "object" ? incomingDaily : {};
+    const merged = {
+        dayKey: String(baseDaily.dayKey),
+        claimed: !!source.claimed,
+        tasks: baseDaily.tasks.map((task) => ({ ...task, progress: 0 })),
+    };
+
+    const incomingTasks = Array.isArray(source.tasks) ? source.tasks : [];
+    merged.tasks.forEach((task) => {
+        const found = incomingTasks.find((entry) => entry && entry.id === task.id);
+        const nextProgress = found ? clampInt(found.progress, 0, task.target) : 0;
+        task.progress = nextProgress;
+    });
+    return merged;
+}
+
+function ensureUserProgression(user) {
+    if (!user || typeof user !== "object") return null;
+    if (!user.progression || typeof user.progression !== "object") {
+        user.progression = {};
+    }
+
+    const todayKey = getTodayKeyUtc();
+    const seasonId = getSeasonIdUtc();
+    const currentDaily = user.progression.daily;
+    const currentSeason = user.progression.season;
+
+    const defaultDaily = buildDailyChallengeTemplate(todayKey);
+    const defaultSeason = buildSeasonTemplate(seasonId);
+
+    if (!currentDaily || currentDaily.dayKey !== todayKey) {
+        user.progression.daily = defaultDaily;
+    } else {
+        user.progression.daily = normalizeDailyFromIncoming(defaultDaily, currentDaily);
+    }
+
+    if (!currentSeason || String(currentSeason.id || "") !== seasonId) {
+        user.progression.season = defaultSeason;
+    } else {
+        user.progression.season = {
+            id: seasonId,
+            points: clampInt(currentSeason.points, 0, 1000000),
+        };
+    }
+
+    return user.progression;
+}
+
+function sumDailyRewardXp(daily) {
+    if (!daily || !Array.isArray(daily.tasks)) return 0;
+    return daily.tasks.reduce((sum, task) => sum + clampInt(task.rewardXp, 0, 5000), 0);
+}
+
+function allDailyTasksCompleted(daily) {
+    if (!daily || !Array.isArray(daily.tasks) || daily.tasks.length === 0) return false;
+    return daily.tasks.every((task) => clampInt(task.progress, 0, task.target) >= task.target);
+}
+
+function normalizeDraftGameId(value) {
+    const id = String(value || "").trim();
+    const normalized = DRAFT_GAME_ALIASES[id] || id;
+    return DRAFT_GAMES.some((g) => g.id === normalized) ? normalized : "";
+}
+
+function summarizeDraft(draft) {
+    if (!draft) return "";
+    const lookup = Object.fromEntries(DRAFT_GAMES.map((g) => [g.id, g.label]));
+    const c = draft.challenger;
+    const o = draft.opponent;
+    return `Draft: you banned ${lookup[c.ban]} / favored ${lookup[c.pick]} • opponent banned ${lookup[o.ban]} / favored ${lookup[o.pick]}`;
+}
+
+function normalizeDraftSide(side) {
+    if (!side || typeof side !== "object") return null;
+    const ban = normalizeDraftGameId(side.ban);
+    const pick = normalizeDraftGameId(side.pick);
+    if (!ban || !pick || ban === pick) return null;
+    return { ban, pick };
+}
+
+function normalizeDraftPlan(draft) {
+    if (!draft || typeof draft !== "object") return null;
+    const challenger = normalizeDraftSide(draft.challenger);
+    const opponent = normalizeDraftSide(draft.opponent);
+    if (!challenger || !opponent) return null;
+    return { challenger, opponent };
+}
 
 function pushHistory(user, entry) {
     user.history.unshift({
@@ -48,8 +198,39 @@ function getActiveUser(db) {
     return db.users.find((u) => u.id === db.activeUserId) || db.users[0];
 }
 
-function statePayload(db) {
-    const activeUser = getActiveUser(db);
+function ensureCollections(db) {
+    if (!Array.isArray(db.duels)) db.duels = [];
+    if (!db.rivalries || typeof db.rivalries !== "object") db.rivalries = {};
+    if (!Array.isArray(db.challenges)) db.challenges = [];
+    if (!Array.isArray(db.users)) db.users = [];
+    db.users.forEach((user) => ensureUserProgression(user));
+}
+
+function getSkillProfile(user) {
+    const stats = getStats(user?.history || []);
+    if (stats.matches < 5 || stats.winRate < 40) {
+        return SKILL_POOLS[0];
+    }
+    if (stats.matches < 15 || stats.winRate < 70) {
+        return SKILL_POOLS[1];
+    }
+    return SKILL_POOLS[2];
+}
+
+function getStakeCapForUser(user) {
+    return getSkillProfile(user).stakeCap;
+}
+
+function isStakeAllowedForUser(user, stake) {
+    const numericStake = Number(stake);
+    return ALLOWED_STAKES.includes(numericStake) && numericStake <= getStakeCapForUser(user);
+}
+
+function statePayload(db, userId) {
+    const activeUser = userId
+        ? (db.users.find((u) => u.id === userId) || getActiveUser(db))
+        : getActiveUser(db);
+    const activeSkill = getSkillProfile(activeUser);
     return {
         schemaVersion: SCHEMA_VERSION,
         currency: db.currency || "SLAP$",
@@ -60,12 +241,16 @@ function statePayload(db) {
             wallet: u.wallet,
             stake: u.stake,
             stats: getStats(u.history),
+            skillPool: getSkillProfile(u).label,
+            stakeCap: getSkillProfile(u).stakeCap,
         })),
         playerName: activeUser.playerName,
         wallet: activeUser.wallet,
         stake: activeUser.stake,
         history: activeUser.history,
         stats: getStats(activeUser.history),
+        skillPool: activeSkill.label,
+        stakeCap: activeSkill.stakeCap,
     };
 }
 
@@ -75,9 +260,102 @@ function createService(store) {
             return { ok: true, service: "slaptax-mvp-api", schemaVersion: SCHEMA_VERSION };
         },
 
-        getState() {
+        getState(userId) {
             const db = store.read();
-            return statePayload(db);
+            ensureCollections(db);
+            return statePayload(db, userId || null);
+        },
+
+        getChallengeProgress(userId) {
+            const id = String(userId || "").trim();
+            if (!id) return { error: "userId is required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((u) => u.id === id);
+            if (!user) return { error: "userId not found", code: 404 };
+
+            const progression = ensureUserProgression(user);
+            store.write(db);
+            return {
+                ok: true,
+                daily: progression.daily,
+                season: progression.season,
+                serverClock: new Date().toISOString(),
+            };
+        },
+
+        syncChallengeProgress(userId, daily, season) {
+            const id = String(userId || "").trim();
+            if (!id) return { error: "userId is required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((u) => u.id === id);
+            if (!user) return { error: "userId not found", code: 404 };
+
+            const progression = ensureUserProgression(user);
+            const todayKey = getTodayKeyUtc();
+            const seasonId = getSeasonIdUtc();
+
+            if (daily && typeof daily === "object" && String(daily.dayKey || "") === todayKey) {
+                progression.daily = normalizeDailyFromIncoming(buildDailyChallengeTemplate(todayKey), daily);
+            }
+
+            if (season && typeof season === "object" && String(season.id || "") === seasonId) {
+                progression.season = {
+                    id: seasonId,
+                    points: clampInt(season.points, 0, 1000000),
+                };
+            }
+
+            store.write(db);
+            return {
+                ok: true,
+                daily: progression.daily,
+                season: progression.season,
+                serverClock: new Date().toISOString(),
+            };
+        },
+
+        claimChallengeReward(userId) {
+            const id = String(userId || "").trim();
+            if (!id) return { error: "userId is required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((u) => u.id === id);
+            if (!user) return { error: "userId not found", code: 404 };
+
+            const progression = ensureUserProgression(user);
+            if (progression.daily.claimed || !allDailyTasksCompleted(progression.daily)) {
+                store.write(db);
+                return {
+                    ok: true,
+                    claimed: false,
+                    rewardXp: 0,
+                    seasonGain: 0,
+                    daily: progression.daily,
+                    season: progression.season,
+                    serverClock: new Date().toISOString(),
+                };
+            }
+
+            const rewardXp = sumDailyRewardXp(progression.daily);
+            const seasonGain = Math.max(30, Math.round(rewardXp * 0.5));
+            progression.daily.claimed = true;
+            progression.season.points = clampInt((progression.season.points || 0) + seasonGain, 0, 1000000);
+
+            store.write(db);
+            return {
+                ok: true,
+                claimed: true,
+                rewardXp,
+                seasonGain,
+                daily: progression.daily,
+                season: progression.season,
+                serverClock: new Date().toISOString(),
+            };
         },
 
         getHistory() {
@@ -149,16 +427,18 @@ function createService(store) {
             return { ok: true, playerName: activeUser.playerName, activeUserId: db.activeUserId };
         },
 
-        setStake(stake) {
+        setStake(stake, userId) {
             const numericStake = Number(stake);
             if (!ALLOWED_STAKES.includes(numericStake)) {
                 return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
             }
             const db = store.read();
-            const activeUser = getActiveUser(db);
+            const activeUser = userId
+                ? (db.users.find((u) => u.id === userId) || getActiveUser(db))
+                : getActiveUser(db);
             activeUser.stake = numericStake;
             store.write(db);
-            return { ok: true, stake: activeUser.stake, activeUserId: db.activeUserId };
+            return { ok: true, stake: activeUser.stake, activeUserId: activeUser.id };
         },
 
         topupWallet(amount) {
@@ -217,7 +497,64 @@ function createService(store) {
             };
         },
 
-        simulateTournament(size, stake) {
+        resolveReflexDuel(stake, won, rounds = [], userId) {
+            const db = store.read();
+            const activeUser = userId
+                ? (db.users.find((u) => u.id === userId) || getActiveUser(db))
+                : getActiveUser(db);
+            const numericStake = Number(stake || activeUser.stake);
+            const didWin = won === true || won === "true" || won === 1 || won === "1";
+
+            if (!ALLOWED_STAKES.includes(numericStake)) {
+                return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+            }
+            if (activeUser.wallet < numericStake) {
+                return { error: "Insufficient wallet balance", code: 400 };
+            }
+
+            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
+            const payout = toMoney2(numericStake * 2 * 0.85);
+            const winnerNet = toMoney2(payout - numericStake);
+            const loserNet = toMoney2(-numericStake);
+
+            let net = loserNet;
+            if (didWin) {
+                const gainToday = dailyGainToday(activeUser);
+                const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
+                const cappedPayout = toMoney2(Math.min(payout, numericStake + allowedGain));
+                activeUser.wallet = toMoney2(activeUser.wallet + cappedPayout);
+                net = toMoney2(cappedPayout - numericStake);
+            }
+
+            const duel = {
+                won: didWin,
+                rounds,
+                playerRounds: didWin ? 2 : 1,
+                botRounds: didWin ? 1 : 2,
+                net,
+            };
+
+            pushHistory(activeUser, {
+                type: "DUEL_REFLEX",
+                result: didWin ? "WIN" : "LOSS",
+                stake: numericStake,
+                net,
+                note: "Reflex Best-of-3",
+            });
+
+            applyWalletFloor(activeUser);
+            store.write(db);
+
+            return {
+                ok: true,
+                duel,
+                wallet: activeUser.wallet,
+                stats: getStats(activeUser.history),
+                activeUserId: db.activeUserId,
+            };
+        },
+
+        simulateTournament(size, stake, draft = null) {
             const db = store.read();
             const activeUser = getActiveUser(db);
             const tournamentSize = Number(size || 8);
@@ -237,7 +574,7 @@ function createService(store) {
 
             activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
             const stats = getStats(activeUser.history);
-            const tournament = simulateTournament(tournamentSize, numericStake, stats);
+            const tournament = simulateTournament(tournamentSize, numericStake, stats, draft);
 
             if (tournament.champion) {
                 activeUser.wallet = toMoney2(activeUser.wallet + tournament.payout);
@@ -268,8 +605,9 @@ function createService(store) {
 
         // ── Sprint 2: P2P duels, rematch, rivalry, leaderboard ──────────────
 
-        createDuel(challengerId, opponentId, stake) {
+        createDuel(challengerId, opponentId, stake, draft = null) {
             const db = store.read();
+            ensureCollections(db);
             const challenger = db.users.find((u) => u.id === challengerId);
             const opponent = db.users.find((u) => u.id === opponentId);
 
@@ -288,24 +626,152 @@ function createService(store) {
                 return { error: "Opponent has insufficient wallet balance", code: 400 };
             }
 
+            const normalizedDraft = draft ? normalizeDraftPlan(draft) : null;
+            if (draft && !normalizedDraft) {
+                return { error: "Invalid draft plan", code: 400 };
+            }
+
             const duelId = crypto.randomUUID();
-            if (!db.duels) db.duels = [];
             const duel = {
                 id: duelId,
                 challengerId,
                 opponentId,
                 stake: numericStake,
                 status: "pending",
+                draft: normalizedDraft,
                 createdAt: new Date().toISOString(),
             };
             db.duels.push(duel);
             store.write(db);
-            return { ok: true, duel };
+            return { ok: true, duel, draftSummary: summarizeDraft(normalizedDraft) };
+        },
+
+        createChallenge(challengerId, opponentId, stake, draft = null, message = "") {
+            const db = store.read();
+            ensureCollections(db);
+
+            const challenger = db.users.find((u) => u.id === challengerId);
+            const opponent = db.users.find((u) => u.id === opponentId);
+
+            if (!challenger) return { error: "challengerId not found", code: 404 };
+            if (!opponent) return { error: "opponentId not found", code: 404 };
+            if (challengerId === opponentId) return { error: "Cannot challenge yourself", code: 400 };
+
+            const numericStake = Number(stake || challenger.stake);
+            if (!ALLOWED_STAKES.includes(numericStake)) {
+                return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+            }
+
+            const normalizedDraft = draft ? normalizeDraftPlan(draft) : null;
+            if (draft && !normalizedDraft) {
+                return { error: "Invalid draft plan", code: 400 };
+            }
+
+            const note = String(message || "").trim();
+            const challenge = {
+                id: crypto.randomUUID(),
+                challengerId,
+                opponentId,
+                stake: numericStake,
+                status: "pending",
+                draft: normalizedDraft,
+                message: note.slice(0, 140),
+                createdAt: new Date().toISOString(),
+            };
+
+            db.challenges.unshift(challenge);
+            db.challenges = db.challenges.slice(0, 300);
+            store.write(db);
+            return { ok: true, challenge, draftSummary: summarizeDraft(normalizedDraft) };
+        },
+
+        listChallenges(userId, status = "pending") {
+            const id = String(userId || "").trim();
+            if (!id) return { error: "userId is required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const userExists = db.users.some((u) => u.id === id);
+            if (!userExists) return { error: "userId not found", code: 404 };
+
+            const filtered = db.challenges.filter((c) => {
+                const belongsToUser = c.challengerId === id || c.opponentId === id;
+                const statusMatch = status ? c.status === status : true;
+                return belongsToUser && statusMatch;
+            });
+
+            const usersById = Object.fromEntries(db.users.map((u) => [u.id, u]));
+            const challenges = filtered.map((c) => ({
+                ...c,
+                challengerName: usersById[c.challengerId]?.playerName || c.challengerId,
+                opponentName: usersById[c.opponentId]?.playerName || c.opponentId,
+                direction: c.challengerId === id ? "outgoing" : "incoming",
+            }));
+
+            return { ok: true, challenges };
+        },
+
+        acceptChallenge(challengeId, userId) {
+            const challengeKey = String(challengeId || "").trim();
+            const actorId = String(userId || "").trim();
+            if (!challengeKey || !actorId) return { error: "challengeId and userId are required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const challenge = db.challenges.find((c) => c.id === challengeKey);
+            if (!challenge) return { error: "Challenge not found", code: 404 };
+            if (challenge.status !== "pending") return { error: "Challenge already handled", code: 400 };
+            if (challenge.opponentId !== actorId) return { error: "Only opponent can accept challenge", code: 403 };
+
+            const duelResult = this.createDuel(
+                challenge.challengerId,
+                challenge.opponentId,
+                challenge.stake,
+                challenge.draft
+            );
+            if (!duelResult.ok) return duelResult;
+
+            const persisted = store.read();
+            ensureCollections(persisted);
+            const persistedChallenge = persisted.challenges.find((c) => c.id === challengeKey);
+            if (!persistedChallenge) return { error: "Challenge not found", code: 404 };
+
+            persistedChallenge.status = "accepted";
+            persistedChallenge.respondedAt = new Date().toISOString();
+            persistedChallenge.respondedBy = actorId;
+            persistedChallenge.duelId = duelResult.duel.id;
+            store.write(persisted);
+
+            return {
+                ok: true,
+                challenge: persistedChallenge,
+                duel: duelResult.duel,
+                draftSummary: duelResult.draftSummary,
+            };
+        },
+
+        declineChallenge(challengeId, userId) {
+            const challengeKey = String(challengeId || "").trim();
+            const actorId = String(userId || "").trim();
+            if (!challengeKey || !actorId) return { error: "challengeId and userId are required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const challenge = db.challenges.find((c) => c.id === challengeKey);
+            if (!challenge) return { error: "Challenge not found", code: 404 };
+            if (challenge.status !== "pending") return { error: "Challenge already handled", code: 400 };
+            if (challenge.opponentId !== actorId) return { error: "Only opponent can decline challenge", code: 403 };
+
+            challenge.status = "declined";
+            challenge.respondedAt = new Date().toISOString();
+            challenge.respondedBy = actorId;
+            store.write(db);
+            return { ok: true, challenge };
         },
 
         playDuelP2P(duelId) {
             const db = store.read();
-            if (!db.duels) db.duels = [];
+            ensureCollections(db);
             const duel = db.duels.find((d) => d.id === duelId);
             if (!duel) return { error: "Duel not found", code: 404 };
             if (duel.status !== "pending") return { error: "Duel already played", code: 400 };
@@ -321,9 +787,9 @@ function createService(store) {
             challenger.wallet = toMoney2(challenger.wallet - stake);
             opponent.wallet = toMoney2(opponent.wallet - stake);
 
-            // Simulate Bo3 — challenger has home advantage (slight)
             const challengerStats = getStats(challenger.history);
-            const played = simulateDuel(stake, challengerStats);
+            const opponentStats = getStats(opponent.history);
+            const played = simulateP2PDuel(stake, challengerStats, opponentStats, duel.draft || null);
 
             const winnerId = played.won ? duel.challengerId : duel.opponentId;
             const loserId = played.won ? duel.opponentId : duel.challengerId;
@@ -352,6 +818,7 @@ function createService(store) {
                 opponentName: opponent.playerName,
                 stake,
                 net: played.won ? cappedWinnerNet : loserNet,
+                ...(duel.draft ? { note: summarizeDraft(duel.draft) } : {}),
                 ...(played.won && capApplied ? { capApplied: true } : {}),
             });
             pushHistory(opponent, {
@@ -361,6 +828,7 @@ function createService(store) {
                 opponentName: challenger.playerName,
                 stake,
                 net: played.won ? loserNet : cappedWinnerNet,
+                ...(duel.draft ? { note: summarizeDraft(duel.draft) } : {}),
                 ...(!played.won && capApplied ? { capApplied: true } : {}),
             });
 
@@ -372,10 +840,10 @@ function createService(store) {
             duel.winnerId = winnerId;
             duel.loserId = loserId;
             duel.rounds = played.rounds;
+            duel.games = played.games;
             duel.playedAt = date;
 
             // Update rivalry cache
-            if (!db.rivalries) db.rivalries = {};
             const pairKey = [duel.challengerId, duel.opponentId].sort().join("_");
             if (!db.rivalries[pairKey]) {
                 db.rivalries[pairKey] = {
@@ -398,18 +866,20 @@ function createService(store) {
                 challengerWallet: challenger.wallet,
                 opponentWallet: opponent.wallet,
                 rounds: played.rounds,
+                games: played.games,
+                draftSummary: summarizeDraft(duel.draft),
             };
         },
 
         rematch(duelId) {
             const db = store.read();
-            if (!db.duels) return { error: "Duel not found", code: 404 };
+            ensureCollections(db);
             const original = db.duels.find((d) => d.id === duelId);
             if (!original) return { error: "Duel not found", code: 404 };
             if (original.status !== "done") return { error: "Original duel not finished", code: 400 };
 
             // Swap sides for fairness
-            return this.createDuel(original.opponentId, original.challengerId, original.stake);
+            return this.createDuel(original.opponentId, original.challengerId, original.stake, original.draft);
         },
 
         getRivalry(userAId, userBId) {
@@ -531,6 +1001,8 @@ function createService(store) {
                     losses: stats.losses,
                     winRate: stats.winRate,
                     matches: stats.matches,
+                    skillPool: getSkillProfile(u).label,
+                    stakeCap: getSkillProfile(u).stakeCap,
                 };
             });
             board.sort((a, b) => b.wins - a.wins || b.winRate - a.winRate);

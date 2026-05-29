@@ -1,0 +1,221 @@
+/* ─── Design Tokens ─────────────────────────────────────── */
+:root {
+    --bg: #0b0f14;
+    --panel: #151b22;
+    --panel-hover: #1a2130;
+    --line: #263241;
+    --text: #e6edf3;
+    --muted: #91a3b8;
+    --accent: #ffd400;
+    --accent2: #ff7a00;
+    --ok: #4bd47b;
+    --bad: #ff5a68;
+    --info: #60a5fa;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.32);
+    --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.42), 0 4px 12px rgba(255, 212, 0, 0.08);
+    --transition: 180ms ease;
+}
+
+/* ─── Reset ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Space Mono', monospace;
+    background: radial-gradient(circle at 20% -10%, #1f2937, var(--bg) 40%);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(255, 212, 0, 0.04), transparent 20%),
+        radial-gradient(circle at 80% 10%, rgba(255, 122, 0, 0.12), transparent 30%);
+}
+
+/* ─── Tape stripe bg ────────────────────────────────────── */
+.tape-bg {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(-55deg,
+            transparent,
+            transparent 40px,
+            rgba(255, 230, 0, 0.018) 40px,
+            rgba(255, 230, 0, 0.018) 41px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 999px;
+}
+
+/* ─── Typography helpers ─────────────────────────────────── */
+.label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+.mono {
+    font-family: 'Space Mono', monospace;
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ─── Keyframes ─────────────────────────────────────────── */
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes impactWord {
+    0% {
+        opacity: 0;
+        transform: scale(0.4) rotate(-10deg);
+    }
+
+    30% {
+        opacity: 1;
+        transform: scale(1.2) rotate(5deg);
+    }
+
+    80% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+@keyframes flash {
+    0% {
+        opacity: 0.45;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes orbPulse {
+
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.75;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.12);
+        opacity: 1;
+    }
+}
+
+@keyframes ringSpin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg) scale(0.94);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg) scale(1);
+    }
+}
+
+@keyframes scanSweep {
+    0% {
+        transform: translate(-50%, -50%) translateY(-52px) scaleX(0.9);
+        opacity: 0.25;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) translateY(52px) scaleX(1.02);
+        opacity: 0.25;
+    }
+}
+
+@keyframes pulseTarget {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 212, 0, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 18px rgba(255, 212, 0, 0);
+    }
+}
