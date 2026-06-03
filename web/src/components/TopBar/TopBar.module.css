@@ -83,6 +83,49 @@
     background: rgba(255, 90, 104, 0.1);
 }
 
+.idBadge {
+    border: 1px solid rgba(255, 212, 0, 0.6);
+    background: rgba(255, 212, 0, 0.12);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.03em;
+    border-radius: 999px;
+    padding: 4px 8px;
+    white-space: nowrap;
+}
+
+.idBadgeMuted {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.03em;
+    border-radius: 999px;
+    padding: 4px 8px;
+    white-space: nowrap;
+}
+
+.copyIdBtn {
+    border: 1px solid rgba(255, 212, 0, 0.3);
+    background: rgba(255, 212, 0, 0.06);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    border-radius: 999px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.copyIdBtnDone {
+    border-color: rgba(75, 212, 123, 0.5);
+    color: var(--ok);
+    background: rgba(75, 212, 123, 0.12);
+}
+
 .langBtn {
     border: 1px solid var(--line);
     color: var(--text);
@@ -105,6 +148,14 @@
     }
 
     .serverDot {
+        display: none;
+    }
+
+    .idBadgeMuted {
+        display: none;
+    }
+
+    .copyIdBtn {
         display: none;
     }
 

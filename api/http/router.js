@@ -16,22 +16,36 @@ function createRequestHandler(service) {
 
         if (req.method === "GET" && url.pathname === "/api/state") {
             const userId = url.searchParams.get("userId") || null;
-            json(res, 200, service.getState(userId));
+            const clientId = url.searchParams.get("clientId") || null;
+            json(res, 200, service.getState(userId, clientId));
             return;
         }
 
         if (req.method === "GET" && url.pathname === "/api/history") {
-            json(res, 200, service.getHistory());
+            const userId = url.searchParams.get("userId") || null;
+            const clientId = url.searchParams.get("clientId") || null;
+            json(res, 200, service.getHistory(userId, clientId));
             return;
         }
 
         if (req.method === "GET" && url.pathname === "/api/stats") {
-            json(res, 200, service.getStats());
+            const userId = url.searchParams.get("userId") || null;
+            const clientId = url.searchParams.get("clientId") || null;
+            json(res, 200, service.getStats(userId, clientId));
             return;
         }
 
         if (req.method === "GET" && url.pathname === "/api/users") {
-            json(res, 200, service.listUsers());
+            const userId = url.searchParams.get("userId") || null;
+            const clientId = url.searchParams.get("clientId") || null;
+            json(res, 200, service.listUsers(userId, clientId));
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/session/join") {
+            const body = await parseBody(req);
+            const result = service.joinSession(body.playerName, body.clientId);
+            json(res, result.code || 200, result);
             return;
         }
 
@@ -166,6 +180,22 @@ function createRequestHandler(service) {
         const playDuelMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/play$/);
         if (req.method === "POST" && playDuelMatch) {
             const result = service.playDuelP2P(playDuelMatch[1]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const duelRoomMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/room$/);
+        if (req.method === "GET" && duelRoomMatch) {
+            const userId = url.searchParams.get("userId") || "";
+            const result = service.getDuelRoomStatus(duelRoomMatch[1], userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const duelReadyMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/ready$/);
+        if (req.method === "POST" && duelReadyMatch) {
+            const body = await parseBody(req);
+            const result = service.setDuelReady(duelReadyMatch[1], body.userId, body.ready);
             json(res, result.code || 200, result);
             return;
         }

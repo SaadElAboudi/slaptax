@@ -1,116 +1,188 @@
-.moveBtn {
-    transition: box-shadow 0.25s, background 0.25s, transform 0.18s;
-    box-shadow: 0 0 0 0 transparent;
+/* Legacy stylesheet kept valid for compatibility. */
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.moveBtn.win {
-    box-shadow: 0 0 24px 6px #ffd700cc, 0 0 0 4px #00eaff99;
-    background: linear-gradient(135deg, #ffd700 60%, #00eaff 100%);
-    transform: scale(1.06);
+.header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
 }
 
-.moveBtn.loss {
-    box-shadow: 0 0 18px 2px #f43f5ecc, 0 0 0 2px #f43f5e99;
-    background: linear-gradient(135deg, #f43f5e 60%, #facc15 100%);
-    transform: scale(0.97);
+.title {
+    margin: 0;
+    color: var(--text);
 }
 
-.feedback {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #ffd700;
-    text-shadow: 0 2px 12px #00eaff99, 0 0 2px #fff;
-    margin: 18px 0 0 0;
-    min-height: 32px;
-    letter-spacing: 0.02em;
-    animation: feedbackPop 0.5s;
+.sub {
+    margin: 0;
+    color: var(--muted);
 }
 
-@keyframes feedbackPop {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.2;
-    }
+.walletPill {
+    border: 1px solid rgba(168, 85, 247, 0.6);
+    border-radius: 999px;
+    padding: 5px 12px;
+    color: #e9d5ff;
+}
 
-    60% {
-        transform: scale(1.1);
-        opacity: 1;
-    }
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
 
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
+.chip,
+.chipButton {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font: 0.7rem 'Space Mono', monospace;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.chipWin,
+.soundOn {
+    color: #86efac;
+}
+
+.chipLoss,
+.soundOff {
+    color: #fca5a5;
+}
+
+.roundSummary {
+    display: flex;
+    gap: 8px;
+}
+
+.summaryDot {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 4px 10px;
+}
+
+.dotWin {
+    color: #86efac;
+}
+
+.dotLoss {
+    color: #fca5a5;
+}
+
+.arena {
+    position: relative;
+    min-height: 300px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 16px;
+}
+
+.feedbackTop {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+}
+
+.timerBar {
+    position: absolute;
+    top: 42px;
+    left: 12px;
+    right: 12px;
+    height: 6px;
+}
+
+.timerFill {
+    height: 100%;
+}
+
+.centeredOverlay,
+.questionArea {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.bigLabel {
+    margin: 0;
+    font-family: 'Black Ops One', cursive;
+}
+
+.labelWin {
+    color: #4ade80;
+}
+
+.labelLoss {
+    color: #f43f5e;
+}
+
+.questionBox {
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.question {
+    margin: 0;
+}
+
+.questionMeta,
+.hint {
+    color: var(--muted);
+}
+
+.inputRow {
+    display: flex;
+    gap: 8px;
+}
+
+.answerInput {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+}
+
+.sendBtn,
+.btnMain {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, #a855f7, #7c3aed);
+    color: #f5f3ff;
+}
+
+.flashWin,
+.flashLoss {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
 }
 
 .crowdLine {
-    font-size: 1.1rem;
-    color: #00eaff;
-    text-shadow: 0 2px 8px #ffd70099;
-    margin: 8px 0 0 0;
-    min-height: 24px;
-    font-style: italic;
-    animation: crowdFade 0.7s;
-}
-
-@keyframes crowdFade {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.flashWin {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-    background: radial-gradient(circle, #ffd70088 0%, transparent 70%);
-    animation: flashWinAnim 0.5s;
-    z-index: 20;
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    text-align: center;
 }
 
-@keyframes flashWinAnim {
-    0% {
-        opacity: 0.7;
-    }
-
-    80% {
-        opacity: 0.3;
-    }
-
-    100% {
-        opacity: 0;
-    }
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.flashLoss {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    pointer-events: none;
-    background: radial-gradient(circle, #f43f5e88 0%, transparent 70%);
-    animation: flashLossAnim 0.5s;
-    z-index: 20;
-}
-
-@keyframes flashLossAnim {
-    0% {
-        opacity: 0.6;
-    }
-
-    80% {
-        opacity: 0.2;
-    }
-
-    100% {
-        opacity: 0;
-    }
+.btnSec {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
 }

@@ -3,7 +3,6 @@ import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
-    { id: 'duel', label: 'Precision Rush' },
     { id: 'quickdraw', label: 'Quickdraw' },
     { id: 'parry', label: 'Parry Clash', advanced: true },
     { id: 'mindgame', label: 'Mind Game', advanced: true },
@@ -17,7 +16,6 @@ const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
 ];
 
 const TAB_LABELS_FR: Record<Tab, string> = {
-    duel: 'Precision Rush',
     quickdraw: 'Quickdraw',
     parry: 'Parry Clash',
     mindgame: 'Mental',

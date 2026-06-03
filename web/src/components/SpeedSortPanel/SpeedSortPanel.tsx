@@ -122,6 +122,7 @@ export function SpeedSortPanel() {
     const [feedback, setFeedback] = useState(tx('Scan the grid. Sort it fast.', 'Scanne la grille. Trie vite.'));
     const [crowdLine, setCrowdLine] = useState(tx('Speed and precision. Both.', 'Vitesse et precision. Les deux.'));
     const [reactionMs, setReactionMs] = useState(0);
+    const [opponentMs, setOpponentMs] = useState(0);
     const [timeLeft, setTimeLeft] = useState(0);
 
     const timerRefs = useRef<number[]>([]);
@@ -152,15 +153,20 @@ export function SpeedSortPanel() {
         timerRefs.current.push(id);
     }, []);
 
-    const finishRound = useCallback((won: boolean, msUsed: number, prevRounds: RoundResult[], kind: MatchKind) => {
+    const finishRound = useCallback((orderedCorrectly: boolean, msUsed: number, prevRounds: RoundResult[], kind: MatchKind, rivalMs: number) => {
         clearTimers();
         handledRef.current = true;
         setPhase('result');
         setReactionMs(msUsed);
-        setFeedback(won ? pickRandom(isFr ? WIN_FR : WIN_EN) : pickRandom(isFr ? LOSS_FR : LOSS_EN));
+        const won = orderedCorrectly && msUsed < rivalMs;
+        setFeedback(won
+            ? pickRandom(isFr ? WIN_FR : WIN_EN)
+            : !orderedCorrectly
+                ? tx('Wrong order. The rival did not need speed.', 'Mauvais ordre. Le rival n a meme pas eu besoin de vitesse.')
+                : tx(`Clean order, but slower: ${msUsed}ms vs ${rivalMs}ms.`, `Ordre propre, mais trop lent : ${msUsed}ms contre ${rivalMs}ms.`));
         setCrowdLine(won
             ? tx('The grid bows to you.', 'La grille s incline.')
-            : tx('Disorder wins this round.', 'Le desordre gagne cette manche.'));
+            : pickRandom(isFr ? LOSS_FR : LOSS_EN));
 
         if (won) playWin(streak >= 2 ? 1 : 0.7);
         else playLoss(0.45);
@@ -199,15 +205,20 @@ export function SpeedSortPanel() {
         const mode = modes[Math.floor(Math.random() * modes.length)];
         const newItems = generateItems(tuning.itemCount);
         const correct = getSortedOrder(newItems, mode);
+        const pressure = r === totalRounds ? 0.82 : streak >= 2 ? 0.88 : 1;
+        const rivalMs = Math.max(900, Math.round((tuning.hardMs + tuning.timeoutMs * 0.34 + Math.random() * 700) * pressure));
 
         setRoundNum(r);
         setItems(newItems);
         setSortMode(mode);
         setCorrectOrder(correct);
         setSelected([]);
+        setOpponentMs(rivalMs);
         setPhase('memorize');
         setFeedback(tx(`Mode: ${getModeLabel(mode, false)}`, `Mode: ${getModeLabel(mode, true)}`));
-        setCrowdLine(tx('Memorize, then sort.', 'Memorise, puis trie.'));
+        setCrowdLine(r === totalRounds
+            ? tx(`Clutch grid. Beat ${rivalMs}ms.`, `Grille clutch. Bats ${rivalMs}ms.`)
+            : tx(`Memorize, then beat ${rivalMs}ms.`, `Memorise, puis bats ${rivalMs}ms.`));
         playReady(streak >= 2 ? 0.9 : 0.4);
 
         schedule(() => {
@@ -230,7 +241,7 @@ export function SpeedSortPanel() {
 
             schedule(() => {
                 if (handledRef.current) return;
-                finishRound(false, tuning.timeoutMs, prevRounds, kind);
+                finishRound(false, tuning.timeoutMs, prevRounds, kind, rivalMs);
             }, tuning.timeoutMs);
         }, tuning.memorizeMs);
     }, [clearTimers, schedule, playReady, playDraw, isFr, tx, streak, tuning, finishRound]);
@@ -261,12 +272,12 @@ export function SpeedSortPanel() {
             if (next.length === correctOrder.length) {
                 const msUsed = Math.round(performance.now() - sortStartRef.current);
                 const isCorrect = next.every((x, i) => x.id === correctOrder[i].id);
-                finishRound(isCorrect, msUsed, rounds, matchType);
+                finishRound(isCorrect, msUsed, rounds, matchType, opponentMs);
             }
 
             return next;
         });
-    }, [phase, correctOrder, rounds, matchType, finishRound]);
+    }, [phase, correctOrder, rounds, matchType, finishRound, opponentMs]);
 
     const selectedIds = new Set(selected.map((x) => x.id));
     const progressPct = (timeLeft / tuning.timeoutMs) * 100;
@@ -289,6 +300,7 @@ export function SpeedSortPanel() {
                 <span className={styles.chip}>{isFr ? 'Jeu' : 'Game'}: SORT</span>
                 <span className={styles.chip}>{isFr ? 'Victoires' : 'Wins'}: {wins}/{totalRounds}</span>
                 <span className={styles.chip}>{isFr ? 'Serie' : 'Streak'}: {streak}</span>
+                <span className={styles.chip}>{isFr ? 'Rival' : 'Rival'}: {opponentMs || '-'}ms</span>
                 <span className={styles.chip}>{isFr ? 'Difficulte' : 'Difficulty'}: {difficultyMode}</span>
                 {lastNet != null && phase === 'matchEnd' && (
                     <span className={`${styles.chip} ${lastNet >= 0 ? styles.chipWin : styles.chipLoss}`}>
@@ -315,6 +327,11 @@ export function SpeedSortPanel() {
                                 background: progressPct > 50 ? '#4ade80' : progressPct > 25 ? '#facc15' : '#f43f5e',
                             }}
                         />
+                    </div>
+                )}
+                {(phase === 'memorize' || phase === 'sort') && (
+                    <div className={styles.opponentBadge}>
+                        {isFr ? 'Chrono rival' : 'Rival clock'} <strong>{opponentMs}ms</strong>
                     </div>
                 )}
 
@@ -398,7 +415,7 @@ export function SpeedSortPanel() {
                             <div className={`${styles.bigLabel} ${rounds[roundNum - 1]?.won ? styles.labelWin : styles.labelLoss}`}>
                                 {rounds[roundNum - 1]?.won ? (isFr ? 'TRIE !' : 'SORTED!') : (isFr ? 'RATÉ' : 'FAILED')}
                             </div>
-                            <p className={styles.hint}>{reactionMs}ms · {isFr ? 'Manche suivante...' : 'Next round...'}</p>
+                            <p className={styles.hint}>{reactionMs}ms vs {opponentMs}ms · {isFr ? 'Manche suivante...' : 'Next round...'}</p>
                         </div>
                         {/* Flash central premium */}
                         <div className={rounds[roundNum - 1]?.won ? styles.flashWin : styles.flashLoss} />

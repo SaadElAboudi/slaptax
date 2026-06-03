@@ -22,44 +22,128 @@
     margin: 4px 0 0;
     color: var(--muted);
     font-size: 0.85rem;
+}
 
-    .draftBox {
-        grid-column: 1 / -1;
-        display: grid;
-        gap: 8px;
-        border: 1px solid rgba(255, 212, 0, 0.14);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 10px;
-    }
+.gameStrip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 
-    .draftHead {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
+.presetRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 
-    .draftHead strong {
-        font-size: 0.82rem;
-    }
+.presetBtn {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    padding: 6px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+}
 
-    .draftHead span {
-        font-size: 0.74rem;
-        color: var(--muted);
-    }
+.presetActive {
+    color: var(--accent);
+    border-color: rgba(255, 212, 0, 0.42);
+    background: rgba(255, 212, 0, 0.08);
+}
 
-    .draftGrid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
+.overviewGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
 
-    .draftGrid label {
-        display: grid;
-        gap: 4px;
-        font-size: 0.76rem;
-        color: var(--muted);
-    }
+.overviewCard {
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.overviewCard strong {
+    color: var(--text);
+    font-size: 0.92rem;
+}
+
+.overviewCard span:last-child {
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.overviewLabel {
+    color: var(--accent);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+}
+
+.gameTag {
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    padding: 5px 10px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.035);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.70rem;
+}
+
+.gamePick {
+    color: #86efac;
+    border-color: rgba(74, 222, 128, 0.42);
+    background: rgba(22, 101, 52, 0.16);
+}
+
+.gameBan {
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.44);
+    background: rgba(127, 29, 29, 0.18);
+}
+
+.draftBox {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    border: 1px solid rgba(255, 212, 0, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px;
+}
+
+.draftHead {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.draftHead strong {
+    font-size: 0.82rem;
+}
+
+.draftHead span {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.draftGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.draftGrid label {
+    display: grid;
+    gap: 4px;
+    font-size: 0.76rem;
+    color: var(--muted);
 }
 
 .wallet {
@@ -119,6 +203,47 @@
     gap: 10px;
 }
 
+.resultHero {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgba(255, 212, 0, 0.14);
+    border-radius: 16px;
+    padding: 14px;
+    background: linear-gradient(180deg, rgba(255, 212, 0, 0.06), rgba(255, 255, 255, 0.02));
+}
+
+.resultEyebrow {
+    margin: 0 0 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.68rem;
+    font-family: 'Space Mono', monospace;
+}
+
+.resultTitle {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.resultCopy {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    max-width: 56ch;
+}
+
+.heroStats {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    justify-items: end;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
 .kpis {
     display: flex;
     flex-wrap: wrap;
@@ -131,6 +256,49 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
     padding: 4px 10px;
+}
+
+.progressTrack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+}
+
+.progressStep {
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.progressStep strong {
+    color: var(--text);
+}
+
+.progressStage {
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.stepWin {
+    border-color: rgba(74, 222, 128, 0.32);
+    background: rgba(22, 101, 52, 0.12);
+}
+
+.stepLoss {
+    border-color: rgba(248, 113, 113, 0.32);
+    background: rgba(127, 29, 29, 0.12);
+}
+
+.pending {
+    opacity: 0.72;
 }
 
 .rounds {
@@ -162,6 +330,18 @@
 }
 
 @media (max-width: 1024px) {
+    .overviewGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .resultHero {
+        flex-direction: column;
+    }
+
+    .heroStats {
+        justify-items: start;
+    }
+
     .controls {
         grid-template-columns: 1fr 1fr;
     }

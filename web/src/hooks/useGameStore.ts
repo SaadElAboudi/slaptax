@@ -3,7 +3,7 @@ import { api, type AnalyticsKpi, type HistoryEntry, type LeaderboardEntry, type 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'duel' | 'quickdraw' | 'parry' | 'mindgame' | 'speedsort' | 'duelnumeric' | 'defy' | 'tournament' | 'leaderboard' | 'analytics' | 'stats';
+export type Tab = 'quickdraw' | 'parry' | 'mindgame' | 'speedsort' | 'duelnumeric' | 'defy' | 'tournament' | 'leaderboard' | 'analytics' | 'stats';
 export type QuickMode = 'duel' | 'defy' | 'tournament';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
@@ -19,11 +19,13 @@ interface GameStore {
 
     // Player
     userId: string | null;
+    clientId: string;
     playerName: string;
     wallet: number;
     stake: number;
     skillPool: SkillPool;
     setProfile: (name: string) => void;
+    joinSession: (name?: string) => Promise<void>;
     setUserId: (id: string | null) => void;
     setWallet: (amount: number) => void;
     setStake: (amount: number) => Promise<void>;
@@ -91,7 +93,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
     loadState: async () => {
         try {
-            const state = await api.getState(get().userId);
+            const state = await api.getState(get().userId, get().clientId);
             set({
                 wallet: state.wallet,
                 stake: state.stake,
@@ -105,6 +107,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Player
     userId: (() => { try { return localStorage.getItem('slaptax_user_id'); } catch { return null; } })(),
+    clientId: (() => {
+        try {
+            const existing = localStorage.getItem('slaptax_client_id');
+            if (existing) return existing;
+            const created = crypto.randomUUID();
+            localStorage.setItem('slaptax_client_id', created);
+            return created;
+        } catch {
+            return `client-${Math.random().toString(36).slice(2)}`;
+        }
+    })(),
     playerName: (() => { try { return localStorage.getItem('slaptax_player_name') || 'Player'; } catch { return 'Player'; } })(),
     wallet: 25,
     stake: 5,
@@ -112,6 +125,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     setProfile: (name) => {
         try { localStorage.setItem('slaptax_player_name', name); } catch { /* ignore */ }
         set({ playerName: name });
+        // Changing name means joining as a distinct online identity.
+        void get().joinSession(name);
+    },
+    joinSession: async (name) => {
+        const playerName = String(name || get().playerName || 'Player').trim();
+        if (!playerName) return;
+        try {
+            const joined = await api.joinSession(playerName, get().clientId);
+            set({ userId: joined.userId, playerName: playerName });
+            try {
+                localStorage.setItem('slaptax_user_id', joined.userId);
+                localStorage.setItem('slaptax_player_name', playerName);
+            } catch { /* ignore */ }
+        } catch {
+            /* offline or API issue */
+        }
     },
     setUserId: (id) => {
         try {
@@ -130,7 +159,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     // Navigation
-    activeTab: 'duel',
+    activeTab: 'quickdraw',
     setActiveTab: (tab) => {
         const state = get();
         const leavingActiveDuel = state.activeTab !== tab && state.isDueling;
@@ -207,7 +236,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     history: [],
     loadHistory: async () => {
         try {
-            const data = await api.getHistory();
+            const data = await api.getHistory(get().userId, get().clientId);
             set({ history: Array.isArray(data.history) ? data.history : [] });
         } catch { /* offline */ }
     },
@@ -265,6 +294,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Bootstrap
     bootstrap: async () => {
+        await get().joinSession();
         await get().refreshLiveState();
     },
 }));

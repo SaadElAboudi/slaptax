@@ -6,7 +6,7 @@ import { Ticker } from './components/Ticker/Ticker';
 import { Hero } from './components/Hero/Hero';
 import { Lobby } from './components/Lobby/Lobby';
 import { Tabs } from './components/Tabs/Tabs';
-import { DuelPanel } from './components/DuelPanel/DuelPanel';
+
 import { QuickdrawPanel } from './components/QuickdrawPanel/QuickdrawPanel';
 import { ParryClashPanel } from './components/ParryClashPanel/ParryClashPanel';
 import { MindGameDuelPanel } from './components/MindGameDuelPanel/MindGameDuelPanel';
@@ -80,8 +80,7 @@ function App() {
 
                 <Tabs />
 
-                <div className={styles.panelArea}>
-                    {activeTab === 'duel' && <DuelPanel />}
+                <div key={activeTab} className={styles.panelArea}>
                     {activeTab === 'quickdraw' && <QuickdrawPanel />}
                     {activeTab === 'parry' && <ParryClashPanel />}
                     {activeTab === 'mindgame' && <MindGameDuelPanel />}

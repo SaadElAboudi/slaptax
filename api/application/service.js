@@ -14,6 +14,7 @@ const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
 const DRAFT_GAMES = [
     { id: "precision", label: "Precision Rush" },
     { id: "quickdraw", label: "Quickdraw" },
+    { id: "parryclash", label: "Parry Clash" },
     { id: "mindgame", label: "Mind Game" },
     { id: "speedsort", label: "Speed Sort" },
     { id: "duelnumeric", label: "Duel Numeric" },
@@ -23,7 +24,7 @@ const DRAFT_GAME_ALIASES = {
     reflex: "quickdraw",
     timing: "mindgame",
     precision: "precision",
-    parry: "mindgame",
+    parry: "parryclash",
     zone: "speedsort",
     crown: "duelnumeric",
 };
@@ -198,12 +199,54 @@ function getActiveUser(db) {
     return db.users.find((u) => u.id === db.activeUserId) || db.users[0];
 }
 
+function resolveUserByIdentity(db, userId, clientId) {
+    const uid = String(userId || "").trim();
+    if (uid) {
+        return db.users.find((u) => u.id === uid) || null;
+    }
+
+    const cid = String(clientId || "").trim();
+    if (cid && db.clientSessions && db.clientSessions[cid]) {
+        const mapped = db.users.find((u) => u.id === db.clientSessions[cid]);
+        if (mapped) return mapped;
+    }
+
+    return getActiveUser(db);
+}
+
 function ensureCollections(db) {
     if (!Array.isArray(db.duels)) db.duels = [];
     if (!db.rivalries || typeof db.rivalries !== "object") db.rivalries = {};
     if (!Array.isArray(db.challenges)) db.challenges = [];
     if (!Array.isArray(db.users)) db.users = [];
+    if (!db.clientSessions || typeof db.clientSessions !== "object") db.clientSessions = {};
     db.users.forEach((user) => ensureUserProgression(user));
+}
+
+function normalizeDuelRoomState(duel) {
+    if (!duel || typeof duel !== "object") return;
+    if (!duel.room || typeof duel.room !== "object") {
+        duel.room = { readyBy: {}, readyCountdownAt: null };
+    }
+    if (!duel.room.readyBy || typeof duel.room.readyBy !== "object") {
+        duel.room.readyBy = {};
+    }
+    if (!Object.prototype.hasOwnProperty.call(duel.room, "readyCountdownAt")) {
+        duel.room.readyCountdownAt = null;
+    }
+}
+
+function duelRoomSnapshot(duel) {
+    normalizeDuelRoomState(duel);
+    return {
+        duelId: duel.id,
+        status: duel.status,
+        challengerId: duel.challengerId,
+        opponentId: duel.opponentId,
+        readyBy: duel.room.readyBy,
+        readyCountdownAt: duel.room.readyCountdownAt,
+        createdAt: duel.createdAt,
+    };
 }
 
 function getSkillProfile(user) {
@@ -226,10 +269,8 @@ function isStakeAllowedForUser(user, stake) {
     return ALLOWED_STAKES.includes(numericStake) && numericStake <= getStakeCapForUser(user);
 }
 
-function statePayload(db, userId) {
-    const activeUser = userId
-        ? (db.users.find((u) => u.id === userId) || getActiveUser(db))
-        : getActiveUser(db);
+function statePayload(db, userId, clientId) {
+    const activeUser = resolveUserByIdentity(db, userId, clientId);
     const activeSkill = getSkillProfile(activeUser);
     return {
         schemaVersion: SCHEMA_VERSION,
@@ -260,10 +301,55 @@ function createService(store) {
             return { ok: true, service: "slaptax-mvp-api", schemaVersion: SCHEMA_VERSION };
         },
 
-        getState(userId) {
+        getState(userId, clientId) {
             const db = store.read();
             ensureCollections(db);
-            return statePayload(db, userId || null);
+            return statePayload(db, userId || null, clientId || null);
+        },
+
+        joinSession(playerName, clientId) {
+            const name = String(playerName || "").trim();
+            const cid = String(clientId || "").trim();
+            if (!name || name.length > 20) {
+                return { error: "playerName is required (1-20 chars)", code: 400 };
+            }
+            if (!cid) {
+                return { error: "clientId is required", code: 400 };
+            }
+
+            const db = store.read();
+            ensureCollections(db);
+
+            let user = null;
+            const mappedUserId = db.clientSessions[cid];
+            if (mappedUserId) {
+                user = db.users.find((u) => u.id === mappedUserId) || null;
+            }
+
+            // Keep identity stable for this client only if the name is unchanged.
+            // If the client joins with a different name, create a brand new player ID.
+            if (!user || user.playerName !== name) {
+                user = {
+                    id: crypto.randomUUID(),
+                    playerName: name,
+                    wallet: 25,
+                    stake: 5,
+                    history: [],
+                };
+                db.users.push(user);
+            }
+
+            db.clientSessions[cid] = user.id;
+            db.activeUserId = user.id;
+            store.write(db);
+
+            return {
+                ok: true,
+                user,
+                userId: user.id,
+                clientId: cid,
+                activeUserId: user.id,
+            };
         },
 
         getChallengeProgress(userId) {
@@ -358,22 +444,26 @@ function createService(store) {
             };
         },
 
-        getHistory() {
+        getHistory(userId, clientId) {
             const db = store.read();
-            const activeUser = getActiveUser(db);
+            ensureCollections(db);
+            const activeUser = resolveUserByIdentity(db, userId, clientId);
             return { history: activeUser.history };
         },
 
-        getStats() {
+        getStats(userId, clientId) {
             const db = store.read();
-            const activeUser = getActiveUser(db);
+            ensureCollections(db);
+            const activeUser = resolveUserByIdentity(db, userId, clientId);
             return getStats(activeUser.history);
         },
 
-        listUsers() {
+        listUsers(userId, clientId) {
             const db = store.read();
+            ensureCollections(db);
+            const activeUser = resolveUserByIdentity(db, userId, clientId);
             return {
-                activeUserId: db.activeUserId,
+                activeUserId: activeUser.id,
                 users: db.users.map((u) => ({
                     id: u.id,
                     playerName: u.playerName,
@@ -639,6 +729,7 @@ function createService(store) {
                 stake: numericStake,
                 status: "pending",
                 draft: normalizedDraft,
+                room: { readyBy: {}, readyCountdownAt: null },
                 createdAt: new Date().toISOString(),
             };
             db.duels.push(duel);
@@ -842,6 +933,9 @@ function createService(store) {
             duel.rounds = played.rounds;
             duel.games = played.games;
             duel.playedAt = date;
+            normalizeDuelRoomState(duel);
+            duel.room.readyBy = {};
+            duel.room.readyCountdownAt = null;
 
             // Update rivalry cache
             const pairKey = [duel.challengerId, duel.opponentId].sort().join("_");
@@ -868,6 +962,57 @@ function createService(store) {
                 rounds: played.rounds,
                 games: played.games,
                 draftSummary: summarizeDraft(duel.draft),
+            };
+        },
+
+        getDuelRoomStatus(duelId, userId) {
+            const duelKey = String(duelId || "").trim();
+            const actorId = String(userId || "").trim();
+            if (!duelKey || !actorId) return { error: "duelId and userId are required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const duel = db.duels.find((d) => d.id === duelKey);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (duel.challengerId !== actorId && duel.opponentId !== actorId) {
+                return { error: "User is not part of duel", code: 403 };
+            }
+
+            normalizeDuelRoomState(duel);
+            return { ok: true, room: duelRoomSnapshot(duel), serverClock: new Date().toISOString() };
+        },
+
+        setDuelReady(duelId, userId, ready) {
+            const duelKey = String(duelId || "").trim();
+            const actorId = String(userId || "").trim();
+            if (!duelKey || !actorId) return { error: "duelId and userId are required", code: 400 };
+
+            const db = store.read();
+            ensureCollections(db);
+            const duel = db.duels.find((d) => d.id === duelKey);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (duel.status !== "pending") return { error: "Duel already resolved", code: 400 };
+            if (duel.challengerId !== actorId && duel.opponentId !== actorId) {
+                return { error: "User is not part of duel", code: 403 };
+            }
+
+            normalizeDuelRoomState(duel);
+            duel.room.readyBy[actorId] = !!ready;
+
+            const challengerReady = !!duel.room.readyBy[duel.challengerId];
+            const opponentReady = !!duel.room.readyBy[duel.opponentId];
+            if (challengerReady && opponentReady) {
+                duel.room.readyCountdownAt = duel.room.readyCountdownAt || new Date().toISOString();
+            } else {
+                duel.room.readyCountdownAt = null;
+            }
+
+            store.write(db);
+            return {
+                ok: true,
+                room: duelRoomSnapshot(duel),
+                bothReady: challengerReady && opponentReady,
+                serverClock: new Date().toISOString(),
             };
         },
 

@@ -7,8 +7,8 @@ import { getDifficultyLabel, getRiskStakeCap, tuneTournamentSize } from '../../g
 const SIZES = [8, 16, 32];
 const STAKES = [2, 5, 10, 20];
 const DRAFT_GAMES = [
-    { id: 'precision', labelEn: 'Precision Rush', labelFr: 'Precision Rush' },
     { id: 'quickdraw', labelEn: 'Quickdraw', labelFr: 'Quickdraw' },
+    { id: 'parryclash', labelEn: 'Parry Clash', labelFr: 'Parry Clash' },
     { id: 'mindgame', labelEn: 'Mind Game', labelFr: 'Mental' },
     { id: 'speedsort', labelEn: 'Speed Sort', labelFr: 'Speed Sort' },
     { id: 'duelnumeric', labelEn: 'Duel Numeric', labelFr: 'Duel Numeric' },
@@ -19,6 +19,13 @@ type DraftGameId = typeof DRAFT_GAMES[number]['id'];
 interface TournamentDraft {
     ban: DraftGameId;
     pick: DraftGameId;
+}
+
+function stageLabel(round: number, totalRounds: number, isFr: boolean): string {
+    if (round === totalRounds) return isFr ? 'Finale' : 'Final';
+    if (round === totalRounds - 1) return isFr ? 'Demi-finale' : 'Semifinal';
+    if (round === totalRounds - 2) return isFr ? 'Quart de finale' : 'Quarterfinal';
+    return isFr ? `Tour ${round}` : `Round ${round}`;
 }
 
 export function TournamentPanel() {
@@ -33,11 +40,25 @@ export function TournamentPanel() {
 
     const [size, setSize] = useState(8);
     const [stake, setStake] = useState(5);
-    const [draft, setDraft] = useState<TournamentDraft>({ ban: 'mindgame', pick: 'precision' });
+    const [draft, setDraft] = useState<TournamentDraft>({ ban: 'mindgame', pick: 'quickdraw' });
     const [running, setRunning] = useState(false);
     const [error, setError] = useState('');
     const [result, setResult] = useState<TournamentResponse | null>(null);
     const tunedSize = tuneTournamentSize(size, difficultyMode);
+    const roundsToClear = Math.log2(tunedSize);
+    const projectedPool = tunedSize * stake;
+    const projectedPayout = projectedPool * 0.94;
+    const recommendedStake = cappedStakes[Math.min(cappedStakes.length - 1, difficultyMode === 'casual' ? 0 : difficultyMode === 'hardcore' ? cappedStakes.length - 1 : Math.max(0, cappedStakes.length - 2))] ?? 2;
+    const presets = [
+        { key: 'sprint', label: isFr ? 'Sprint' : 'Sprint', size: 8, stake: cappedStakes[0] ?? 2 },
+        { key: 'main', label: isFr ? 'Main Event' : 'Main Event', size: 16, stake: recommendedStake },
+        { key: 'major', label: isFr ? 'Major' : 'Major', size: 32, stake: cappedStakes[cappedStakes.length - 1] ?? 5 },
+    ];
+
+    function applyPreset(nextSize: number, nextStake: number) {
+        setSize(nextSize);
+        setStake(nextStake);
+    }
 
     useEffect(() => {
         const effectiveCap = Math.min(stakeCap, safeWallet);
@@ -80,6 +101,48 @@ export function TournamentPanel() {
                     <p className={styles.sub}>{isFr ? 'Bracket stable pour tester un format battle-royal sans casser le wallet ni la session.' : 'Stable bracket mode to stress-test a battle-royale format without breaking wallet flow or session state.'}</p>
                     <p className={styles.wallet}>{isFr ? 'Wallet' : 'Wallet'}: SLAP$ {safeWallet.toFixed(2)}</p>
                     <p className={styles.meta}>{isFr ? 'Difficulte globale' : 'Global difficulty'}: {getDifficultyLabel(difficultyMode, isFr)} · {isFr ? 'Bracket simule' : 'Simulated bracket'}: {tunedSize}</p>
+                </div>
+            </div>
+
+            <div className={styles.gameStrip}>
+                {DRAFT_GAMES.map((game) => (
+                    <span
+                        key={game.id}
+                        className={`${styles.gameTag} ${draft.pick === game.id ? styles.gamePick : ''} ${draft.ban === game.id ? styles.gameBan : ''}`}
+                    >
+                        {draft.ban === game.id ? 'BAN' : draft.pick === game.id ? 'PICK' : 'POOL'} · {isFr ? game.labelFr : game.labelEn}
+                    </span>
+                ))}
+            </div>
+
+            <div className={styles.presetRow}>
+                {presets.map((preset) => (
+                    <button
+                        key={preset.key}
+                        type="button"
+                        className={`${styles.presetBtn} ${size === preset.size && stake === preset.stake ? styles.presetActive : ''}`}
+                        onClick={() => applyPreset(preset.size, preset.stake)}
+                    >
+                        {preset.label} · {preset.size}p · SLAP$ {preset.stake}
+                    </button>
+                ))}
+            </div>
+
+            <div className={styles.overviewGrid}>
+                <div className={styles.overviewCard}>
+                    <span className={styles.overviewLabel}>{isFr ? 'Parcours requis' : 'Path to clear'}</span>
+                    <strong>{roundsToClear} {isFr ? 'matchs sans choke' : 'straight wins'}</strong>
+                    <span>{isFr ? 'Une seule defaite et tu sors.' : 'One loss and the run is over.'}</span>
+                </div>
+                <div className={styles.overviewCard}>
+                    <span className={styles.overviewLabel}>{isFr ? 'Prize pool simule' : 'Simulated prize pool'}</span>
+                    <strong>SLAP$ {projectedPool.toFixed(2)}</strong>
+                    <span>{isFr ? 'Payout champion estime' : 'Projected champion payout'}: SLAP$ {projectedPayout.toFixed(2)}</span>
+                </div>
+                <div className={styles.overviewCard}>
+                    <span className={styles.overviewLabel}>{isFr ? 'Meta draft' : 'Draft meta'}</span>
+                    <strong>{isFr ? 'Ban' : 'Ban'} {DRAFT_GAMES.find((game) => game.id === draft.ban)?.[isFr ? 'labelFr' : 'labelEn']}</strong>
+                    <span>{isFr ? 'Pick de confort' : 'Comfort pick'}: {DRAFT_GAMES.find((game) => game.id === draft.pick)?.[isFr ? 'labelFr' : 'labelEn']}</span>
                 </div>
             </div>
 
@@ -140,21 +203,56 @@ export function TournamentPanel() {
 
             {result && (
                 <div className={styles.result}>
+                    <div className={styles.resultHero}>
+                        <div>
+                            <p className={styles.resultEyebrow}>{isFr ? 'Run termine' : 'Run complete'}</p>
+                            <h3 className={styles.resultTitle}>
+                                {result.tournament.champion
+                                    ? (isFr ? 'Tu prends le bracket' : 'You cleared the bracket')
+                                    : (isFr ? `Sortie en ${stageLabel(result.tournament.run[result.tournament.run.length - 1]?.round || 1, result.tournament.rounds, true)}` : `Out in ${stageLabel(result.tournament.run[result.tournament.run.length - 1]?.round || 1, result.tournament.rounds, false)}`)}
+                            </h3>
+                            <p className={styles.resultCopy}>
+                                {result.tournament.champion
+                                    ? (isFr ? 'Le draft a tenu, la bankroll survit, et le run est clean.' : 'Draft held, bankroll survived, and the run stayed clean.')
+                                    : (isFr ? 'Le format est bon quand la pression monte: une erreur et le run casse.' : 'This format gets honest under pressure: one mistake breaks the run.')}
+                            </p>
+                        </div>
+                        <div className={styles.heroStats}>
+                            <span className={`${styles.status} ${result.tournament.champion ? styles.win : styles.loss}`}>
+                                {result.tournament.champion ? (isFr ? 'Champion' : 'Champion') : (isFr ? 'Elimine' : 'Eliminated')}
+                            </span>
+                            <span>{isFr ? 'Net' : 'Net'}: {result.tournament.net >= 0 ? '+' : ''}SLAP$ {result.tournament.net.toFixed(2)}</span>
+                            <span>{isFr ? 'Payout' : 'Payout'}: SLAP$ {result.tournament.payout.toFixed(2)}</span>
+                        </div>
+                    </div>
+
                     <div className={styles.kpis}>
-                        <span className={`${styles.status} ${result.tournament.champion ? styles.win : styles.loss}`}>
-                            {result.tournament.champion ? (isFr ? 'Champion' : 'Champion') : (isFr ? 'Elimine' : 'Eliminated')}
-                        </span>
                         <span>{isFr ? 'Manches' : 'Rounds'}: {result.tournament.run.length || result.tournament.rounds}</span>
-                        <span>
-                            Net: {result.tournament.net >= 0 ? '+' : ''}SLAP$ {result.tournament.net.toFixed(2)}
-                        </span>
+                        <span>{isFr ? 'Bracket' : 'Bracket'}: {tunedSize} {isFr ? 'joueurs' : 'players'}</span>
+                        <span>{isFr ? 'Draft favori' : 'Favored pick'}: {DRAFT_GAMES.find((game) => game.id === draft.pick)?.[isFr ? 'labelFr' : 'labelEn']}</span>
                         {result.tournament.draftSummary && <span>{result.tournament.draftSummary}</span>}
+                    </div>
+
+                    <div className={styles.progressTrack}>
+                        {Array.from({ length: result.tournament.rounds }, (_, index) => {
+                            const roundNumber = index + 1;
+                            const playedRound = result.tournament.run.find((round) => round.round === roundNumber);
+                            const stateClass = !playedRound ? styles.pending : playedRound.won ? styles.stepWin : styles.stepLoss;
+
+                            return (
+                                <div key={roundNumber} className={`${styles.progressStep} ${stateClass}`}>
+                                    <span className={styles.progressStage}>{stageLabel(roundNumber, result.tournament.rounds, isFr)}</span>
+                                    <strong>{playedRound ? (playedRound.won ? (isFr ? 'Passe' : 'Cleared') : (isFr ? 'Stop' : 'Stopped')) : (isFr ? 'A venir' : 'Pending')}</strong>
+                                    <span>{playedRound?.label || playedRound?.gameId || (isFr ? 'A definir' : 'TBD')}</span>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     <div className={styles.rounds}>
                         {result.tournament.run.map((r) => (
                             <article key={`${r.round}-${r.opponentLevel}`} className={styles.roundCard}>
-                                <strong>{isFr ? 'Manche' : 'Round'} {r.round}</strong>
+                                <strong>{stageLabel(r.round, result.tournament.rounds, isFr)}</strong>
                                 <span>{r.label || r.gameId || (isFr ? 'Jeu' : 'Game')}: {r.gameId || '?'}</span>
                                 <span>{isFr ? 'Niveau adversaire' : 'Opponent level'} {r.opponentLevel ?? '?'}</span>
                                 <span>Score {r.scoreFor ?? '?'} - {r.scoreAgainst ?? '?'}</span>

@@ -1,16 +1,41 @@
 import styles from './Ticker.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
 
-const TICKER_TEXT_EN =
-    'KENZO clapped RICO for SLAP$ 10 • DARIA keeps a 4-win streak • POT LIVE: SLAP$ 87 • API BATTLE MODE ACTIVE • ';
-
-const TICKER_TEXT_FR =
-    'KENZO a gifle RICO pour SLAP$ 10 • DARIA garde une serie de 4 victoires • POT LIVE : SLAP$ 87 • MODE BATTLE API ACTIF • ';
+function labelTab(tab: ReturnType<typeof useGameStore.getState>['activeTab'], isFr: boolean): string {
+    const labels = {
+        quickdraw: isFr ? 'Quickdraw' : 'Quickdraw',
+        parry: isFr ? 'Parry Clash' : 'Parry Clash',
+        mindgame: isFr ? 'Mental' : 'Mind Game',
+        speedsort: isFr ? 'Speed Sort' : 'Speed Sort',
+        duelnumeric: isFr ? 'Duel Numeric' : 'Duel Numeric',
+        defy: isFr ? 'Duel Ami' : 'Friend Duel',
+        tournament: isFr ? 'Tournoi' : 'Tournament',
+        leaderboard: isFr ? 'Classement' : 'Leaderboard',
+        analytics: isFr ? 'Analytics' : 'Analytics',
+        stats: isFr ? 'Historique' : 'History',
+    };
+    return labels[tab];
+}
 
 export function Ticker() {
-    const language = useGameStore((s) => s.language);
-    // Double the text so the scroll loop is seamless
-    const content = (language === 'fr' ? TICKER_TEXT_FR : TICKER_TEXT_EN).repeat(4);
+    const { language, activeTab, difficultyMode, lastNet, stake, wallet, apiOnline, playerName } = useGameStore();
+    const isFr = language === 'fr';
+    const safeStake = Number(stake ?? 0);
+    const safeWallet = Number(wallet ?? 0);
+    const pressure = safeStake <= 0 ? (isFr ? 'CALME' : 'LOW') : safeWallet / safeStake < 2 ? (isFr ? 'PRESSION MAX' : 'HIGH PRESSURE') : safeWallet / safeStake < 4 ? (isFr ? 'ZONE CHAUDE' : 'HEAT ZONE') : (isFr ? 'SOUS CONTROLE' : 'UNDER CONTROL');
+    const messages = [
+        isFr ? `${playerName.toUpperCase()} sous les spots` : `${playerName.toUpperCase()} under the lights`,
+        isFr ? `FOCUS ARENE : ${labelTab(activeTab, true)}` : `ARENA FOCUS: ${labelTab(activeTab, false)}`,
+        isFr ? `PRESSION : ${pressure}` : `PRESSURE: ${pressure}`,
+        isFr ? `MISE ACTIVE : SLAP$ ${safeStake.toFixed(2)}` : `LIVE STAKE: SLAP$ ${safeStake.toFixed(2)}`,
+        lastNet == null
+            ? (isFr ? 'DERNIER NET : AUCUN RESULTAT' : 'LAST NET: NO RESULT')
+            : `${isFr ? 'DERNIER NET' : 'LAST NET'}: ${lastNet >= 0 ? '+' : ''}SLAP$ ${lastNet.toFixed(2)}`,
+        apiOnline ? (isFr ? 'SERVEUR LIVE VERROUILLE' : 'SERVER LIVE LOCKED') : (isFr ? 'SERVEUR HORS LIGNE' : 'SERVER OFFLINE'),
+        isFr ? `REGIME : ${difficultyMode.toUpperCase()}` : `MODE: ${difficultyMode.toUpperCase()}`,
+    ];
+    const content = `${messages.join(' • ')} • `.repeat(3);
+
     return (
         <div className={styles.ticker}>
             <div className={styles.inner}>{content}</div>

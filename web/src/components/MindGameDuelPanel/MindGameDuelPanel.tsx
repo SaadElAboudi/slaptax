@@ -16,13 +16,6 @@ const MOVE_LABELS_FR: Record<Move, string> = { strike: 'Frappe', guard: 'Garde',
 const STYLE_LABELS_EN: Record<Style, string> = { aggressive: 'Aggressive', patient: 'Patient', trickster: 'Trickster' };
 const STYLE_LABELS_FR: Record<Style, string> = { aggressive: 'Agressif', patient: 'Patient', trickster: 'Truqueur' };
 
-const COUNTERS: Record<Move, Move> = {
-    strike: 'feint',
-    guard: 'strike',
-    feint: 'guard',
-    call: 'strike',
-};
-
 const STYLE_CLUES_EN: Record<Style, string[]> = {
     aggressive: ['Heavy shoulders. They want to strike first.', 'A forward lean. Direct pressure.'],
     patient: ['Still breath. They are waiting.', 'No movement. They want your mistake.'],
@@ -33,6 +26,12 @@ const STYLE_CLUES_FR: Record<Style, string[]> = {
     aggressive: ['Epaules lourdes. Ils veulent frapper.', 'Penche en avant. Pression directe.'],
     patient: ['Respiration calme. Ils attendent.', 'Aucun mouvement. Ils veulent ton erreur.'],
     trickster: ['Fausse impulsion. Piège possible.', 'Feinte d epaule. Attention au leurre.'],
+};
+
+const RESPONSE_BY_STYLE: Record<Style, Move> = {
+    aggressive: 'feint',
+    patient: 'strike',
+    trickster: 'guard',
 };
 
 const DUEL_WIN_EN = [
@@ -92,6 +91,7 @@ export function MindGameDuelPanel() {
     const [rounds, setRounds] = useState<RoundResult[]>([]);
     const [roundNum, setRoundNum] = useState(0);
     const [opponentStyle, setOpponentStyle] = useState<Style>('patient');
+    const [realStyle, setRealStyle] = useState<Style>('patient');
     const [opponentMove, setOpponentMove] = useState<Move>('guard');
     const [selectedMove, setSelectedMove] = useState<Move | null>(null);
     const [feedback, setFeedback] = useState(tx('Read the player. Win the read.', 'Lis le joueur. Gagne la lecture.'));
@@ -145,26 +145,20 @@ export function MindGameDuelPanel() {
     const startRound = useCallback((r: number, prevRounds: RoundResult[], kind: MatchKind) => {
         clearTimers();
         const balance = prevRounds.filter((x) => x.won).length - (prevRounds.length - prevRounds.filter((x) => x.won).length);
-        // Déterminer le type de manche (50/50)
-        const type: RoundType = Math.random() < 0.5 ? 'bluff' : 'logique';
+        const type: RoundType = Math.random() < 0.34 || r === totalRounds ? 'bluff' : 'logique';
         setRoundType(type);
-        // Style et move comme avant
         const styles: Style[] = ['aggressive', 'patient', 'trickster'];
-        const style = pickRandom(styles);
-        let move: Move;
-        if (type === 'bluff') {
-            // Forcer feint ou call
-            move = pickRandom(['feint', 'call']);
-        } else {
-            // Forcer strike ou guard
-            move = pickRandom(['strike', 'guard']);
-        }
+        const actual = pickRandom(styles);
+        const fakeOptions = styles.filter((value) => value !== actual);
+        const shown = type === 'bluff' ? pickRandom(fakeOptions) : actual;
+        const move = RESPONSE_BY_STYLE[actual];
         const tellMs = rangePick(pacing.telegraphMs) + (balance < 0 ? 220 : balance > 1 ? -120 : 0);
         const answerMs = rangePick(pacing.responseMs);
 
         setPhase('tell');
         setRoundNum(r);
-        setOpponentStyle(style);
+        setOpponentStyle(shown);
+        setRealStyle(actual);
         setOpponentMove(move);
         setSelectedMove(null);
         //
@@ -219,7 +213,8 @@ export function MindGameDuelPanel() {
         lockedRef.current = true;
         clearTimers();
         const reaction = Math.max(0, Math.round(performance.now() - tellStartRef.current));
-        const won = move === 'call' ? opponentStyle === 'trickster' : COUNTERS[move] === opponentMove;
+        const tellWasFake = opponentStyle !== realStyle;
+        const won = move === 'call' ? tellWasFake : !tellWasFake && move === opponentMove;
         setSelectedMove(move);
         //
         setPhase('reveal');
@@ -227,10 +222,10 @@ export function MindGameDuelPanel() {
             setFeedback(
                 move === 'call'
                     ? (won ? tx('Bluff called. You caught the trap.', 'Bluff appele. Tu catches le piege.') : tx('Bad call. They were not faking.', 'Mauvais appel. Ce n etait pas une feinte.'))
-                    : (won ? tx('Feinte parfaite. Bluff reussi.', 'Feinte parfaite. Bluff reussi.') : tx('Bluff rate. Pris a ton propre jeu.', 'Bluff rate. Pris a ton propre jeu.'))
+                    : tx(`Fake tell. Real style was ${styleLabel(realStyle, false)}.`, `Tell fake. Le vrai style etait ${styleLabel(realStyle, true)}.`)
             );
         } else {
-            setFeedback(won ? tx('You won the read.', 'Tu gagnes la lecture.') : tx('They read you first.', 'Ils t ont lu avant.'));
+            setFeedback(won ? tx('You won the read.', 'Tu gagnes la lecture.') : tx(`Wrong counter. Needed ${moveLabel(opponentMove, false)}.`, `Mauvais contre. Il fallait ${moveLabel(opponentMove, true)}.`));
         }
         setCrowdLine(won ? pickRandom(isFr ? DUEL_WIN_FR : DUEL_WIN_EN) : pickRandom(isFr ? DUEL_LOSS_FR : DUEL_LOSS_EN));
 
@@ -247,7 +242,7 @@ export function MindGameDuelPanel() {
             }, pacing.settleMs[1]);
             return updated;
         });
-    }, [phase, clearTimers, opponentMove, isFr, pacing, playWin, playLoss, schedule, startRound, matchType, resolveDuel, tx]);
+    }, [phase, clearTimers, opponentStyle, realStyle, opponentMove, roundType, isFr, pacing, playWin, playLoss, schedule, startRound, matchType, resolveDuel, tx]);
 
     return (
         <section className={styles.panel}>
@@ -273,10 +268,10 @@ export function MindGameDuelPanel() {
                 <div className={styles.crowdLine}>{crowdLine}</div>
                 {phase === 'idle' && <div className={styles.resultOverlay}><h3 className={styles.resultTitle}>{isFr ? 'LIS LE VISAGE' : 'READ THE FACE'}</h3><p className={styles.resultNet}>{isFr ? 'Le plus lent a perdre est le plus rapide a gagner.' : 'The slowest to panic is fastest to win.'}</p></div>}
                 {(phase === 'tell' || phase === 'answer') && (
-                    <div style={{ position: 'absolute', inset: '78px 12px 60px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                        {(roundType === 'bluff' ? (['feint', 'call'] as Move[]) : (['strike', 'guard'] as Move[])).map((move) => {
-                            const active = selectedMove === move;
-                            const beating = move !== 'call' && COUNTERS[move] === opponentMove;
+                    <div className={styles.moveGrid}>
+                        {(['strike', 'guard', 'feint', 'call'] as Move[]).map((move) => {
+                            const isBluffCall = move === 'call';
+                            const likelyCounter = move !== 'call' && move === RESPONSE_BY_STYLE[opponentStyle];
                             // Ajout : style premium selon résultat
                             let btnClass = styles.moveBtn;
                             if ((phase === 'tell' || phase === 'answer') && selectedMove === move) {
@@ -290,20 +285,18 @@ export function MindGameDuelPanel() {
                                     disabled={phase !== 'answer'}
                                     className={btnClass}
                                     style={{
-                                        borderRadius: 18,
-                                        border: active ? '2px solid var(--accent)' : move === 'call' ? '1px solid rgba(255,212,0,0.45)' : beating && phase === 'answer' ? '2px solid var(--ok)' : '1px solid rgba(255,255,255,0.08)',
-                                        background: active ? 'rgba(255,212,0,0.14)' : move === 'call' ? 'rgba(255,212,0,0.06)' : 'rgba(255,255,255,0.03)',
-                                        color: 'var(--text)',
-                                        fontFamily: 'Space Mono, monospace',
-                                        fontWeight: 700,
                                         cursor: phase === 'answer' ? 'pointer' : 'default',
-                                        minHeight: 180,
-                                        position: 'relative',
                                     }}
                                 >
                                     <div style={{ fontSize: '0.68rem', color: 'var(--muted)', marginBottom: 10 }}>{isFr ? styleLabel(opponentStyle, true) : styleLabel(opponentStyle, false)}</div>
                                     <div style={{ fontFamily: 'Black Ops One, cursive', fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}>{moveLabel(move, isFr)}</div>
-                                    <div style={{ marginTop: 10, color: 'var(--muted)', fontSize: '0.72rem' }}>{move === 'call' ? (isFr ? 'Gros risque / gros swing' : 'High risk / high swing') : phase === 'answer' ? (isFr ? 'Choisis' : 'Pick') : (COUNTERS[move] === opponentMove ? (isFr ? 'Bonne lecture' : 'Good read') : (isFr ? 'Carte possible' : 'Possible line'))}</div>
+                                    <div style={{ marginTop: 10, color: 'var(--muted)', fontSize: '0.72rem' }}>
+                                        {isBluffCall
+                                            ? (isFr ? 'Punir un tell fake' : 'Punish a fake tell')
+                                            : likelyCounter
+                                                ? (isFr ? 'Contre logique du tell' : 'Logical tell counter')
+                                                : (isFr ? 'Ligne de surprise' : 'Surprise line')}
+                                    </div>
                                     {/* Affichage du type de manche */}
                                     <div style={{ position: 'absolute', top: 8, left: 0, right: 0, textAlign: 'center', fontWeight: 700, fontSize: '1.1rem', color: '#ffd700', textShadow: '0 2px 8px #222' }}>
                                         {roundType === 'bluff' ? (isFr ? 'Round de bluff' : 'Bluff round') : (isFr ? 'Round logique' : 'Logic round')}

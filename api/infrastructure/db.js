@@ -10,6 +10,7 @@ const defaultState = {
     schemaVersion: SCHEMA_VERSION,
     currency: "SLAP$",
     activeUserId: "",
+    clientSessions: {},
     users: [],
 };
 
@@ -28,6 +29,7 @@ function makeDefaultState() {
     return {
         ...defaultState,
         activeUserId: user.id,
+        clientSessions: {},
         users: [user],
         duels: [],
         rivalries: {},
@@ -48,6 +50,7 @@ function migrateState(raw) {
             duels: Array.isArray(raw.duels) ? raw.duels : [],
             rivalries: raw.rivalries && typeof raw.rivalries === "object" ? raw.rivalries : {},
             challenges: Array.isArray(raw.challenges) ? raw.challenges : [],
+            clientSessions: raw.clientSessions && typeof raw.clientSessions === "object" ? raw.clientSessions : {},
         };
     }
 
@@ -64,6 +67,7 @@ function migrateState(raw) {
             schemaVersion: SCHEMA_VERSION,
             currency: "SLAP$",
             activeUserId: migratedUser.id,
+            clientSessions: {},
             users: [migratedUser],
             duels: [],
             rivalries: {},

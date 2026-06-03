@@ -13,6 +13,12 @@ const P2P_GAME_LIBRARY = {
         elite: 170,
         hard: 280,
     },
+    parryclash: {
+        label: "Parry Clash",
+        metric: [140, 520],
+        elite: 190,
+        hard: 310,
+    },
     mindgame: {
         label: "Mind Game",
         metric: [180, 900],
@@ -37,7 +43,7 @@ const DRAFT_GAME_ALIASES = {
     reflex: "quickdraw",
     timing: "mindgame",
     precision: "precision",
-    parry: "mindgame",
+    parry: "parryclash",
     zone: "speedsort",
     crown: "duelnumeric",
 };

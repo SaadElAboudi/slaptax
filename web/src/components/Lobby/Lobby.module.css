@@ -71,3 +71,40 @@
     box-shadow: 0 6px 18px rgba(255, 212, 0, 0.34);
     transform: translateY(-1px);
 }
+
+.btnGhost {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    padding: 9px 16px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.linkInput {
+    flex: 1;
+    min-width: 160px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(8, 11, 16, 0.9);
+    color: var(--text);
+    padding: 10px 12px;
+}
+
+.hostMeta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-family: 'Space Mono', monospace;
+}
+
+.status {
+    margin-top: 10px;
+    color: var(--accent);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}

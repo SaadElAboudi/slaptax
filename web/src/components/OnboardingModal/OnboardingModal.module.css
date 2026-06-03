@@ -1,65 +1,129 @@
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(17, 23, 34, 0.88);
+    inset: 0;
+    background: rgba(8, 12, 20, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: overlayIn 0.25s ease;
+}
+
+@keyframes overlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal {
-    background: var(--panel, #23272f);
-    border-radius: 18px;
-    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.18);
-    padding: 36px 28px 28px 28px;
-    max-width: 340px;
-    width: 100%;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(255, 212, 0, 0.10) 0%, transparent 55%),
+        linear-gradient(180deg, #13192a 0%, #0d111c 100%);
+    border: 1px solid rgba(255, 212, 0, 0.28);
+    border-radius: 22px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    padding: 40px 32px 32px;
+    max-width: 380px;
+    width: calc(100% - 32px);
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
+    animation: modalIn 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-h2 {
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal h2 {
+    font-family: 'Black Ops One', cursive;
     font-size: 1.5rem;
-    margin-bottom: 0.5em;
-    color: var(--accent, #ffd400);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    text-shadow: 0 0 24px rgba(255, 212, 0, 0.35);
 }
 
-p {
-    color: var(--muted, #b0b0b0);
-    font-size: 1.05rem;
-    margin-bottom: 0.5em;
+.modal p {
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: -4px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.dot.active {
+    background: var(--accent);
+    transform: scale(1.25);
+    box-shadow: 0 0 8px rgba(255, 212, 0, 0.50);
 }
 
 .input {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--line, #333);
-    font-size: 1.1rem;
-    margin-bottom: 1em;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 212, 0, 0.30);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
     width: 100%;
-    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.18s;
+}
+
+.input:focus {
+    border-color: rgba(255, 212, 0, 0.70);
+    box-shadow: 0 0 0 3px rgba(255, 212, 0, 0.12);
 }
 
 .btnMain {
-    background: var(--accent, #ffd400);
+    background: linear-gradient(90deg, #ffd400, #ff9500);
     color: #111;
     border: none;
-    border-radius: 8px;
-    padding: 12px 0;
-    font-size: 1.1rem;
-    font-weight: 700;
+    border-radius: 12px;
+    padding: 13px 0;
+    font-family: 'Black Ops One', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: background 0.18s;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    box-shadow: 0 4px 18px rgba(255, 212, 0, 0.28);
+}
+
+.btnMain:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(255, 212, 0, 0.40);
 }
 
 .btnMain:disabled {
-    background: #ccc;
-    color: #888;
+    opacity: 0.35;
     cursor: not-allowed;
+    transform: none;
 }

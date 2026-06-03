@@ -83,6 +83,81 @@ test("can create and select users", async () => {
     });
 });
 
+test("session join keeps stable id per client and creates new id on name change", async () => {
+    await withServer(async (baseUrl) => {
+        const firstJoin = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "ClientA",
+            clientId: "client-a",
+        });
+        assert.equal(firstJoin.status, 200);
+        assert.equal(firstJoin.data.ok, true);
+        const idA1 = firstJoin.data.userId;
+
+        const secondJoinSame = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "ClientA",
+            clientId: "client-a",
+        });
+        assert.equal(secondJoinSame.status, 200);
+        assert.equal(secondJoinSame.data.userId, idA1);
+
+        const renamedJoin = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "ClientA_v2",
+            clientId: "client-a",
+        });
+        assert.equal(renamedJoin.status, 200);
+        assert.notEqual(renamedJoin.data.userId, idA1);
+        const idA2 = renamedJoin.data.userId;
+
+        const otherClientJoin = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "ClientB",
+            clientId: "client-b",
+        });
+        assert.equal(otherClientJoin.status, 200);
+        assert.notEqual(otherClientJoin.data.userId, idA2);
+
+        const listForA = await jfetch(baseUrl, "GET", "/api/users?clientId=client-a");
+        assert.equal(listForA.status, 200);
+        assert.equal(listForA.data.activeUserId, idA2);
+
+        const listForB = await jfetch(baseUrl, "GET", "/api/users?clientId=client-b");
+        assert.equal(listForB.status, 200);
+        assert.equal(listForB.data.activeUserId, otherClientJoin.data.userId);
+    });
+});
+
+test("history is scoped to explicit user identity", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "HistA",
+            clientId: "hist-a",
+        });
+        const b = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "HistB",
+            clientId: "hist-b",
+        });
+
+        assert.equal(a.status, 200);
+        assert.equal(b.status, 200);
+
+        await jfetch(baseUrl, "POST", "/api/duel/reflex", {
+            stake: 5,
+            won: true,
+            rounds: [],
+            userId: a.data.userId,
+        });
+
+        const historyA = await jfetch(baseUrl, "GET", `/api/history?userId=${encodeURIComponent(a.data.userId)}`);
+        const historyB = await jfetch(baseUrl, "GET", `/api/history?userId=${encodeURIComponent(b.data.userId)}`);
+
+        assert.equal(historyA.status, 200);
+        assert.equal(historyB.status, 200);
+        assert.ok(Array.isArray(historyA.data.history));
+        assert.ok(Array.isArray(historyB.data.history));
+        assert.equal(historyA.data.history.length, 1);
+        assert.equal(historyB.data.history.length, 0);
+    });
+});
+
 test("stake validation rejects unsupported value", async () => {
     await withServer(async (baseUrl) => {
         const { status, data } = await jfetch(baseUrl, "POST", "/api/stake", { stake: 7 });
@@ -193,7 +268,7 @@ test("playing a P2P duel updates both wallets and history", async () => {
         assert.ok(played.data.winnerId);
         assert.ok(Array.isArray(played.data.games));
         assert.ok(played.data.games.length >= 2);
-        assert.ok(played.data.rounds.every((round) => ["precision", "quickdraw", "mindgame", "speedsort", "duelnumeric"].includes(round.gameId)));
+        assert.ok(played.data.rounds.every((round) => ["precision", "quickdraw", "parryclash", "mindgame", "speedsort", "duelnumeric"].includes(round.gameId)));
 
         const total = played.data.challengerWallet + played.data.opponentWallet;
         // Total wallets should be less than initial 50 (platform fee 15%)

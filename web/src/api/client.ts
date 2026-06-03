@@ -50,6 +50,14 @@ export interface UsersResponse {
     users: UserListEntry[];
 }
 
+export interface JoinSessionResponse {
+    ok: boolean;
+    userId: string;
+    clientId: string;
+    activeUserId: string;
+    user: UserListEntry;
+}
+
 export interface RoundResult {
     gameId: string;
     won: boolean;
@@ -168,6 +176,23 @@ export interface PlayP2PResponse {
     draftSummary?: string;
 }
 
+export interface DuelRoomState {
+    duelId: string;
+    status: 'pending' | 'done';
+    challengerId: string;
+    opponentId: string;
+    readyBy: Record<string, boolean>;
+    readyCountdownAt: string | null;
+    createdAt: string;
+}
+
+export interface DuelRoomResponse {
+    ok: boolean;
+    room: DuelRoomState;
+    bothReady?: boolean;
+    serverClock?: string;
+}
+
 export interface RivalryResponse {
     ok: boolean;
     exists: boolean;
@@ -250,14 +275,29 @@ async function req<T>(
 export const api = {
     health: (base?: string) => req<HealthResponse>('GET', '/api/health', undefined, base),
 
-    getState: (userId?: string | null) => {
-        const qs = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    getState: (userId?: string | null, clientId?: string | null) => {
+        const params = new URLSearchParams();
+        if (userId) params.set('userId', userId);
+        if (clientId) params.set('clientId', clientId);
+        const qs = params.toString() ? `?${params.toString()}` : '';
         return req<GameState>('GET', `/api/state${qs}`);
     },
 
-    getHistory: () => req<HistoryResponse>('GET', '/api/history'),
+    getHistory: (userId?: string | null, clientId?: string | null) => {
+        const params = new URLSearchParams();
+        if (userId) params.set('userId', userId);
+        if (clientId) params.set('clientId', clientId);
+        const qs = params.toString() ? `?${params.toString()}` : '';
+        return req<HistoryResponse>('GET', `/api/history${qs}`);
+    },
 
-    getStats: () => req<ApiStats>('GET', '/api/stats'),
+    getStats: (userId?: string | null, clientId?: string | null) => {
+        const params = new URLSearchParams();
+        if (userId) params.set('userId', userId);
+        if (clientId) params.set('clientId', clientId);
+        const qs = params.toString() ? `?${params.toString()}` : '';
+        return req<ApiStats>('GET', `/api/stats${qs}`);
+    },
 
     getLeaderboard: () => req<LeaderboardResponse>('GET', '/api/leaderboard'),
 
@@ -268,6 +308,9 @@ export const api = {
 
     createUser: (playerName: string) =>
         req<GameState & { userId: string }>('POST', '/api/users', { playerName }),
+
+    joinSession: (playerName: string, clientId: string) =>
+        req<JoinSessionResponse>('POST', '/api/session/join', { playerName, clientId }),
 
     selectUser: (userId: string) =>
         req<GameState>('POST', '/api/session/select-user', { userId }),
@@ -288,13 +331,25 @@ export const api = {
         userId?: string | null
     ) => req<DuelResult>('POST', '/api/duel/reflex', { stake, won, rounds, userId }),
 
-    listUsers: () => req<UsersResponse>('GET', '/api/users'),
+    listUsers: (userId?: string | null, clientId?: string | null) => {
+        const params = new URLSearchParams();
+        if (userId) params.set('userId', userId);
+        if (clientId) params.set('clientId', clientId);
+        const qs = params.toString() ? `?${params.toString()}` : '';
+        return req<UsersResponse>('GET', `/api/users${qs}`);
+    },
 
     createDuel: (challengerId: string, opponentId: string, stake: number, draft?: unknown) =>
         req<CreateDuelResponse>('POST', '/api/duels', { challengerId, opponentId, stake, draft }),
 
     playP2PDuel: (duelId: string) =>
         req<PlayP2PResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/play`),
+
+    getDuelRoom: (duelId: string, userId: string) =>
+        req<DuelRoomResponse>('GET', `/api/duels/${encodeURIComponent(duelId)}/room?userId=${encodeURIComponent(userId)}`),
+
+    setDuelReady: (duelId: string, userId: string, ready: boolean) =>
+        req<DuelRoomResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/ready`, { userId, ready }),
 
     rematchP2P: (duelId: string) =>
         req<CreateDuelResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`),

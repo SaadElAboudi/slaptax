@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import styles from './OnboardingModal.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
 
 export function OnboardingModal({ onClose }: { onClose: () => void }) {
-    const { playerName, setProfile, setActiveTab, language } = useGameStore();
+    const { playerName, joinSession, setActiveTab, language } = useGameStore();
     const [name, setName] = useState(playerName || '');
     const [step, setStep] = useState(0);
     const isFr = language === 'fr';
+    const titleId = useId();
+    const descId = useId();
 
     const steps = [
         {
@@ -35,21 +37,48 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
 
     const handleNext = () => {
         if (step === 1 && name.trim()) {
-            setProfile(name.trim());
+            void joinSession(name.trim());
         }
         if (step < steps.length - 1) {
             setStep(step + 1);
         } else {
             onClose();
-            setActiveTab('duel');
+            setActiveTab('quickdraw');
         }
     };
 
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+                return;
+            }
+            if (event.key === 'Enter' && !(step === 1 && !name.trim())) {
+                event.preventDefault();
+                handleNext();
+            }
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [step, name, onClose]);
+
     return (
         <div className={styles.overlay}>
-            <div className={styles.modal}>
-                <h2>{steps[step].title}</h2>
-                <p>{steps[step].desc}</p>
+            <div
+                className={styles.modal}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={descId}
+            >
+                <h2 id={titleId}>{steps[step].title}</h2>
+                <p id={descId}>{steps[step].desc}</p>
+                <div className={styles.dots}>
+                    {steps.map((_, i) => (
+                        <span key={i} className={`${styles.dot} ${i === step ? styles.active : ''}`} />
+                    ))}
+                </div>
                 {steps[step].input && (
                     <input
                         className={styles.input}
