@@ -198,6 +198,4 @@ EN: Any real-money gameplay or wallet operation requires proper legal review, pa
 ## Contact
 
 Project: `SLAP$TAX`
-
-FR: Ajoute ici ton canal de contact (email pro, site, reseaux).  
-EN: Add your preferred contact channel here (business email, website, socials).
+Please feel free to reach out
