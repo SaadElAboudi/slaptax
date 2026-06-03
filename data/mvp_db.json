@@ -1,17 +1,3999 @@
 {
   "schemaVersion": 2,
   "currency": "SLAP$",
-  "activeUserId": "local-player",
+  "activeUserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
   "users": [
     {
       "id": "local-player",
       "playerName": "Player",
+      "wallet": 151.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.518Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.295Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.116Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:11.862Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:11.145Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:05.410Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:04.918Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:04.420Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:03.859Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:02.576Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+          "opponentName": "toto",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:16:04.951Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:15:21.296Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:09:26.221Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.733Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.553Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.419Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.189Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.835Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.640Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.440Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.321Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.091Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.886Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.624Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.455Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.351Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.847Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.539Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.323Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.121Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.748Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.600Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.391Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.170Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:53.897Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:53.304Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:50.550Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:47.990Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:47.119Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:44.951Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:05:21.545Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "playerName": "Opponent1",
+      "wallet": 10,
+      "stake": 5,
+      "history": [
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:09:26.221Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:09:26.221Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.733Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:58.553Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.553Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.419Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:58.189Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:58.189Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.835Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:57.640Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.640Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.440Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:57.321Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.321Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:57.091Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:56.886Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.886Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.624Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:56.455Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.455Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:56.351Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:55.847Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.847Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.539Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:55.324Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.323Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:55.121Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:54.748Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.748Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.600Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:54.391Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.391Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:54.170Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:53.897Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:53.897Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:53.304Z"
+        },
+        {
+          "type": "FLOOR_CREDIT",
+          "result": "CREDIT",
+          "stake": 0,
+          "net": 10,
+          "note": "Wallet floor auto-credit",
+          "date": "2026-06-02T16:08:50.550Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:50.550Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:47.990Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:47.119Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:08:44.951Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-02T16:05:21.545Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "25d17295-5c3b-4b45-9154-84e8a6242c28",
+      "playerName": "Saad",
       "wallet": 25,
       "stake": 5,
-      "history": []
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "a5d84607-bcf2-47c7-bf20-293dbfa6dc8e",
+      "playerName": "Saad",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "03b8b567-a5d3-4f11-bd71-65d2cc022075",
+      "playerName": "Toto",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "7d93e64c-939b-4322-88a7-526c2008d0a1",
+      "playerName": "Player",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+      "playerName": "Opponent1",
+      "wallet": 20,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "baac30d6-8617-4652-a511-a3daccd1642c",
+          "opponentName": "AliceTest",
+          "stake": 5,
+          "net": -5,
+          "date": "2026-06-03T10:17:57.953Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "43c1512e-244c-4646-8385-ed00c83c9cc8",
+      "playerName": "Player",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "3e2ef20c-8e42-402b-a779-d1106353a2cb",
+      "playerName": "Alpha",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "8d9ebac6-4be3-4a33-95fd-fdb8f9f2f33f",
+      "playerName": "Alpha2",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "7b2d404e-e4da-47cd-9c44-08223c47d861",
+      "playerName": "Beta",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "baac30d6-8617-4652-a511-a3daccd1642c",
+      "playerName": "AliceTest",
+      "wallet": 28.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+          "opponentName": "Opponent1",
+          "stake": 5,
+          "net": 3.5,
+          "date": "2026-06-03T10:17:57.953Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "playerName": "Saad",
+      "wallet": 3.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:05.410Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:04.918Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:04.420Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:03.859Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:02.576Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:15:21.296Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "playerName": "toto",
+      "wallet": 1.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "TOURNAMENT",
+          "result": "LOSS",
+          "stake": 2,
+          "net": -2,
+          "date": "2026-06-03T12:53:56.896Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.518Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.295Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:12.116Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:11.862Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:17:11.145Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Mind Game / favored Speed Sort • opponent banned Speed Sort / favored Quickdraw",
+          "date": "2026-06-03T12:16:04.951Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "2595e71c-b69d-43bf-ba3d-9db7da5df97a",
+      "playerName": "9ec201a4-ff52-4404-9",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-03",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
     }
   ],
-  "duels": [],
-  "rivalries": {},
-  "challenges": []
+  "duels": [
+    {
+      "id": "f7f74450-4127-4a54-a6eb-114e299bd303",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:05:21.464Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 374,
+          "opponentMetric": 312,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 94,
+          "opponentMetric": 140,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1096,
+          "opponentMetric": 2683,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:05:21.544Z"
+    },
+    {
+      "id": "97231bf9-f1d6-4c33-a530-dcf8cb7ade3e",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:44.936Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 120,
+          "opponentMetric": 452,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1997,
+          "opponentMetric": 3399,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:44.951Z"
+    },
+    {
+      "id": "224ef76e-a7e8-4985-8dc0-ceff17822eb7",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:47.107Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 311,
+          "opponentMetric": 175,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1619,
+          "opponentMetric": 1085,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:47.119Z"
+    },
+    {
+      "id": "579984a1-d558-4705-bd86-127b0a98e258",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:47.982Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 363,
+          "opponentMetric": 340,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 2756,
+          "opponentMetric": 1747,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 3,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 71,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:47.990Z"
+    },
+    {
+      "id": "c19886d9-1f4f-4904-9090-7b546d845bd6",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:50.524Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 320,
+          "opponentMetric": 369,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 140,
+          "opponentMetric": 18,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:50.550Z"
+    },
+    {
+      "id": "434cc640-43af-4154-88bd-75c7c5fc8060",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:53.290Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 246,
+          "opponentMetric": 305,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 40,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:53.304Z"
+    },
+    {
+      "id": "e69efcf4-b527-4ca9-882a-20a0d7deb647",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:53.865Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 450,
+          "opponentMetric": 216,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1744,
+          "opponentMetric": 1356,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:53.897Z"
+    },
+    {
+      "id": "778b4a90-4549-4d44-971e-9ffdee86d381",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:54.153Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 319,
+          "opponentMetric": 324,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 2428,
+          "opponentMetric": 1002,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:54.170Z"
+    },
+    {
+      "id": "fe125a8b-1f07-4a95-972b-faf10d5a81e8",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:54.373Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 251,
+          "opponentMetric": 387,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3281,
+          "opponentMetric": 1231,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:54.391Z"
+    },
+    {
+      "id": "ec62d2c6-ce0c-45e7-9ae7-fc47f7f4e379",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:54.574Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 148,
+          "opponentMetric": 311,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1655,
+          "opponentMetric": 2433,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:54.600Z"
+    },
+    {
+      "id": "0ed9fe73-2816-4c38-b064-00a64347bee8",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:54.739Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 387,
+          "opponentMetric": 351,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 992,
+          "opponentMetric": 1985,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 3,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 140,
+          "opponentMetric": 24,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:54.748Z"
+    },
+    {
+      "id": "af398944-fead-4ae4-9414-c6bda29d2da0",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:55.108Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 120,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 18,
+          "opponentMetric": 128,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:55.121Z"
+    },
+    {
+      "id": "ed002245-c169-4824-8b04-e036e51de641",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:55.315Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 460,
+          "opponentMetric": 252,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 136,
+          "opponentMetric": 18,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:55.323Z"
+    },
+    {
+      "id": "1c80e708-a8b1-4b8d-a7fb-2a67cf38da19",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:55.518Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 376,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1204,
+          "opponentMetric": 3600,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:55.539Z"
+    },
+    {
+      "id": "286b5a1e-2ee0-41d8-9ed2-df60fa5344ed",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:55.837Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 193,
+          "opponentMetric": 193,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 140,
+          "opponentMetric": 27,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 3,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1374,
+          "opponentMetric": 800,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:55.847Z"
+    },
+    {
+      "id": "a269e4cd-c0b4-49dd-b5c1-76ee0f6389c2",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:56.331Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 300,
+          "opponentMetric": 304,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3492,
+          "opponentMetric": 1800,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:56.351Z"
+    },
+    {
+      "id": "74a011e0-c237-44af-8eab-393f8d82c8d0",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:56.441Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 369,
+          "opponentMetric": 120,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 140,
+          "opponentMetric": 68,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 2398,
+          "opponentMetric": 2698,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:56.455Z"
+    },
+    {
+      "id": "adf7f509-0e6a-4262-926f-f3add3430753",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:56.590Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 347,
+          "opponentMetric": 236,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 72,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:56.624Z"
+    },
+    {
+      "id": "31f78884-95da-4541-a384-ca494b40c082",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:56.881Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 330,
+          "opponentMetric": 257,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 140,
+          "opponentMetric": 18,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:56.886Z"
+    },
+    {
+      "id": "4e664067-4b17-4de6-b09c-7c86ac3810b8",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:57.084Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 174,
+          "opponentMetric": 346,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1868,
+          "opponentMetric": 1067,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:57.091Z"
+    },
+    {
+      "id": "ca43bc5c-1812-47b8-ab4b-df1f47cd01bc",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:57.308Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 350,
+          "opponentMetric": 137,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1950,
+          "opponentMetric": 2992,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:57.321Z"
+    },
+    {
+      "id": "663af4e9-81be-4f2c-bb89-8eb128ed28d8",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:57.435Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 197,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 18,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:57.440Z"
+    },
+    {
+      "id": "f723e8f9-0799-4c91-bfca-e3887d4eafb3",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:57.633Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 360,
+          "opponentMetric": 120,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1988,
+          "opponentMetric": 1413,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:57.640Z"
+    },
+    {
+      "id": "41bbae60-bfde-46f8-ad88-4e8b6e78b1ad",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:57.809Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 309,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 44,
+          "opponentMetric": 95,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:57.835Z"
+    },
+    {
+      "id": "6258bc64-8268-48d8-ab72-b19bb437acb0",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:58.182Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 321,
+          "opponentMetric": 315,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 136,
+          "opponentMetric": 45,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-02T16:08:58.189Z"
+    },
+    {
+      "id": "50c80e53-44dc-4d7c-9cb0-045e698d357a",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:58.407Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 362,
+          "opponentMetric": 457,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1307,
+          "opponentMetric": 1876,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:58.419Z"
+    },
+    {
+      "id": "8da2d02a-f2d1-4e24-bf8e-28b5854a4510",
+      "challengerId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:58.541Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 210,
+          "opponentMetric": 148,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3414,
+          "opponentMetric": 3147,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:58.553Z"
+    },
+    {
+      "id": "8ce628e8-19a0-4fff-9758-cda0c23296f9",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:08:58.725Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 229,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1324,
+          "opponentMetric": 2581,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:08:58.733Z"
+    },
+    {
+      "id": "c4dc464a-a151-4b81-98a9-eae6c70729fa",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "createdAt": "2026-06-02T16:09:26.202Z",
+      "winnerId": "local-player",
+      "loserId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 359,
+          "opponentMetric": 406,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3283,
+          "opponentMetric": 3391,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 69,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "precision"
+      ],
+      "playedAt": "2026-06-02T16:09:26.221Z"
+    },
+    {
+      "id": "ff0da8c0-3234-483a-84be-c69486dfadca",
+      "challengerId": "baac30d6-8617-4652-a511-a3daccd1642c",
+      "opponentId": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+      "stake": 5,
+      "status": "done",
+      "draft": null,
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T10:17:57.865Z",
+      "winnerId": "baac30d6-8617-4652-a511-a3daccd1642c",
+      "loserId": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "speedsort",
+          "label": "Speed Sort",
+          "challengerMetric": 2842,
+          "opponentMetric": 2438,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 177,
+          "opponentMetric": 394,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "speedsort",
+        "parryclash",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-03T10:17:57.953Z"
+    },
+    {
+      "id": "bf27c210-80db-434b-a553-27f7464c6f9a",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "room": {
+        "readyBy": {
+          "b588f91b-6ace-47d8-b527-02bd34d86529": true
+        },
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:15:14.479Z"
+    },
+    {
+      "id": "1a60a739-c665-4729-8df6-37bede605ae2",
+      "challengerId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:15:21.276Z",
+      "winnerId": "local-player",
+      "loserId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 460,
+          "opponentMetric": 171,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 93,
+          "opponentMetric": 59,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 3,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 400,
+          "opponentMetric": 248,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:15:21.296Z"
+    },
+    {
+      "id": "8484002a-ce8e-44b3-bf27-e0ffc538a0de",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:16:04.942Z",
+      "winnerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "loserId": "local-player",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 368,
+          "opponentMetric": 120,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 520,
+          "opponentMetric": 205,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "parryclash",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-03T12:16:04.951Z"
+    },
+    {
+      "id": "92acb118-c222-4a7e-962d-edf093ddeae9",
+      "challengerId": "local-player",
+      "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:02.558Z",
+      "winnerId": "local-player",
+      "loserId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 132,
+          "opponentMetric": 460,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 21,
+          "opponentMetric": 140,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:02.576Z"
+    },
+    {
+      "id": "db9eb2a7-3ad6-4c3f-861c-108aea2401fc",
+      "challengerId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:03.845Z",
+      "winnerId": "local-player",
+      "loserId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 460,
+          "opponentMetric": 193,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 1913,
+          "opponentMetric": 3315,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:03.859Z"
+    },
+    {
+      "id": "1a7644a9-8a0c-4300-adb2-aef1d399658c",
+      "challengerId": "local-player",
+      "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:04.409Z",
+      "winnerId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "loserId": "local-player",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 120,
+          "opponentMetric": 328,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 41,
+          "opponentMetric": 98,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 404,
+          "opponentMetric": 349,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:04.420Z"
+    },
+    {
+      "id": "db3e6686-2010-4f93-a971-f2120a04f9e3",
+      "challengerId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:04.906Z",
+      "winnerId": "local-player",
+      "loserId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 241,
+          "opponentMetric": 295,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3537,
+          "opponentMetric": 2855,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 378,
+          "opponentMetric": 140,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:04.918Z"
+    },
+    {
+      "id": "f7df5406-f22d-430a-b168-9dbb16508b56",
+      "challengerId": "local-player",
+      "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:05.394Z",
+      "winnerId": "local-player",
+      "loserId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 258,
+          "opponentMetric": 248,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 2063,
+          "opponentMetric": 1496,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 3,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 140,
+          "opponentMetric": 481,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:05.410Z"
+    },
+    {
+      "id": "55423f2d-40c3-498e-9e41-9f6ae9f279d6",
+      "challengerId": "local-player",
+      "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:11.129Z",
+      "winnerId": "local-player",
+      "loserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 445,
+          "opponentMetric": 131,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 70,
+          "opponentMetric": 97,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 3,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3146,
+          "opponentMetric": 2317,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-03T12:17:11.145Z"
+    },
+    {
+      "id": "5f1598f6-ba7d-4333-b573-392a877bd3a8",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:11.853Z",
+      "winnerId": "local-player",
+      "loserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 367,
+          "opponentMetric": 302,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "precision",
+          "label": "Precision Rush",
+          "challengerMetric": 55,
+          "opponentMetric": 18,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "precision",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-03T12:17:11.862Z"
+    },
+    {
+      "id": "92d78fe0-263d-4193-a84a-40235d1cc537",
+      "challengerId": "local-player",
+      "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:12.102Z",
+      "winnerId": "local-player",
+      "loserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 120,
+          "opponentMetric": 204,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "duelnumeric",
+          "label": "Duel Numeric",
+          "challengerMetric": 3471,
+          "opponentMetric": 2651,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "duelnumeric",
+        "parryclash"
+      ],
+      "playedAt": "2026-06-03T12:17:12.116Z"
+    },
+    {
+      "id": "c0c35ffd-fa15-4a5d-bc66-aac3e5d1b5bd",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:12.284Z",
+      "winnerId": "local-player",
+      "loserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 366,
+          "opponentMetric": 120,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 357,
+          "opponentMetric": 251,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "parryclash",
+        "duelnumeric"
+      ],
+      "playedAt": "2026-06-03T12:17:12.295Z"
+    },
+    {
+      "id": "cea33779-66c4-4058-8040-a6bf83f2a983",
+      "challengerId": "local-player",
+      "opponentId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "mindgame",
+          "pick": "speedsort"
+        },
+        "opponent": {
+          "ban": "speedsort",
+          "pick": "quickdraw"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-03T12:17:12.485Z",
+      "winnerId": "local-player",
+      "loserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "quickdraw",
+          "label": "Quickdraw",
+          "challengerMetric": 347,
+          "opponentMetric": 292,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "parryclash",
+          "label": "Parry Clash",
+          "challengerMetric": 314,
+          "opponentMetric": 248,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "quickdraw",
+        "parryclash",
+        "precision"
+      ],
+      "playedAt": "2026-06-03T12:17:12.518Z"
+    }
+  ],
+  "rivalries": {
+    "d757dacf-860c-4e8b-bb66-0a4186120fd9_local-player": {
+      "users": [
+        "local-player",
+        "d757dacf-860c-4e8b-bb66-0a4186120fd9"
+      ],
+      "wins": {
+        "local-player": 29,
+        "d757dacf-860c-4e8b-bb66-0a4186120fd9": 0
+      },
+      "last5": [
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-02T16:09:26.221Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-02T16:08:58.733Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-02T16:08:58.553Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-02T16:08:58.419Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-02T16:08:58.189Z"
+        }
+      ]
+    },
+    "77e48107-2dba-4bcb-8fbe-ab6fdd3de448_baac30d6-8617-4652-a511-a3daccd1642c": {
+      "users": [
+        "baac30d6-8617-4652-a511-a3daccd1642c",
+        "77e48107-2dba-4bcb-8fbe-ab6fdd3de448"
+      ],
+      "wins": {
+        "baac30d6-8617-4652-a511-a3daccd1642c": 1,
+        "77e48107-2dba-4bcb-8fbe-ab6fdd3de448": 0
+      },
+      "last5": [
+        {
+          "winnerId": "baac30d6-8617-4652-a511-a3daccd1642c",
+          "date": "2026-06-03T10:17:57.953Z"
+        }
+      ]
+    },
+    "b588f91b-6ace-47d8-b527-02bd34d86529_local-player": {
+      "users": [
+        "b588f91b-6ace-47d8-b527-02bd34d86529",
+        "local-player"
+      ],
+      "wins": {
+        "b588f91b-6ace-47d8-b527-02bd34d86529": 1,
+        "local-player": 5
+      },
+      "last5": [
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:05.410Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:04.918Z"
+        },
+        {
+          "winnerId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+          "date": "2026-06-03T12:17:04.420Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:03.859Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:02.576Z"
+        }
+      ]
+    },
+    "9ec201a4-ff52-4404-9e3a-2cc15ff2faec_local-player": {
+      "users": [
+        "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+        "local-player"
+      ],
+      "wins": {
+        "9ec201a4-ff52-4404-9e3a-2cc15ff2faec": 1,
+        "local-player": 5
+      },
+      "last5": [
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:12.518Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:12.295Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:12.116Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:11.862Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-03T12:17:11.145Z"
+        }
+      ]
+    }
+  },
+  "challenges": [
+    {
+      "id": "2e076ab4-c27d-4350-bf56-c1110e3df89e",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "25d17295-5c3b-4b45-9154-84e8a6242c28",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-03T12:16:17.262Z"
+    },
+    {
+      "id": "6f315dd7-59eb-4b80-932c-ec3307c595fa",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "25d17295-5c3b-4b45-9154-84e8a6242c28",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-03T12:16:15.448Z"
+    },
+    {
+      "id": "3324ea42-d347-4f75-9123-5d5795e285ee",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-03T12:16:10.927Z"
+    },
+    {
+      "id": "be367e2c-cc1e-4042-b285-b10a981412dc",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-03T12:16:09.816Z"
+    },
+    {
+      "id": "c010a855-5cd1-4387-8dbb-455cd698cd12",
+      "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+      "opponentId": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "stake": 5,
+      "status": "accepted",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-03T12:15:01.000Z",
+      "respondedAt": "2026-06-03T12:15:14.486Z",
+      "respondedBy": "b588f91b-6ace-47d8-b527-02bd34d86529",
+      "duelId": "bf27c210-80db-434b-a553-27f7464c6f9a"
+    },
+    {
+      "id": "fb83ea33-6e99-4d56-8f51-b19f8096b962",
+      "challengerId": "baac30d6-8617-4652-a511-a3daccd1642c",
+      "opponentId": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+      "stake": 5,
+      "status": "accepted",
+      "draft": null,
+      "message": "live-multi-test",
+      "createdAt": "2026-06-03T10:17:57.818Z",
+      "respondedAt": "2026-06-03T10:17:57.880Z",
+      "respondedBy": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
+      "duelId": "ff0da8c0-3234-483a-84be-c69486dfadca"
+    },
+    {
+      "id": "3e1a9bb8-cac7-46c4-80c2-c785e2e022ee",
+      "challengerId": "local-player",
+      "opponentId": "25d17295-5c3b-4b45-9154-84e8a6242c28",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T16:09:51.255Z"
+    },
+    {
+      "id": "07b7a7c0-635c-42e7-a8fe-e36a74539b45",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T16:09:27.659Z"
+    },
+    {
+      "id": "d96dfc93-629d-4b45-ab95-c670c3b8da2a",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T16:09:25.189Z"
+    },
+    {
+      "id": "d779905c-ebc6-456b-a100-7fbd128d5fc3",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T16:09:24.732Z"
+    },
+    {
+      "id": "e5791d08-82ba-4397-84c3-9ef410cbeaec",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T16:09:24.135Z"
+    },
+    {
+      "id": "70ea347c-dd58-4689-976d-2a636b50e9d2",
+      "challengerId": "local-player",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-02T15:37:06.901Z"
+    }
+  ],
+  "clientSessions": {
+    "0d218c1f-a7a0-41fd-90c4-e2baff607e3f": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+    "32337f06-3e65-4d7d-b2f5-a9d5e45f71eb": "03b8b567-a5d3-4f11-bd71-65d2cc022075",
+    "2fdee217-9bca-4e58-8d16-aa63037c03f4": "baac30d6-8617-4652-a511-a3daccd1642c",
+    "55299d15-5147-48b7-a6f0-762985a813e0": "b588f91b-6ace-47d8-b527-02bd34d86529",
+    "a78c1ab9-8b84-41cc-92d6-d1596283bc25": "43c1512e-244c-4646-8385-ed00c83c9cc8",
+    "client-alpha": "8d9ebac6-4be3-4a33-95fd-fdb8f9f2f33f",
+    "client-beta": "7b2d404e-e4da-47cd-9c44-08223c47d861"
+  }
 }
