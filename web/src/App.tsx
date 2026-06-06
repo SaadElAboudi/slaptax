@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
 import styles from './App.module.css';
-import { useGameStore } from './hooks/useGameStore';
+import { useGameStore, type Tab } from './hooks/useGameStore';
 import { TopBar } from './components/TopBar/TopBar';
-import { Ticker } from './components/Ticker/Ticker';
-import { Hero } from './components/Hero/Hero';
-import { Lobby } from './components/Lobby/Lobby';
 import { Tabs } from './components/Tabs/Tabs';
+import { ArenaHome } from './components/ArenaHome/ArenaHome';
 import { BouncePanicPanel } from './components/BouncePanicPanel/BouncePanicPanel';
 import { SymbolSprintPanel } from './components/SymbolSprintPanel/SymbolSprintPanel';
 import { DuelNumericPanel } from './components/DuelNumericPanel/DuelNumericPanel';
 import { BombPassPanel } from './components/BombPassPanel/BombPassPanel';
 import { CupShufflePanel } from './components/CupShufflePanel/CupShufflePanel';
-import { MobileAdvancedBtn } from './components/MobileAdvancedBtn/MobileAdvancedBtn';
 import { LeaderboardPanel } from './components/LeaderboardPanel/LeaderboardPanel';
 import { AnalyticsPanel } from './components/AnalyticsPanel/AnalyticsPanel';
 import { HistoryPanel } from './components/HistoryPanel/HistoryPanel';
 import { FriendDuelPanel } from './components/FriendDuelPanel/FriendDuelPanel';
 import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
-import { useMediaQuery } from './hooks/useMediaQuery';
 import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
+import { gameLabel } from './gameplay/catalog';
 
 function App() {
-    const { bootstrap, refreshLiveState, activeTab, mobileAdvancedOpen } = useGameStore();
-    const isMobile = useMediaQuery('(max-width: 767px)');
+    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, lastNet } = useGameStore();
+    const isFr = language === 'fr';
+    const [arenaOpen, setArenaOpen] = useState(() => {
+        const requestedTab = new URLSearchParams(window.location.search).get('tab');
+        return Boolean(requestedTab);
+    });
     const [showOnboarding, setShowOnboarding] = useState(() => {
         try {
             return !localStorage.getItem('slaptax_onboarded');
@@ -60,40 +61,66 @@ function App() {
         };
     }, [bootstrap, refreshLiveState]);
 
-    const showAdvancedSections = !isMobile || mobileAdvancedOpen;
+    useEffect(() => {
+        if (lastNet == null || !('vibrate' in navigator)) return;
+        navigator.vibrate(lastNet >= 0 ? [40, 35, 90] : [130, 55, 130]);
+    }, [lastNet]);
+
+    function enterArena(tab: Tab) {
+        setActiveTab(tab);
+        setArenaOpen(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const sectionLabels: Partial<Record<Tab, string>> = {
+        defy: isFr ? 'Duel Ami' : 'Friend Duel',
+        tournament: isFr ? 'Tournoi' : 'Tournament',
+        leaderboard: isFr ? 'Classement' : 'Leaderboard',
+        analytics: 'Analytics',
+        stats: isFr ? 'Historique' : 'History',
+    };
+    const activeGameName = sectionLabels[activeTab] || gameLabel(activeTab, isFr);
 
     return (
         <>
             <div className={styles.tapeBg} aria-hidden />
 
             <TopBar />
-            <Ticker />
 
-            <main className={styles.container}>
-                {showAdvancedSections && (
+            <main className={`${styles.container} ${arenaOpen ? styles.arenaMode : styles.homeMode}`}>
+                {!arenaOpen ? (
+                    <ArenaHome onEnter={enterArena} />
+                ) : (
                     <>
-                        <Hero />
-                        <Lobby />
+                        <div className={styles.matchHeader}>
+                            <button type="button" onClick={() => setArenaOpen(false)} aria-label={isFr ? 'Retour a l arene' : 'Back to arena'}>
+                                ←
+                            </button>
+                            <div>
+                                <span>{isFr ? 'ARENE LIVE' : 'LIVE ARENA'}</span>
+                                <strong>{activeGameName}</strong>
+                            </div>
+                            <i className={styles.livePulse} aria-hidden />
+                        </div>
+
+                        <Tabs />
+
+                        <div key={activeTab} className={styles.panelArea}>
+                            {activeTab === 'bounce' && <BouncePanicPanel />}
+                            {activeTab === 'symbolrush' && <SymbolSprintPanel />}
+                            {activeTab === 'bomb' && <BombPassPanel />}
+                            {activeTab === 'cups' && <CupShufflePanel />}
+                            {activeTab === 'duelnumeric' && <DuelNumericPanel />}
+                            {activeTab === 'defy' && <FriendDuelPanel />}
+                            {activeTab === 'tournament' && <TournamentPanel />}
+                            {activeTab === 'leaderboard' && <LeaderboardPanel />}
+                            {activeTab === 'analytics' && <AnalyticsPanel />}
+                            {activeTab === 'stats' && <HistoryPanel />}
+                        </div>
                     </>
                 )}
 
-                <Tabs />
-
-                <div key={activeTab} className={styles.panelArea}>
-                    {activeTab === 'bounce' && <BouncePanicPanel />}
-                    {activeTab === 'symbolrush' && <SymbolSprintPanel />}
-                    {activeTab === 'bomb' && <BombPassPanel />}
-                    {activeTab === 'cups' && <CupShufflePanel />}
-                    {activeTab === 'duelnumeric' && <DuelNumericPanel />}
-                    {activeTab === 'defy' && <FriendDuelPanel />}
-                    {activeTab === 'tournament' && <TournamentPanel />}
-                    {activeTab === 'leaderboard' && <LeaderboardPanel />}
-                    {activeTab === 'analytics' && <AnalyticsPanel />}
-                    {activeTab === 'stats' && <HistoryPanel />}
-                </div>
-
                 {showOnboarding && <OnboardingModal onClose={handleOnboardingClose} />}
-                <MobileAdvancedBtn />
             </main>
         </>
     );

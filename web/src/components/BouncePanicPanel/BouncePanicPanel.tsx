@@ -230,6 +230,7 @@ export function BouncePanicPanel() {
                     game.velocityX += offset * 90;
                     game.rally += 1;
                     setRally(game.rally);
+                    navigator.vibrate?.(12);
                 }
 
                 const botBottom = 34 + PADDLE_HEIGHT;

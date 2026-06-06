@@ -126,7 +126,9 @@ export function CupShufflePanel() {
 
     function chooseSlot(slot: number) {
         if (phaseRef.current !== 'choose') return;
-        finishRound(orderRef.current[slot] === tokenCupRef.current);
+        const won = orderRef.current[slot] === tokenCupRef.current;
+        navigator.vibrate?.(won ? [25, 25, 45] : 110);
+        finishRound(won);
     }
 
     return (

@@ -5,9 +5,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 24px;
-    border-bottom: 2px solid var(--accent);
-    background: rgba(10, 10, 10, 0.88);
+    min-height: 58px;
+    padding: 9px 24px;
+    border-bottom: 1px solid rgba(255, 212, 0, 0.28);
+    background: rgba(7, 10, 15, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
@@ -29,19 +30,27 @@
 .right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 7px;
 }
 
 .liveDot {
     font-size: 0.66rem;
     font-weight: 700;
     color: #fff;
-    background: #ff1a1a;
-    padding: 5px 10px;
-    letter-spacing: 2px;
+    padding: 5px 8px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     border-radius: 999px;
-    animation: blink 1.2s step-end infinite;
+}
+
+.live {
+    color: #07110a;
+    background: var(--ok);
+}
+
+.offline {
+    color: #fff;
+    background: var(--bad);
 }
 
 .walletChip {
@@ -63,67 +72,18 @@
     border-color: rgba(75, 212, 123, 0.6);
 }
 
-.serverDot {
-    font-size: 0.62rem;
+.playerNameInput {
+    width: 108px;
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--text);
+    padding: 6px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 4px 8px;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-}
-
-.serverDot.ok {
-    color: var(--ok);
-    background: rgba(75, 212, 123, 0.1);
-}
-
-.serverDot.bad {
-    color: var(--bad);
-    background: rgba(255, 90, 104, 0.1);
-}
-
-.idBadge {
-    border: 1px solid rgba(255, 212, 0, 0.6);
-    background: rgba(255, 212, 0, 0.12);
-    color: var(--accent);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.64rem;
-    letter-spacing: 0.03em;
-    border-radius: 999px;
-    padding: 4px 8px;
-    white-space: nowrap;
-}
-
-.idBadgeMuted {
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.64rem;
-    letter-spacing: 0.03em;
-    border-radius: 999px;
-    padding: 4px 8px;
-    white-space: nowrap;
-}
-
-.copyIdBtn {
-    border: 1px solid rgba(255, 212, 0, 0.3);
-    background: rgba(255, 212, 0, 0.06);
-    color: var(--accent);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.03em;
-    border-radius: 999px;
-    padding: 4px 8px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.copyIdBtnDone {
-    border-color: rgba(75, 212, 123, 0.5);
-    color: var(--ok);
-    background: rgba(75, 212, 123, 0.12);
+    text-align: center;
 }
 
 .langBtn {
@@ -147,16 +107,17 @@
         padding: 8px 12px;
     }
 
-    .serverDot {
-        display: none;
+    .brand {
+        font-size: 1.05rem;
     }
 
-    .idBadgeMuted {
-        display: none;
+    .walletChip {
+        padding: 5px 8px;
+        font-size: 0.66rem;
     }
 
-    .copyIdBtn {
-        display: none;
+    .playerNameInput {
+        width: 76px;
     }
 
     .langBtn {

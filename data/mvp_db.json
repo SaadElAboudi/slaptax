@@ -1,14 +1,74 @@
 {
   "schemaVersion": 2,
   "currency": "SLAP$",
-  "activeUserId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
+  "activeUserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
   "users": [
     {
       "id": "local-player",
       "playerName": "Player",
-      "wallet": 151.5,
+      "wallet": 164,
       "stake": 5,
       "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:19.750Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:19.184Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:18.614Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:18.000Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:17.153Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:10.995Z"
+        },
         {
           "type": "DUEL_P2P",
           "result": "WIN",
@@ -422,7 +482,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -857,7 +917,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -897,7 +957,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -937,7 +997,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -977,7 +1037,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1017,7 +1077,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1067,7 +1127,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1107,7 +1167,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1147,7 +1207,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1187,7 +1247,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1227,7 +1287,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1277,7 +1337,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1378,7 +1438,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1486,7 +1546,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -1526,7 +1586,108 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-03",
+          "dayKey": "2026-06-06",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        }
+      }
+    },
+    {
+      "id": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "playerName": "Saad",
+      "wallet": 3.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:19.750Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:19.184Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:18.614Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:18.000Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:17.153Z"
+        },
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "local-player",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Symbol Sprint • opponent banned Duel Numeric / favored Bounce Panic",
+          "date": "2026-06-06T12:55:10.995Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-06",
           "claimed": false,
           "tasks": [
             {
@@ -3743,6 +3904,328 @@
         "precision"
       ],
       "playedAt": "2026-06-03T12:17:12.518Z"
+    },
+    {
+      "id": "9482ff8c-5e1a-4e66-9a40-128679482e46",
+      "challengerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:10.977Z",
+      "winnerId": "local-player",
+      "loserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 6375,
+          "opponentMetric": 3894,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 679,
+          "opponentMetric": 465,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "bombpass"
+      ],
+      "playedAt": "2026-06-06T12:55:10.995Z"
+    },
+    {
+      "id": "7fca0fd9-2786-48a7-823c-38f405215964",
+      "challengerId": "local-player",
+      "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:17.144Z",
+      "winnerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "loserId": "local-player",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 3276,
+          "opponentMetric": 5521,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 225,
+          "opponentMetric": 403,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "hard"
+        },
+        {
+          "round": 3,
+          "gameId": "bombpass",
+          "label": "Bomb Pass",
+          "challengerMetric": 424,
+          "opponentMetric": 400,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "elite"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "bombpass"
+      ],
+      "playedAt": "2026-06-06T12:55:17.153Z"
+    },
+    {
+      "id": "9ba49d26-8474-4ad1-9cb8-4ddd9dc502b9",
+      "challengerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:17.987Z",
+      "winnerId": "local-player",
+      "loserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 8123,
+          "opponentMetric": 8083,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 202,
+          "opponentMetric": 302,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "elite",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "cupshuffle"
+      ],
+      "playedAt": "2026-06-06T12:55:18.000Z"
+    },
+    {
+      "id": "a5394363-98cc-4d7a-9df0-bdb51e7a2ede",
+      "challengerId": "local-player",
+      "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:18.605Z",
+      "winnerId": "local-player",
+      "loserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 5842,
+          "opponentMetric": 1867,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 453,
+          "opponentMetric": 292,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "hard",
+          "opponentDifficulty": "hard"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "bombpass"
+      ],
+      "playedAt": "2026-06-06T12:55:18.614Z"
+    },
+    {
+      "id": "7b717c28-a996-40b0-b2e7-5c65441ed22f",
+      "challengerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:19.172Z",
+      "winnerId": "local-player",
+      "loserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 5850,
+          "opponentMetric": 7559,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 483,
+          "opponentMetric": 673,
+          "winner": "OPPONENT",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "cupshuffle"
+      ],
+      "playedAt": "2026-06-06T12:55:19.184Z"
+    },
+    {
+      "id": "df5d9346-4c8c-448c-a831-25a0333c400e",
+      "challengerId": "local-player",
+      "opponentId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T12:55:19.736Z",
+      "winnerId": "local-player",
+      "loserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "symbolrush",
+          "label": "Symbol Sprint",
+          "challengerMetric": 6266,
+          "opponentMetric": 2636,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "elite"
+        },
+        {
+          "round": 2,
+          "gameId": "bounce",
+          "label": "Bounce Panic",
+          "challengerMetric": 581,
+          "opponentMetric": 487,
+          "winner": "CHALLENGER",
+          "challengerDifficulty": "standard",
+          "opponentDifficulty": "standard"
+        }
+      ],
+      "games": [
+        "symbolrush",
+        "bounce",
+        "cupshuffle"
+      ],
+      "playedAt": "2026-06-06T12:55:19.750Z"
     }
   ],
   "rivalries": {
@@ -3857,9 +4340,51 @@
           "date": "2026-06-03T12:17:11.145Z"
         }
       ]
+    },
+    "1a668e83-2f67-4e6c-8084-90791bfb2551_local-player": {
+      "users": [
+        "1a668e83-2f67-4e6c-8084-90791bfb2551",
+        "local-player"
+      ],
+      "wins": {
+        "1a668e83-2f67-4e6c-8084-90791bfb2551": 1,
+        "local-player": 5
+      },
+      "last5": [
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-06T12:55:19.750Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-06T12:55:19.184Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-06T12:55:18.614Z"
+        },
+        {
+          "winnerId": "local-player",
+          "date": "2026-06-06T12:55:18.000Z"
+        },
+        {
+          "winnerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+          "date": "2026-06-06T12:55:17.153Z"
+        }
+      ]
     }
   },
   "challenges": [
+    {
+      "id": "dd23f22b-5f49-4ccc-89e5-ec381a8085ba",
+      "challengerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": null,
+      "message": "[object Object]",
+      "createdAt": "2026-06-06T12:55:09.969Z"
+    },
     {
       "id": "2e076ab4-c27d-4350-bf56-c1110e3df89e",
       "challengerId": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
@@ -3994,6 +4519,7 @@
     "55299d15-5147-48b7-a6f0-762985a813e0": "b588f91b-6ace-47d8-b527-02bd34d86529",
     "a78c1ab9-8b84-41cc-92d6-d1596283bc25": "43c1512e-244c-4646-8385-ed00c83c9cc8",
     "client-alpha": "8d9ebac6-4be3-4a33-95fd-fdb8f9f2f33f",
-    "client-beta": "7b2d404e-e4da-47cd-9c44-08223c47d861"
+    "client-beta": "7b2d404e-e4da-47cd-9c44-08223c47d861",
+    "5c97f699-acd7-485d-938f-4539e1fea8bd": "1a668e83-2f67-4e6c-8084-90791bfb2551"
   }
 }

@@ -44,11 +44,6 @@ interface GameStore {
     setDifficultyMode: (mode: DifficultyMode) => void;
     cycleDifficultyMode: () => void;
 
-    // Mobile UX
-    mobileAdvancedOpen: boolean;
-    setMobileAdvancedOpen: (open: boolean) => void;
-    toggleMobileAdvanced: () => void;
-
     // History
     history: HistoryEntry[];
     loadHistory: () => Promise<void>;
@@ -225,12 +220,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             try { localStorage.setItem('slaptax_difficulty_mode', next); } catch { /* ignore */ }
             return { difficultyMode: next };
         }),
-
-    // Mobile
-    mobileAdvancedOpen: false,
-    setMobileAdvancedOpen: (open) => set({ mobileAdvancedOpen: open }),
-    toggleMobileAdvanced: () =>
-        set((s) => ({ mobileAdvancedOpen: !s.mobileAdvancedOpen })),
 
     // History
     history: [],

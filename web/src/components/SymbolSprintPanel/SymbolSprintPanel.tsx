@@ -160,6 +160,7 @@ export function SymbolSprintPanel() {
         if (phaseRef.current !== 'input') return;
         const target = sequenceRef.current[inputRef.current.length];
         if (symbol !== target) {
+            navigator.vibrate?.(70);
             penaltyRef.current += 400;
             setPenalty(penaltyRef.current);
             setMistake(true);
@@ -169,6 +170,7 @@ export function SymbolSprintPanel() {
         }
 
         const updated = [...inputRef.current, symbol];
+        navigator.vibrate?.(18);
         inputRef.current = updated;
         setInput(updated);
         setMessage(updated.length === sequenceRef.current.length

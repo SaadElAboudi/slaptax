@@ -40,7 +40,18 @@ body {
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
-    cursor: crosshair;
+    cursor: default;
+    overscroll-behavior-y: none;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
 }
 
 body::before {

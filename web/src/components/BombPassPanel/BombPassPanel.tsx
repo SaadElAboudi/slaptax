@@ -151,10 +151,12 @@ export function BombPassPanel() {
         if (phaseRef.current !== 'player') return;
         const distance = Math.abs(markerRef.current - safeCenterRef.current);
         if (distance > safeWidthRef.current / 2) {
+            navigator.vibrate?.(100);
             finishRound(false);
             return;
         }
 
+        navigator.vibrate?.(28);
         passesRef.current += 1;
         setPasses(passesRef.current);
         updatePhase('rival');
