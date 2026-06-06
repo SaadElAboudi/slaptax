@@ -10,9 +10,10 @@ import { FriendDuelPanel } from './components/FriendDuelPanel/FriendDuelPanel';
 import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
 import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
 import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
+import { useRealtime } from './api/realtime';
 
 function App() {
-    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language } = useGameStore();
+    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId } = useGameStore();
     const isFr = language === 'fr';
     const [arenaOpen, setArenaOpen] = useState(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
@@ -24,6 +25,10 @@ function App() {
         } catch {
             return true;
         }
+    });
+
+    useRealtime(userId, (event) => {
+        if (event.type === 'state.changed') void refreshLiveState();
     });
 
     const handleOnboardingComplete = (tab: Tab) => {

@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { WebSocket } = require("ws");
 
 const { createServer } = require("../server");
 
@@ -69,6 +70,42 @@ test("health endpoint is reachable", async () => {
         assert.equal(data.ok, true);
         assert.equal(data.service, "slaptax-mvp-api");
         assert.equal(data.schemaVersion, 2);
+    });
+});
+
+test("realtime clients receive state changes without polling", async () => {
+    await withServer(async (baseUrl) => {
+        const socketUrl = baseUrl.replace(/^http/, "ws") + "/api/realtime?userId=realtime-user";
+        const socket = new WebSocket(socketUrl);
+        const messages = [];
+        socket.on("message", (data) => messages.push(JSON.parse(String(data))));
+
+        await new Promise((resolve, reject) => {
+            socket.once("open", resolve);
+            socket.once("error", reject);
+        });
+
+        const joined = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "Realtime",
+            clientId: "realtime-client",
+        });
+        assert.equal(joined.status, 200);
+
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Realtime event timeout")), 1500);
+            const check = () => {
+                if (messages.some((message) => message.type === "state.changed" && message.scope === "/api/session/join")) {
+                    clearTimeout(timeout);
+                    resolve();
+                    return;
+                }
+                setTimeout(check, 10);
+            };
+            check();
+        });
+
+        socket.close();
+        await new Promise((resolve) => socket.once("close", resolve));
     });
 });
 

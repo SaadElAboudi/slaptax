@@ -2,8 +2,9 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { createService } = require("./application/service");
-const { readDb, writeDb, resetDb, DB_PATH } = require("./infrastructure/db");
+const { createStore } = require("./infrastructure/store");
 const { createRequestHandler } = require("./http/router");
+const { createRealtimeHub } = require("./realtime");
 const { json } = require("./http/io");
 
 const PORT = Number(process.env.PORT || 8787);
@@ -56,20 +57,25 @@ function serveWebApp(req, res, distPath = WEB_DIST_PATH) {
 }
 
 function createServer(options = {}) {
-    const dbPath = options.dbPath || DB_PATH;
-    const store = {
-        read: () => readDb(dbPath),
-        write: (data) => writeDb(data, dbPath),
-        reset: () => resetDb(dbPath),
-    };
-
+    const store = options.store || createStore(options);
     const service = createService(store);
     const handleRequest = createRequestHandler(service);
 
-    return http.createServer(async (req, res) => {
+    const server = http.createServer(async (req, res) => {
         try {
+            await store.ready;
             const url = new URL(req.url, "http://localhost");
             if (url.pathname.startsWith("/api/")) {
+                if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+                    res.once("finish", () => {
+                        if (res.statusCode < 400) {
+                            server.realtime.broadcast({
+                                type: "state.changed",
+                                scope: url.pathname,
+                            });
+                        }
+                    });
+                }
                 await handleRequest(req, res);
                 return;
             }
@@ -79,14 +85,36 @@ function createServer(options = {}) {
             json(res, 500, { error: err.message || "Internal server error" });
         }
     });
+    server.store = store;
+    server.realtime = createRealtimeHub(server);
+    server.on("close", () => {
+        server.realtime.close();
+    });
+    return server;
 }
 
 if (require.main === module) {
     const server = createServer();
-    server.listen(PORT, HOST, () => {
-        // Keep startup line simple for quick copy/paste testing.
-        process.stdout.write(`SLAP$TAX API listening on http://${HOST}:${PORT}\n`);
-    });
+    server.store.ready
+        .then(() => {
+            server.listen(PORT, HOST, () => {
+                process.stdout.write(`SLAP$TAX API listening on http://${HOST}:${PORT} (${server.store.kind})\n`);
+            });
+        })
+        .catch((error) => {
+            process.stderr.write(`SLAP$TAX startup failed: ${error.message}\n`);
+            process.exitCode = 1;
+        });
+
+    async function shutdown(signal) {
+        process.stdout.write(`SLAP$TAX received ${signal}, shutting down\n`);
+        await new Promise((resolve) => server.close(resolve));
+        await server.store.close();
+        process.exit(0);
+    }
+
+    process.once("SIGTERM", () => void shutdown("SIGTERM"));
+    process.once("SIGINT", () => void shutdown("SIGINT"));
 }
 
 module.exports = {

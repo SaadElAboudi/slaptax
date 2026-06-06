@@ -110,6 +110,7 @@ module.exports = {
     SCHEMA_VERSION,
     defaultState,
     makeDefaultState,
+    migrateState,
     ensureDbFile,
     readDb,
     writeDb,

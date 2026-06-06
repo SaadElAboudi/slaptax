@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type UserListEntry } from '../../api/client';
+import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 import { getRiskStakeCap } from '../../gameplay/difficulty';
 import { useGameStore } from '../../hooks/useGameStore';
@@ -50,7 +51,12 @@ export function FriendDuelPanel() {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [intermission, setIntermission] = useState<LiveDuelMatch['rounds'][number] | null>(null);
+    const [realtimeTick, setRealtimeTick] = useState(0);
     const seenRoundsRef = useRef<number | null>(null);
+
+    useRealtime(userId, (event) => {
+        if (event.type === 'state.changed') setRealtimeTick((value) => value + 1);
+    });
 
     const opponents = useMemo(() => users.filter((user) => user.id !== userId), [users, userId]);
     const incoming = challenges.filter((challenge) => challenge.direction === 'incoming' && challenge.status === 'pending');
@@ -80,7 +86,7 @@ export function FriendDuelPanel() {
         void loadLobby().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Lobby unavailable'));
         const timer = window.setInterval(() => void loadLobby(), 3000);
         return () => window.clearInterval(timer);
-    }, [userId, clientId, duelId, pendingChallengeId]);
+    }, [userId, clientId, duelId, pendingChallengeId, realtimeTick]);
 
     useEffect(() => {
         if (!userId || duelId) return;
@@ -154,7 +160,7 @@ export function FriendDuelPanel() {
             cancelled = true;
             window.clearInterval(timer);
         };
-    }, [duelId, userId, refreshLiveState]);
+    }, [duelId, userId, refreshLiveState, realtimeTick]);
 
     useEffect(() => {
         if (!duelId || !userId || !room) return;

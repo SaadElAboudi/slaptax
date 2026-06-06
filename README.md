@@ -51,13 +51,15 @@ Core idea:
 FR: Ce repository contient maintenant une version MVP jouable:
 - une app React/Vite dans `web/`,
 - une API Node.js sans framework dans `api/`,
-- une persistence JSON locale dans `data/mvp_db.json`,
+- PostgreSQL en production avec fallback JSON local,
+- une synchronisation WebSocket pour les duels et invitations,
 - des prototypes HTML historiques conserves comme reference.
 
 EN: This repository now contains a playable MVP:
 - a React/Vite app in `web/`,
 - a framework-free Node.js API in `api/`,
-- local JSON persistence in `data/mvp_db.json`,
+- PostgreSQL in production with a local JSON fallback,
+- WebSocket synchronization for duels and invites,
 - legacy HTML prototypes kept as reference.
 
 FR: Le projet reste un prototype produit. Les soldes, mises et gains sont des credits de demo (`SLAP$`), pas de l'argent reel.  
@@ -74,7 +76,7 @@ FR/EN:
 
 - `web/`: current React/Vite frontend.
 - `api/`: MVP backend API.
-- `data/mvp_db.json`: sanitized local seed state.
+- `data/mvp_db.json`: local development state used without `DATABASE_URL`.
 - `SLAPTAX_Concept.md`: main concept reference.
 - `SLAPTAX_Concept_Code.txt`: JS script used to generate DOCX concept output.
 - `SLAPTAX_Document_Presentation_Complet.md`: full master presentation.
@@ -145,22 +147,29 @@ cd web && npm run build
 
 ## Deploy On Render
 
-The repository includes a root `render.yaml` Blueprint. It builds the React app
-and serves both the frontend and `/api` from one Node web service.
+The repository includes a root `render.yaml` Blueprint. It provisions PostgreSQL,
+builds the React app, and serves the frontend, `/api`, and WebSockets from one
+Node web service.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SaadElAboudi/slaptax)
 
 1. Push the repository to GitHub.
 2. In Render, choose **New > Blueprint**.
 3. Connect `SaadElAboudi/slaptax`.
-4. Confirm the `slaptax` service and deploy.
+4. Confirm the `slaptax` service and `slaptax-db` database, then deploy.
 
 The health check is available at `/api/health`.
 
-The free Render plan uses an ephemeral filesystem, so demo players and match
-history can reset after restarts or deploys. For persistence, upgrade the web
-service, attach a disk, and set `DB_PATH` to a file under its mount path, such
-as `/var/data/mvp_db.json`.
+Render injects `DATABASE_URL` automatically from the Blueprint. Players, active
+matches, wallets, and history therefore survive web-service restarts and deploys.
+Without `DATABASE_URL`, the API keeps using `data/mvp_db.json` locally.
+
+### Production environment
+
+- `DATABASE_URL`: PostgreSQL connection string; configured by `render.yaml`.
+- `HOST`: `0.0.0.0` on Render.
+- `PORT`: provided automatically by Render.
+- `PG_POOL_SIZE`: optional, defaults to `4`.
 
 ## Lancer les prototypes HTML / Run the HTML Prototypes
 
