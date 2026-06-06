@@ -148,6 +148,8 @@ cd web && npm run build
 The repository includes a root `render.yaml` Blueprint. It builds the React app
 and serves both the frontend and `/api` from one Node web service.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SaadElAboudi/slaptax)
+
 1. Push the repository to GitHub.
 2. In Render, choose **New > Blueprint**.
 3. Connect `SaadElAboudi/slaptax`.
