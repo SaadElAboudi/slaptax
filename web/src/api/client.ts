@@ -88,6 +88,28 @@ export interface TournamentRunRound {
     scoreAgainst: number;
     gameId?: string;
     label?: string;
+    opponentId?: string;
+    opponentName?: string;
+}
+
+export interface TournamentBracketMatch {
+    round: number;
+    match: number;
+    gameId: string;
+    label: string;
+    playerA: { id: string; name: string; bot: boolean };
+    playerB: { id: string; name: string; bot: boolean };
+    scoreA: number;
+    scoreB: number;
+    winnerId: string;
+    winnerName: string;
+}
+
+export interface TournamentBracketRound {
+    round: number;
+    gameId: string;
+    label: string;
+    matches: TournamentBracketMatch[];
 }
 
 export interface TournamentResult {
@@ -96,6 +118,10 @@ export interface TournamentResult {
     run: TournamentRunRound[];
     net: number;
     payout: number;
+    championId?: string;
+    championName?: string;
+    entrants?: Array<{ id: string; name: string; bot: boolean }>;
+    bracket?: TournamentBracketRound[];
     games?: string[];
     draftSummary?: string;
 }

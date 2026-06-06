@@ -6,12 +6,11 @@ import { Ticker } from './components/Ticker/Ticker';
 import { Hero } from './components/Hero/Hero';
 import { Lobby } from './components/Lobby/Lobby';
 import { Tabs } from './components/Tabs/Tabs';
-
-import { QuickdrawPanel } from './components/QuickdrawPanel/QuickdrawPanel';
-import { ParryClashPanel } from './components/ParryClashPanel/ParryClashPanel';
-import { MindGameDuelPanel } from './components/MindGameDuelPanel/MindGameDuelPanel';
-import { SpeedSortPanel } from './components/SpeedSortPanel/SpeedSortPanel';
+import { BouncePanicPanel } from './components/BouncePanicPanel/BouncePanicPanel';
+import { SymbolSprintPanel } from './components/SymbolSprintPanel/SymbolSprintPanel';
 import { DuelNumericPanel } from './components/DuelNumericPanel/DuelNumericPanel';
+import { BombPassPanel } from './components/BombPassPanel/BombPassPanel';
+import { CupShufflePanel } from './components/CupShufflePanel/CupShufflePanel';
 import { MobileAdvancedBtn } from './components/MobileAdvancedBtn/MobileAdvancedBtn';
 import { LeaderboardPanel } from './components/LeaderboardPanel/LeaderboardPanel';
 import { AnalyticsPanel } from './components/AnalyticsPanel/AnalyticsPanel';
@@ -81,10 +80,10 @@ function App() {
                 <Tabs />
 
                 <div key={activeTab} className={styles.panelArea}>
-                    {activeTab === 'quickdraw' && <QuickdrawPanel />}
-                    {activeTab === 'parry' && <ParryClashPanel />}
-                    {activeTab === 'mindgame' && <MindGameDuelPanel />}
-                    {activeTab === 'speedsort' && <SpeedSortPanel />}
+                    {activeTab === 'bounce' && <BouncePanicPanel />}
+                    {activeTab === 'symbolrush' && <SymbolSprintPanel />}
+                    {activeTab === 'bomb' && <BombPassPanel />}
+                    {activeTab === 'cups' && <CupShufflePanel />}
                     {activeTab === 'duelnumeric' && <DuelNumericPanel />}
                     {activeTab === 'defy' && <FriendDuelPanel />}
                     {activeTab === 'tournament' && <TournamentPanel />}

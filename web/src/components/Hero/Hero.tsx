@@ -10,10 +10,10 @@ export function Hero() {
     const coverage = safeStake > 0 ? `${((safeWallet / safeStake) * 100).toFixed(0)}%` : '—';
     const lastNet = useGameStore((s) => s.lastNet);
     const focusLabel = {
-        quickdraw: isFr ? 'Quickdraw' : 'Quickdraw',
-        parry: 'Parry Clash',
-        mindgame: isFr ? 'Mental' : 'Mind Game',
-        speedsort: 'Speed Sort',
+        bounce: 'Bounce Panic',
+        symbolrush: 'Symbol Sprint',
+        bomb: 'Bomb Pass',
+        cups: 'Cup Shuffle',
         duelnumeric: 'Duel Numeric',
         defy: isFr ? 'Duel Ami' : 'Friend Duel',
         tournament: isFr ? 'Tournoi' : 'Tournament',
@@ -39,8 +39,8 @@ export function Hero() {
                 </p>
                 <p className={styles.roster}>
                     {isFr
-                        ? 'Pool actif: Quickdraw · Mental · Speed Sort · Duel Numeric'
-                        : 'Live pool: Quickdraw · Mind Game · Speed Sort · Duel Numeric'}
+                        ? 'Pool actif: Bounce Panic · Symbol Sprint · Bomb Pass · Cup Shuffle · Duel Numeric'
+                        : 'Live pool: Bounce Panic · Symbol Sprint · Bomb Pass · Cup Shuffle · Duel Numeric'}
                 </p>
                 <div className={styles.liveRail}>
                     <div className={styles.liveCard}>

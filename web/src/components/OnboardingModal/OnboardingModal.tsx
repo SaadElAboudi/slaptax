@@ -43,7 +43,7 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
             setStep(step + 1);
         } else {
             onClose();
-            setActiveTab('quickdraw');
+            setActiveTab('bounce');
         }
     };
 

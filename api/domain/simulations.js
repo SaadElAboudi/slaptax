@@ -1,35 +1,29 @@
 const { toMoney2 } = require("../shared/money");
 
 const P2P_GAME_LIBRARY = {
-    precision: {
-        label: "Precision Rush",
-        metric: [18, 140],
-        elite: 28,
-        hard: 60,
-    },
-    quickdraw: {
-        label: "Quickdraw",
-        metric: [120, 460],
-        elite: 170,
-        hard: 280,
-    },
-    parryclash: {
-        label: "Parry Clash",
-        metric: [140, 520],
-        elite: 190,
-        hard: 310,
-    },
-    mindgame: {
-        label: "Mind Game",
-        metric: [180, 900],
+    bounce: {
+        label: "Bounce Panic",
+        metric: [180, 720],
         elite: 260,
-        hard: 520,
+        hard: 460,
     },
-    speedsort: {
-        label: "Speed Sort",
-        metric: [900, 4200],
-        elite: 1500,
-        hard: 2600,
+    symbolrush: {
+        label: "Symbol Sprint",
+        metric: [1800, 8200],
+        elite: 3200,
+        hard: 5400,
+    },
+    bombpass: {
+        label: "Bomb Pass",
+        metric: [220, 1200],
+        elite: 420,
+        hard: 760,
+    },
+    cupshuffle: {
+        label: "Cup Shuffle",
+        metric: [450, 2200],
+        elite: 800,
+        hard: 1450,
     },
     duelnumeric: {
         label: "Duel Numeric",
@@ -40,12 +34,10 @@ const P2P_GAME_LIBRARY = {
 };
 
 const DRAFT_GAME_ALIASES = {
-    reflex: "quickdraw",
-    timing: "mindgame",
-    precision: "precision",
-    parry: "parryclash",
-    zone: "speedsort",
-    crown: "duelnumeric",
+    precision: "bounce",
+    speedsort: "symbolrush",
+    crown: "cupshuffle",
+    zone: "bombpass",
 };
 
 function clamp(value, min, max) {
@@ -165,53 +157,93 @@ function simulateDuel(stake, stats) {
     };
 }
 
-function simulateTournament(size, stake, stats, draft = null) {
+function simulateTournament(size, stake, draft = null, entrants = [], activeUserId = "") {
     const rounds = Math.log2(size);
     const run = [];
-    let alive = true;
-    let reachedRound = 0;
-
     const draftPlan = normalizeTournamentDraft(draft);
     const games = resolveTournamentGames(draftPlan);
-    const baseSkill = 0.42 + stats.winRate / 220 + (draftPlan ? 0.03 : 0);
+    const supplied = Array.isArray(entrants) ? entrants.slice(0, size) : [];
+    const normalizedEntrants = supplied.map((entrant, index) => ({
+        id: String(entrant.id || `bot-${index + 1}`),
+        name: String(entrant.name || `Player ${index + 1}`),
+        winRate: clamp(Number(entrant.winRate || 50), 0, 100),
+        bot: !!entrant.bot,
+    }));
 
-    for (let r = 1; r <= rounds; r += 1) {
-        if (!alive) break;
-        const gameId = games[(r - 1) % games.length];
-        const config = P2P_GAME_LIBRARY[gameId];
-        const chance = Math.min(0.88, baseSkill + (rounds - r) * 0.02 + (draftPlan && draftPlan.pick === gameId ? 0.04 : 0));
-        const wonRound = Math.random() < chance;
-        const performance = metricRoll(config.metric, Math.round((chance - 0.5) * 160));
-        const scoreFor = Math.max(0, Math.round(1000 - performance * 1.3 + (draftPlan && draftPlan.pick === gameId ? 40 : 0)));
-        const scoreAgainst = Math.max(0, Math.round(scoreFor - (wonRound ? 18 + Math.random() * 30 : -(18 + Math.random() * 30))));
-        if (wonRound) {
-            reachedRound = r;
-            run.push({
-                round: r,
-                result: "WIN",
-                gameId,
-                label: config.label,
-                opponentLevel: Math.min(5, Math.max(1, r + 1)),
-                scoreFor,
-                scoreAgainst,
-                won: true,
-            });
-        } else {
-            alive = false;
-            run.push({
-                round: r,
-                result: "ELIMINATED",
-                gameId,
-                label: config.label,
-                opponentLevel: Math.min(5, Math.max(1, r + 1)),
-                scoreFor,
-                scoreAgainst,
-                won: false,
-            });
-        }
+    while (normalizedEntrants.length < size) {
+        const botNumber = normalizedEntrants.length + 1;
+        normalizedEntrants.push({
+            id: `bot-${botNumber}`,
+            name: `CPU ${String(botNumber).padStart(2, "0")}`,
+            winRate: 35 + Math.floor(Math.random() * 36),
+            bot: true,
+        });
     }
 
-    const champion = alive && reachedRound === rounds;
+    let field = shuffle(normalizedEntrants);
+    const bracket = [];
+
+    for (let r = 1; r <= rounds; r += 1) {
+        const gameId = games[(r - 1) % games.length];
+        const config = P2P_GAME_LIBRARY[gameId];
+        const roundMatches = [];
+        const nextField = [];
+
+        for (let index = 0; index < field.length; index += 2) {
+            const playerA = field[index];
+            const playerB = field[index + 1];
+            const comfortA = draftPlan && playerA.id === activeUserId && draftPlan.pick === gameId ? 0.05 : 0;
+            const comfortB = draftPlan && playerB.id === activeUserId && draftPlan.pick === gameId ? 0.05 : 0;
+            const chanceA = clamp(0.5 + (playerA.winRate - playerB.winRate) / 240 + comfortA - comfortB, 0.2, 0.8);
+            const winnerA = Math.random() < chanceA;
+            const winner = winnerA ? playerA : playerB;
+            const metricA = metricRoll(config.metric, Math.round((chanceA - 0.5) * 140));
+            const metricB = metricRoll(config.metric, Math.round((0.5 - chanceA) * 140));
+            const scoreA = Math.max(0, Math.round(1000 - metricA * 1.3 + comfortA * 800));
+            const scoreB = Math.max(0, Math.round(1000 - metricB * 1.3 + comfortB * 800));
+            const winningScore = Math.max(scoreA, scoreB) + 12;
+            const finalScoreA = winnerA ? winningScore : Math.min(scoreA, winningScore - 1);
+            const finalScoreB = winnerA ? Math.min(scoreB, winningScore - 1) : winningScore;
+
+            roundMatches.push({
+                round: r,
+                match: index / 2 + 1,
+                gameId,
+                label: config.label,
+                playerA: { id: playerA.id, name: playerA.name, bot: playerA.bot },
+                playerB: { id: playerB.id, name: playerB.name, bot: playerB.bot },
+                scoreA: finalScoreA,
+                scoreB: finalScoreB,
+                winnerId: winner.id,
+                winnerName: winner.name,
+            });
+
+            if (playerA.id === activeUserId || playerB.id === activeUserId) {
+                const activeIsA = playerA.id === activeUserId;
+                run.push({
+                    round: r,
+                    result: winner.id === activeUserId ? "WIN" : "ELIMINATED",
+                    gameId,
+                    label: config.label,
+                    opponentId: activeIsA ? playerB.id : playerA.id,
+                    opponentName: activeIsA ? playerB.name : playerA.name,
+                    opponentLevel: Math.min(5, Math.max(1, r + 1)),
+                    scoreFor: activeIsA ? finalScoreA : finalScoreB,
+                    scoreAgainst: activeIsA ? finalScoreB : finalScoreA,
+                    won: winner.id === activeUserId,
+                });
+            }
+
+            nextField.push(winner);
+        }
+
+        bracket.push({ round: r, gameId, label: config.label, matches: roundMatches });
+        field = nextField;
+    }
+
+    const tournamentChampion = field[0];
+    const champion = tournamentChampion?.id === activeUserId;
+    const reachedRound = run.filter((round) => round.won).length;
     const grossPool = size * stake;
     const payout = champion ? toMoney2(grossPool * 0.94) : 0;
     const net = champion ? toMoney2(payout - stake) : toMoney2(-stake);
@@ -221,6 +253,10 @@ function simulateTournament(size, stake, stats, draft = null) {
         rounds,
         reachedRound,
         run,
+        entrants: normalizedEntrants.map(({ id, name, bot }) => ({ id, name, bot })),
+        bracket,
+        championId: tournamentChampion?.id || "",
+        championName: tournamentChampion?.name || "",
         games,
         draft: draftPlan,
         draftSummary: draftPlan ? `Draft: banned ${P2P_GAME_LIBRARY[draftPlan.ban].label} • favored ${P2P_GAME_LIBRARY[draftPlan.pick].label}` : "",

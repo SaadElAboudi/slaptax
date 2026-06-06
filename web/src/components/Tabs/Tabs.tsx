@@ -1,13 +1,14 @@
 import styles from './Tabs.module.css';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { COMPETITIVE_GAMES } from '../../gameplay/catalog';
 
 const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
-    { id: 'quickdraw', label: 'Quickdraw' },
-    { id: 'parry', label: 'Parry Clash', advanced: true },
-    { id: 'mindgame', label: 'Mind Game', advanced: true },
-    { id: 'speedsort', label: 'Speed Sort', advanced: true },
-    { id: 'duelnumeric', label: 'Duel Numeric', advanced: true },
+    ...COMPETITIVE_GAMES.map((game, index) => ({
+        id: game.tab,
+        label: game.labelEn,
+        advanced: index > 1,
+    })),
     { id: 'defy', label: 'Friend Duel' },
     { id: 'tournament', label: 'Tournament' },
     { id: 'leaderboard', label: 'Leaderboard', advanced: true },
@@ -16,10 +17,10 @@ const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
 ];
 
 const TAB_LABELS_FR: Record<Tab, string> = {
-    quickdraw: 'Quickdraw',
-    parry: 'Parry Clash',
-    mindgame: 'Mental',
-    speedsort: 'Speed Sort',
+    bounce: 'Bounce Panic',
+    symbolrush: 'Symbol Sprint',
+    bomb: 'Bomb Pass',
+    cups: 'Cup Shuffle',
     duelnumeric: 'Duel Numeric',
     defy: 'Duel Ami',
     tournament: 'Tournoi',

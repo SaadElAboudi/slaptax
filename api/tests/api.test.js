@@ -197,15 +197,26 @@ test("tournament supports draft and roster rounds", async () => {
         const result = await jfetch(baseUrl, "POST", "/api/tournament/simulate", {
             size: 8,
             stake: 5,
-            draft: { ban: "mindgame", pick: "quickdraw" },
+            draft: { ban: "duelnumeric", pick: "bounce" },
         });
 
         assert.equal(result.status, 200);
         assert.equal(result.data.ok, true);
         assert.ok(result.data.tournament.draftSummary);
         assert.ok(Array.isArray(result.data.tournament.games));
-        assert.ok(result.data.tournament.games.includes("quickdraw"));
+        assert.ok(result.data.tournament.games.includes("bounce"));
         assert.ok(result.data.tournament.run.every((round) => round.gameId));
+        assert.equal(result.data.tournament.entrants.length, 8);
+        assert.equal(result.data.tournament.bracket.length, 3);
+        assert.equal(
+            result.data.tournament.bracket.reduce((total, round) => total + round.matches.length, 0),
+            7
+        );
+        assert.ok(result.data.tournament.championId);
+        assert.ok(result.data.tournament.championName);
+        assert.ok(result.data.tournament.bracket.every(
+            (round) => round.matches.every((match) => match.gameId === round.gameId)
+        ));
     });
 });
 
@@ -237,16 +248,16 @@ test("can create a P2P duel between two users", async () => {
             opponentId: b.data.user.id,
             stake: 5,
             draft: {
-                challenger: { ban: "mindgame", pick: "quickdraw" },
-                opponent: { ban: "precision", pick: "speedsort" },
+                challenger: { ban: "bombpass", pick: "bounce" },
+                opponent: { ban: "duelnumeric", pick: "symbolrush" },
             },
         });
 
         assert.equal(data.ok, true);
         assert.equal(data.duel.status, "pending");
         assert.equal(data.duel.stake, 5);
-        assert.equal(data.duel.draft.challenger.ban, "mindgame");
-        assert.equal(data.duel.draft.opponent.pick, "speedsort");
+        assert.equal(data.duel.draft.challenger.ban, "bombpass");
+        assert.equal(data.duel.draft.opponent.pick, "symbolrush");
     });
 });
 
@@ -268,7 +279,13 @@ test("playing a P2P duel updates both wallets and history", async () => {
         assert.ok(played.data.winnerId);
         assert.ok(Array.isArray(played.data.games));
         assert.ok(played.data.games.length >= 2);
-        assert.ok(played.data.rounds.every((round) => ["precision", "quickdraw", "parryclash", "mindgame", "speedsort", "duelnumeric"].includes(round.gameId)));
+        assert.ok(played.data.games.length <= 3);
+        assert.ok(played.data.rounds.length >= 2);
+        assert.ok(played.data.rounds.length <= 3);
+        assert.equal(new Set(played.data.games).size, played.data.games.length);
+        const expectedWinnerRole = played.data.winnerId === played.data.duel.challengerId ? "CHALLENGER" : "OPPONENT";
+        assert.equal(played.data.rounds.at(-1).winner, expectedWinnerRole);
+        assert.ok(played.data.rounds.every((round) => ["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric"].includes(round.gameId)));
 
         const total = played.data.challengerWallet + played.data.opponentWallet;
         // Total wallets should be less than initial 50 (platform fee 15%)
@@ -286,8 +303,8 @@ test("rematch swaps challengerId and opponentId", async () => {
             opponentId: b.data.user.id,
             stake: 5,
             draft: {
-                challenger: { ban: "quickdraw", pick: "precision" },
-                opponent: { ban: "mindgame", pick: "duelnumeric" },
+                challenger: { ban: "bombpass", pick: "bounce" },
+                opponent: { ban: "cupshuffle", pick: "duelnumeric" },
             },
         });
         await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
@@ -336,8 +353,8 @@ test("challenge inbox lists pending incoming challenge", async () => {
             opponentId: opponent.data.user.id,
             stake: 5,
             draft: {
-                challenger: { ban: "mindgame", pick: "quickdraw" },
-                opponent: { ban: "precision", pick: "speedsort" },
+                challenger: { ban: "bombpass", pick: "bounce" },
+                opponent: { ban: "duelnumeric", pick: "symbolrush" },
             },
         });
 

@@ -3,17 +3,12 @@ import styles from './FriendDuelPanel.module.css';
 import { api, type Challenge, type DuelRoomState, type PlayP2PResponse, type UserListEntry } from '../../api/client';
 import { useGameStore } from '../../hooks/useGameStore';
 import { getDifficultyLabel, getRiskStakeCap } from '../../gameplay/difficulty';
+import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 
 const STAKES = [2, 5, 10, 20];
 const PENDING_INVITE_KEY = 'slaptax_pending_invite';
-const DRAFT_GAMES = [
-    { id: 'quickdraw', labelEn: 'Quickdraw', labelFr: 'Quickdraw' },
-    { id: 'mindgame', labelEn: 'Mind Game', labelFr: 'Mental' },
-    { id: 'speedsort', labelEn: 'Speed Sort', labelFr: 'Speed Sort' },
-    { id: 'duelnumeric', labelEn: 'Duel Numeric', labelFr: 'Duel Numeric' },
-] as const;
-
-type DraftGameId = typeof DRAFT_GAMES[number]['id'];
+const DRAFT_GAMES = COMPETITIVE_GAMES;
+type DraftGameId = CompetitiveGameId;
 
 interface DraftSide {
     ban: DraftGameId;
@@ -40,10 +35,7 @@ function formatNet(result: PlayP2PResponse | null, activeUserId: string | null):
 }
 
 function labelGame(gameId: string, isFr: boolean): string {
-    const labels: Record<string, string> = Object.fromEntries(
-        DRAFT_GAMES.map((game) => [game.id, isFr ? game.labelFr : game.labelEn])
-    );
-    return labels[gameId] || gameId;
+    return gameLabel(gameId, isFr);
 }
 
 export function FriendDuelPanel() {
@@ -66,8 +58,8 @@ export function FriendDuelPanel() {
     const [pending, setPending] = useState<Challenge[]>([]);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [draft, setDraft] = useState<DraftPlan>({
-        challenger: { ban: 'mindgame', pick: 'speedsort' },
-        opponent: { ban: 'speedsort', pick: 'quickdraw' },
+        challenger: { ban: 'duelnumeric', pick: 'symbolrush' },
+        opponent: { ban: 'duelnumeric', pick: 'bounce' },
     });
     const [rivalryWins, setRivalryWins] = useState<string>(isFr ? 'Pas encore de rivalite' : 'No rivalry data yet');
     const [lastResult, setLastResult] = useState<PlayP2PResponse | null>(null);
@@ -587,7 +579,20 @@ export function FriendDuelPanel() {
                 <div className={styles.messageField}>
                     <div className={styles.draftHeader}>
                         <strong>{isFr ? 'Draft ban / pick' : 'Ban / pick draft'}</strong>
-                        <span>{isFr ? '5 jeux distincts, aucun doublon par ligne.' : '5 distinct games, no duplicate ban/pick on each side.'}</span>
+                        <span>
+                            {isFr
+                                ? '6 jeux distincts. Premier a 2 manches, avec une belle uniquement si necessaire.'
+                                : '6 distinct games. First to 2 rounds, with a decider only when needed.'}
+                        </span>
+                    </div>
+                    <div className={styles.gameRoster}>
+                        {DRAFT_GAMES.map((game) => (
+                            <article key={game.id} className={styles.gameRosterCard}>
+                                <strong>{isFr ? game.labelFr : game.labelEn}</strong>
+                                <span className={styles.gameSkill}>{isFr ? game.skillFr : game.skillEn}</span>
+                                <p>{isFr ? game.ruleFr : game.ruleEn}</p>
+                            </article>
+                        ))}
                     </div>
                     <div className={styles.draftGrid}>
                         {draftFields.map((entry) => (
@@ -624,8 +629,8 @@ export function FriendDuelPanel() {
                     </div>
                     <p className={styles.draftHint}>
                         {isFr
-                            ? 'Le draft sert de meta simple: tu coupes un point fort et tu pousses un jeu plus confortable.'
-                            : 'Draft is the meta layer: cut a strength and push a comfortable game.'}
+                            ? 'Chaque joueur bannit un jeu et en favorise un. Les jeux restants composent une serie sans doublon.'
+                            : 'Each player bans one game and favors one. The remaining games form a duplicate-free series.'}
                     </p>
                 </div>
 
@@ -690,6 +695,16 @@ export function FriendDuelPanel() {
                             {lastResult.rounds.map((round) => (
                                 <span key={`${round.round}-${round.gameId}`} className={styles.roundPill}>
                                     {isFr ? 'M' : 'R'}{round.round} · {labelGame(round.gameId, isFr)}
+                                    {typeof round.challengerMetric === 'number' && typeof round.opponentMetric === 'number'
+                                        ? ` · ${round.challengerMetric}-${round.opponentMetric}`
+                                        : ''}
+                                    {round.winner
+                                        ? ` · ${
+                                            (round.winner === 'CHALLENGER') === (lastResult.duel.challengerId === activeUserId)
+                                                ? (isFr ? 'Gagnee' : 'Won')
+                                                : (isFr ? 'Perdue' : 'Lost')
+                                        }`
+                                        : ''}
                                 </span>
                             ))}
                         </div>

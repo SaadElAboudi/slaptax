@@ -3,7 +3,7 @@ import { api, type AnalyticsKpi, type HistoryEntry, type LeaderboardEntry, type 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'quickdraw' | 'parry' | 'mindgame' | 'speedsort' | 'duelnumeric' | 'defy' | 'tournament' | 'leaderboard' | 'analytics' | 'stats';
+export type Tab = 'bounce' | 'symbolrush' | 'bomb' | 'cups' | 'duelnumeric' | 'defy' | 'tournament' | 'leaderboard' | 'analytics' | 'stats';
 export type QuickMode = 'duel' | 'defy' | 'tournament';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
@@ -159,7 +159,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     // Navigation
-    activeTab: 'quickdraw',
+    activeTab: 'bounce',
     setActiveTab: (tab) => {
         const state = get();
         const leavingActiveDuel = state.activeTab !== tab && state.isDueling;

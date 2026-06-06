@@ -203,6 +203,65 @@
     gap: 10px;
 }
 
+.championLine {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.championLine strong {
+    color: var(--accent);
+}
+
+.fullBracket {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+
+.bracketColumn {
+    display: grid;
+    gap: 8px;
+}
+
+.bracketHead {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.bracketHead strong {
+    color: var(--text);
+}
+
+.bracketMatch {
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+    overflow: hidden;
+}
+
+.bracketMatch > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 9px;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.bracketMatch > div + div {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.bracketWinner {
+    color: #86efac !important;
+    background: rgba(22, 101, 52, 0.16);
+}
+
 .resultHero {
     display: flex;
     justify-content: space-between;

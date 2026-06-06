@@ -3,18 +3,12 @@ import styles from './TournamentPanel.module.css';
 import { api, type TournamentResponse } from '../../api/client';
 import { useGameStore } from '../../hooks/useGameStore';
 import { getDifficultyLabel, getRiskStakeCap, tuneTournamentSize } from '../../gameplay/difficulty';
+import { COMPETITIVE_GAMES, type CompetitiveGameId } from '../../gameplay/catalog';
 
 const SIZES = [8, 16, 32];
 const STAKES = [2, 5, 10, 20];
-const DRAFT_GAMES = [
-    { id: 'quickdraw', labelEn: 'Quickdraw', labelFr: 'Quickdraw' },
-    { id: 'parryclash', labelEn: 'Parry Clash', labelFr: 'Parry Clash' },
-    { id: 'mindgame', labelEn: 'Mind Game', labelFr: 'Mental' },
-    { id: 'speedsort', labelEn: 'Speed Sort', labelFr: 'Speed Sort' },
-    { id: 'duelnumeric', labelEn: 'Duel Numeric', labelFr: 'Duel Numeric' },
-] as const;
-
-type DraftGameId = typeof DRAFT_GAMES[number]['id'];
+const DRAFT_GAMES = COMPETITIVE_GAMES;
+type DraftGameId = CompetitiveGameId;
 
 interface TournamentDraft {
     ban: DraftGameId;
@@ -40,7 +34,7 @@ export function TournamentPanel() {
 
     const [size, setSize] = useState(8);
     const [stake, setStake] = useState(5);
-    const [draft, setDraft] = useState<TournamentDraft>({ ban: 'mindgame', pick: 'quickdraw' });
+    const [draft, setDraft] = useState<TournamentDraft>({ ban: 'duelnumeric', pick: 'bounce' });
     const [running, setRunning] = useState(false);
     const [error, setError] = useState('');
     const [result, setResult] = useState<TournamentResponse | null>(null);
@@ -98,9 +92,9 @@ export function TournamentPanel() {
             <div className={styles.head}>
                 <div>
                     <h2 className={styles.title}>{isFr ? 'Tournoi' : 'Tournament'}</h2>
-                    <p className={styles.sub}>{isFr ? 'Bracket stable pour tester un format battle-royal sans casser le wallet ni la session.' : 'Stable bracket mode to stress-test a battle-royale format without breaking wallet flow or session state.'}</p>
+                    <p className={styles.sub}>{isFr ? 'Tous les participants entrent dans le meme bracket. Une defaite elimine, un seul champion reste.' : 'Every participant enters the same bracket. One loss eliminates; one champion remains.'}</p>
                     <p className={styles.wallet}>{isFr ? 'Wallet' : 'Wallet'}: SLAP$ {safeWallet.toFixed(2)}</p>
-                    <p className={styles.meta}>{isFr ? 'Difficulte globale' : 'Global difficulty'}: {getDifficultyLabel(difficultyMode, isFr)} · {isFr ? 'Bracket simule' : 'Simulated bracket'}: {tunedSize}</p>
+                    <p className={styles.meta}>{isFr ? 'Difficulte globale' : 'Global difficulty'}: {getDifficultyLabel(difficultyMode, isFr)} · {isFr ? 'Joueurs inscrits + CPU' : 'Registered players + CPU'}: {tunedSize}</p>
                 </div>
             </div>
 
@@ -211,6 +205,9 @@ export function TournamentPanel() {
                                     ? (isFr ? 'Tu prends le bracket' : 'You cleared the bracket')
                                     : (isFr ? `Sortie en ${stageLabel(result.tournament.run[result.tournament.run.length - 1]?.round || 1, result.tournament.rounds, true)}` : `Out in ${stageLabel(result.tournament.run[result.tournament.run.length - 1]?.round || 1, result.tournament.rounds, false)}`)}
                             </h3>
+                            <p className={styles.championLine}>
+                                {isFr ? 'Champion du tournoi' : 'Tournament champion'}: <strong>{result.tournament.championName || '?'}</strong>
+                            </p>
                             <p className={styles.resultCopy}>
                                 {result.tournament.champion
                                     ? (isFr ? 'Le draft a tenu, la bankroll survit, et le run est clean.' : 'Draft held, bankroll survived, and the run stayed clean.')
@@ -247,6 +244,29 @@ export function TournamentPanel() {
                                 </div>
                             );
                         })}
+                    </div>
+
+                    <div className={styles.fullBracket}>
+                        {(result.tournament.bracket ?? []).map((bracketRound) => (
+                            <section key={bracketRound.round} className={styles.bracketColumn}>
+                                <div className={styles.bracketHead}>
+                                    <strong>{stageLabel(bracketRound.round, result.tournament.rounds, isFr)}</strong>
+                                    <span>{bracketRound.label}</span>
+                                </div>
+                                {bracketRound.matches.map((match) => (
+                                    <article key={`${bracketRound.round}-${match.match}`} className={styles.bracketMatch}>
+                                        <div className={match.winnerId === match.playerA.id ? styles.bracketWinner : ''}>
+                                            <span>{match.playerA.name}</span>
+                                            <strong>{match.scoreA}</strong>
+                                        </div>
+                                        <div className={match.winnerId === match.playerB.id ? styles.bracketWinner : ''}>
+                                            <span>{match.playerB.name}</span>
+                                            <strong>{match.scoreB}</strong>
+                                        </div>
+                                    </article>
+                                ))}
+                            </section>
+                        ))}
                     </div>
 
                     <div className={styles.rounds}>

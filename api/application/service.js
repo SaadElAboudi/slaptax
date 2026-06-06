@@ -12,21 +12,18 @@ const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
 const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
 
 const DRAFT_GAMES = [
-    { id: "precision", label: "Precision Rush" },
-    { id: "quickdraw", label: "Quickdraw" },
-    { id: "parryclash", label: "Parry Clash" },
-    { id: "mindgame", label: "Mind Game" },
-    { id: "speedsort", label: "Speed Sort" },
+    { id: "bounce", label: "Bounce Panic" },
+    { id: "symbolrush", label: "Symbol Sprint" },
+    { id: "bombpass", label: "Bomb Pass" },
+    { id: "cupshuffle", label: "Cup Shuffle" },
     { id: "duelnumeric", label: "Duel Numeric" },
 ];
 
 const DRAFT_GAME_ALIASES = {
-    reflex: "quickdraw",
-    timing: "mindgame",
-    precision: "precision",
-    parry: "parryclash",
-    zone: "speedsort",
-    crown: "duelnumeric",
+    precision: "bounce",
+    speedsort: "symbolrush",
+    crown: "cupshuffle",
+    zone: "bombpass",
 };
 
 const SKILL_POOLS = [
@@ -663,8 +660,22 @@ function createService(store) {
             }
 
             activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
-            const stats = getStats(activeUser.history);
-            const tournament = simulateTournament(tournamentSize, numericStake, stats, draft);
+            const entrants = [
+                activeUser,
+                ...db.users.filter((user) => user.id !== activeUser.id),
+            ].map((user) => ({
+                id: user.id,
+                name: user.playerName,
+                winRate: getStats(user.history).winRate,
+                bot: false,
+            }));
+            const tournament = simulateTournament(
+                tournamentSize,
+                numericStake,
+                draft,
+                entrants,
+                activeUser.id
+            );
 
             if (tournament.champion) {
                 activeUser.wallet = toMoney2(activeUser.wallet + tournament.payout);

@@ -43,7 +43,7 @@ Core idea:
 
 ### 3) Strategic Layer
 - Player stats per mini-game.
-- Ban/Pick mind games.
+- Strategic ban/pick draft.
 - Meta progression beyond pure reflexes.
 
 ## Statut du projet / Project Status

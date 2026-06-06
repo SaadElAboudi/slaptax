@@ -3,10 +3,10 @@ import { useGameStore } from '../../hooks/useGameStore';
 
 function labelTab(tab: ReturnType<typeof useGameStore.getState>['activeTab'], isFr: boolean): string {
     const labels = {
-        quickdraw: isFr ? 'Quickdraw' : 'Quickdraw',
-        parry: isFr ? 'Parry Clash' : 'Parry Clash',
-        mindgame: isFr ? 'Mental' : 'Mind Game',
-        speedsort: isFr ? 'Speed Sort' : 'Speed Sort',
+        bounce: 'Bounce Panic',
+        symbolrush: 'Symbol Sprint',
+        bomb: 'Bomb Pass',
+        cups: 'Cup Shuffle',
         duelnumeric: isFr ? 'Duel Numeric' : 'Duel Numeric',
         defy: isFr ? 'Duel Ami' : 'Friend Duel',
         tournament: isFr ? 'Tournoi' : 'Tournament',
