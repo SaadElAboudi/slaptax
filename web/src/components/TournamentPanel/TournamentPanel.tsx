@@ -66,7 +66,8 @@ export function TournamentPanel() {
         if (!userId || !tournament) return;
         setBusy(true);
         try {
-            const data = await api.submitLiveTournamentRound(tournament.id, userId, result.score, result.metric);
+            if (!tournament.attemptToken) throw new Error(isFr ? 'Tentative expirée. Reconnexion...' : 'Attempt expired. Reconnecting...');
+            const data = await api.submitLiveTournamentRound(tournament.id, userId, result.score, result.metric, tournament.attemptToken);
             if (data.tournament) {
                 setTournament(data.tournament);
                 setIntermission(data.tournament.rounds[data.tournament.rounds.length - 1] || null);

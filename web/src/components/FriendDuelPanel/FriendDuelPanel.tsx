@@ -254,7 +254,8 @@ export function FriendDuelPanel() {
         if (!duelId || !userId || !match) return;
         setBusy(true);
         try {
-            const data = await api.submitLiveDuelRound(duelId, userId, match.currentRound, result.score, result.metric);
+            if (!match.attemptToken) throw new Error(isFr ? 'Tentative expirée. Reconnexion...' : 'Attempt expired. Reconnecting...');
+            const data = await api.submitLiveDuelRound(duelId, userId, match.currentRound, result.score, result.metric, match.attemptToken);
             if (data.match.rounds.length > match.rounds.length) {
                 seenRoundsRef.current = data.match.rounds.length;
                 setIntermission(data.match.rounds[data.match.rounds.length - 1] || null);

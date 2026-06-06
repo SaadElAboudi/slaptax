@@ -241,6 +241,8 @@ export interface LiveDuelMatch {
     winnerId: string | null;
     loserId: string | null;
     rematchId: string | null;
+    attemptToken: string | null;
+    roundStartedAt: string | null;
     submittedBy: Record<string, string[]>;
 }
 
@@ -267,6 +269,8 @@ export interface LiveTournament {
     abandoned?: boolean;
     payout?: number;
     net?: number;
+    attemptToken: string;
+    roundStartedAt: string;
 }
 
 export interface LiveTournamentResponse {
@@ -466,12 +470,13 @@ export const api = {
     getActiveLiveDuel: (userId: string) =>
         req<{ ok: boolean; match: LiveDuelMatch | null }>('GET', `/api/duels/active?userId=${encodeURIComponent(userId)}`),
 
-    submitLiveDuelRound: (duelId: string, userId: string, round: number, score: number, metric: number) =>
+    submitLiveDuelRound: (duelId: string, userId: string, round: number, score: number, metric: number, attemptToken: string) =>
         req<{ ok: boolean; match: LiveDuelMatch }>('POST', `/api/duels/${encodeURIComponent(duelId)}/rounds`, {
             userId,
             round,
             score,
             metric,
+            attemptToken,
         }),
 
     rematchP2P: (duelId: string) =>
@@ -521,11 +526,12 @@ export const api = {
     getActiveLiveTournament: (userId: string) =>
         req<LiveTournamentResponse>('GET', `/api/tournaments/active?userId=${encodeURIComponent(userId)}`),
 
-    submitLiveTournamentRound: (tournamentId: string, userId: string, score: number, metric: number) =>
+    submitLiveTournamentRound: (tournamentId: string, userId: string, score: number, metric: number, attemptToken: string) =>
         req<LiveTournamentResponse>('POST', `/api/tournaments/${encodeURIComponent(tournamentId)}/rounds`, {
             userId,
             score,
             metric,
+            attemptToken,
         }),
 
     abandonLiveTournament: (tournamentId: string, userId: string) =>

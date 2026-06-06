@@ -513,43 +513,109 @@ test("live P2P duel waits for both real scores and resolves best-of-three", asyn
         assert.equal(started.status, 200);
         assert.equal(started.data.match.status, "playing");
         assert.equal(started.data.match.games.length, 3);
+        assert.ok(started.data.match.attemptToken);
+        const playerAFirstToken = started.data.match.attemptToken;
+        const playerBMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
+        const playerBFirstToken = playerBMatch.data.match.attemptToken;
+        assert.ok(playerBFirstToken);
+        assert.notEqual(playerAFirstToken, playerBFirstToken);
 
         const recovered = await jfetch(baseUrl, "GET", `/api/duels/active?userId=${aId}`);
         assert.equal(recovered.status, 200);
         assert.equal(recovered.data.match.duelId, duelId);
 
-        const onlyA = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: aId,
-            round: 1,
-            score: 900,
-            metric: 1000,
-        });
-        assert.equal(onlyA.data.match.currentRound, 1);
-        assert.deepEqual(onlyA.data.match.score, { challenger: 0, opponent: 0 });
+        const [playerAFirst, playerBFirst] = await Promise.all([
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: aId,
+                round: 1,
+                score: 900,
+                metric: 1000,
+                attemptToken: playerAFirstToken,
+            }),
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: bId,
+                round: 1,
+                score: 500,
+                metric: 1200,
+                attemptToken: playerBFirstToken,
+            }),
+        ]);
+        assert.equal(playerAFirst.status, 200);
+        assert.equal(playerBFirst.status, 200);
+        const roundOne = playerAFirst.data.match.currentRound === 2 ? playerAFirst : playerBFirst;
+        assert.deepEqual(roundOne.data.match.score, { challenger: 1, opponent: 0 });
+        const playerBSecondToken = roundOne.data.match.attemptToken;
+        const playerASecondMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${aId}`);
+        const playerASecondToken = playerASecondMatch.data.match.attemptToken;
+        const secondRoundResults = await Promise.all([
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: aId,
+                round: 2,
+                score: 850,
+                metric: 1100,
+                attemptToken: playerASecondToken,
+            }),
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: bId,
+                round: 2,
+                score: 400,
+                metric: 1300,
+                attemptToken: playerBSecondToken,
+            }),
+        ]);
+        const finished = secondRoundResults.find((result) => result.data.match.status === "done");
 
-        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: bId,
-            round: 1,
-            score: 500,
-            metric: 1200,
-        });
-        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: aId,
-            round: 2,
-            score: 850,
-            metric: 1100,
-        });
-        const finished = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: bId,
-            round: 2,
-            score: 400,
-            metric: 1300,
-        });
-
-        assert.equal(finished.data.match.status, "done");
+        assert.ok(finished);
         assert.equal(finished.data.match.winnerId, aId);
         assert.deepEqual(finished.data.match.score, { challenger: 2, opponent: 0 });
         assert.equal(finished.data.match.rounds.length, 2);
+    });
+});
+
+test("live duel rejects forged scores and another player's attempt token", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SecureA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SecureB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+        });
+        const duelId = created.data.duel.id;
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        const aMatch = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+        const bMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
+
+        const forged = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: aId,
+            round: 1,
+            score: 99999,
+            metric: 100,
+            attemptToken: aMatch.data.match.attemptToken,
+        });
+        assert.equal(forged.status, 400);
+        assert.match(forged.data.error, /Score/);
+
+        const stolen = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: bId,
+            round: 1,
+            score: 700,
+            metric: 900,
+            attemptToken: aMatch.data.match.attemptToken,
+        });
+        assert.equal(stolen.status, 409);
+
+        const valid = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: bId,
+            round: 1,
+            score: 700,
+            metric: 900,
+            attemptToken: bMatch.data.match.attemptToken,
+        });
+        assert.equal(valid.status, 200);
     });
 });
 
@@ -623,7 +689,12 @@ test("live tournament advances only after played rounds", async () => {
                 baseUrl,
                 "POST",
                 `/api/tournaments/${created.data.tournament.id}/rounds`,
-                { userId, score: 1000, metric: 900 }
+                {
+                    userId,
+                    score: 1000,
+                    metric: 900,
+                    attemptToken: current.data.tournament.attemptToken,
+                }
             );
         }
 
@@ -631,6 +702,36 @@ test("live tournament advances only after played rounds", async () => {
         assert.equal(current.data.tournament.champion, true);
         assert.equal(current.data.tournament.rounds.length, 3);
         assert.ok(current.data.tournament.payout > 0);
+    });
+});
+
+test("tournament rotates attempt token after each qualified round", async () => {
+    await withServer(async (baseUrl) => {
+        const user = await jfetch(baseUrl, "POST", "/api/users", { playerName: "TokenRunner" });
+        const userId = user.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/tournaments/live", {
+            userId,
+            size: 8,
+            stake: 2,
+            draft: { ban: "duelnumeric", pick: "bounce" },
+        });
+        const firstToken = created.data.tournament.attemptToken;
+        const qualified = await jfetch(
+            baseUrl,
+            "POST",
+            `/api/tournaments/${created.data.tournament.id}/rounds`,
+            { userId, score: 1000, metric: 900, attemptToken: firstToken }
+        );
+        assert.equal(qualified.status, 200);
+        assert.notEqual(qualified.data.tournament.attemptToken, firstToken);
+
+        const replayed = await jfetch(
+            baseUrl,
+            "POST",
+            `/api/tournaments/${created.data.tournament.id}/rounds`,
+            { userId, score: 1000, metric: 900, attemptToken: firstToken }
+        );
+        assert.equal(replayed.status, 409);
     });
 });
 

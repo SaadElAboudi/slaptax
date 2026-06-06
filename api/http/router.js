@@ -148,7 +148,8 @@ function createRequestHandler(service) {
                 liveTournamentRoundMatch[1],
                 body.userId,
                 body.score,
-                body.metric
+                body.metric,
+                body.attemptToken
             );
             json(res, result.code || 200, result);
             return;
@@ -308,7 +309,8 @@ function createRequestHandler(service) {
                 body.userId,
                 body.round,
                 body.score,
-                body.metric
+                body.metric,
+                body.attemptToken
             );
             json(res, result.code || 200, result);
             return;
