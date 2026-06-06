@@ -145,6 +145,14 @@ npm test
 cd web && npm run build
 ```
 
+Full gameplay QA (5 games x training/duel/tournament x desktop/mobile):
+
+```bash
+cd web
+npx playwright install chromium
+npm run qa:e2e
+```
+
 ## Deploy On Render
 
 The repository includes a root `render.yaml` Blueprint. It provisions PostgreSQL,

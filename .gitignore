@@ -5,6 +5,8 @@ web/node_modules/
 # Frontend build artifacts
 web/dist/
 web/tsconfig.tsbuildinfo
+web/playwright-report/
+web/test-results/
 
 # Local runtime files
 .slaptax_api.pid

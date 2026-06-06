@@ -48,11 +48,6 @@ function App() {
             setArenaOpen(true);
         }
 
-        // Keep dashboard and wallet in sync with backend.
-        const iv = setInterval(() => {
-            useGameStore.getState().refreshLiveState();
-        }, 20_000);
-
         const onFocus = () => refreshLiveState();
         const onVisibility = () => {
             if (!document.hidden) refreshLiveState();
@@ -63,7 +58,6 @@ function App() {
         return () => {
             window.removeEventListener('focus', onFocus);
             document.removeEventListener('visibilitychange', onVisibility);
-            clearInterval(iv);
         };
     }, [bootstrap, refreshLiveState]);
 

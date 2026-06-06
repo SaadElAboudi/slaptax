@@ -55,7 +55,9 @@ export function FriendDuelPanel() {
     const seenRoundsRef = useRef<number | null>(null);
 
     useRealtime(userId, (event) => {
-        if (event.type === 'state.changed') setRealtimeTick((value) => value + 1);
+        if (event.type === 'state.changed' || event.type === 'connected') {
+            setRealtimeTick((value) => value + 1);
+        }
     });
 
     const opponents = useMemo(() => users.filter((user) => user.id !== userId), [users, userId]);
@@ -84,8 +86,6 @@ export function FriendDuelPanel() {
 
     useEffect(() => {
         void loadLobby().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Lobby unavailable'));
-        const timer = window.setInterval(() => void loadLobby(), 3000);
-        return () => window.clearInterval(timer);
     }, [userId, clientId, duelId, pendingChallengeId, realtimeTick]);
 
     useEffect(() => {
@@ -155,10 +155,8 @@ export function FriendDuelPanel() {
         }
 
         void sync();
-        const timer = window.setInterval(() => void sync(), 1200);
         return () => {
             cancelled = true;
-            window.clearInterval(timer);
         };
     }, [duelId, userId, refreshLiveState, realtimeTick]);
 

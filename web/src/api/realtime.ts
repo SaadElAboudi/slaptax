@@ -39,6 +39,7 @@ export function useRealtime(userId: string | null, onEvent: (event: RealtimeEven
             socket = new WebSocket(getRealtimeUrl(userId as string));
             socket.addEventListener('open', () => {
                 attempt = 0;
+                callbackRef.current({ type: 'connected', at: Date.now() });
             });
             socket.addEventListener('message', (message) => {
                 try {

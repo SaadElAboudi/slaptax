@@ -172,13 +172,23 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             if (stopped) return;
             const dt = Math.min(.032, Math.max(0, (now - previous) / 1000));
             previous = now;
+            const previousY = state.y;
             state.x += state.vx * dt;
             state.y += state.vy * dt;
 
             const ballRadius = 9;
             const paddleY = state.height - 24;
-            const paddleWidth = Math.max(82, state.width * (.31 - Math.min(10, state.rally) * .012 - round * .008));
+            const minimumPaddle = state.width < 520 ? 68 : 80;
+            const paddleWidth = Math.max(
+                minimumPaddle,
+                state.width * (.34 - round * .025 - Math.min(14, state.rally) * .009)
+            );
             const paddleX = paddleRef.current * state.width;
+            const survival = (now - started) / 1000;
+            const obstacleY = state.height * .37;
+            const obstacleWidth = Math.max(76, state.width * Math.max(.14, .25 - round * .018));
+            const obstacleX = state.width / 2
+                + Math.sin(survival * (1.15 + round * .16)) * state.width * .27;
 
             if (state.x <= ballRadius || state.x >= state.width - ballRadius) {
                 state.x = Math.max(ballRadius, Math.min(state.width - ballRadius, state.x));
@@ -191,13 +201,29 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                 state.vx += (Math.random() - .5) * 28;
             }
 
+            const crossesObstacleDown = state.vy > 0
+                && previousY + ballRadius <= obstacleY
+                && state.y + ballRadius >= obstacleY;
+            const crossesObstacleUp = state.vy < 0
+                && previousY - ballRadius >= obstacleY + 9
+                && state.y - ballRadius <= obstacleY + 9;
+            if (
+                (crossesObstacleDown || crossesObstacleUp)
+                && Math.abs(state.x - obstacleX) <= obstacleWidth / 2 + ballRadius
+            ) {
+                state.y = crossesObstacleDown ? obstacleY - ballRadius : obstacleY + 9 + ballRadius;
+                state.vy *= -1;
+                state.vx += (state.x - obstacleX) * .08;
+            }
+
             if (state.y + ballRadius >= paddleY && state.vy > 0) {
                 if (Math.abs(state.x - paddleX) <= paddleWidth / 2 + ballRadius) {
                     const impact = Math.max(-1, Math.min(1, (state.x - paddleX) / (paddleWidth / 2)));
-                    const nextSpeed = Math.min(620, Math.hypot(state.vx, state.vy) * 1.065);
+                    const nextSpeed = Math.min(500 + round * 45, Math.hypot(state.vx, state.vy) * 1.055);
+                    const horizontal = Math.max(.2, Math.abs(impact)) * Math.sign(impact || state.vx || 1);
                     state.x = Math.max(ballRadius, Math.min(state.width - ballRadius, state.x));
                     state.y = paddleY - ballRadius;
-                    state.vx = nextSpeed * impact * .82;
+                    state.vx = nextSpeed * horizontal * .78;
                     state.vy = -Math.sqrt(Math.max(nextSpeed * nextSpeed - state.vx * state.vx, nextSpeed * nextSpeed * .35));
                     state.rally += 1;
                     setRally(state.rally);
@@ -211,7 +237,6 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                 }
             }
 
-            const survival = (now - started) / 1000;
             const width = state.width;
             const height = state.height;
             context.clearRect(0, 0, width, height);
@@ -222,10 +247,8 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             context.beginPath(); context.moveTo(0, height / 2); context.lineTo(width, height / 2); context.stroke();
             context.setLineDash([]);
 
-            const topGuardWidth = Math.max(90, width * .28);
-            const topGuardX = width / 2 + Math.sin(survival * (1.4 + round * .08)) * width * .24;
             context.fillStyle = '#ef476f';
-            context.fillRect(topGuardX - topGuardWidth / 2, 14, topGuardWidth, 8);
+            context.fillRect(obstacleX - obstacleWidth / 2, obstacleY, obstacleWidth, 9);
             context.fillStyle = '#ffd400';
             context.fillRect(paddleX - paddleWidth / 2, paddleY, paddleWidth, 10);
             const glow = context.createRadialGradient(state.x, state.y, 2, state.x, state.y, 28);
@@ -251,10 +274,11 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
 
     return (
         <div className={styles.game}>
-            <div className={styles.liveHud}><span>RALLY <strong>{rally}</strong></span><span>SPEED <strong>x{speed.toFixed(1)}</strong></span></div>
+            <div className={styles.liveHud}><span>RALLY <strong data-testid="bounce-rally">{rally}</strong></span><span>SPEED <strong>x{speed.toFixed(1)}</strong></span></div>
             <canvas
                 ref={canvasRef}
                 className={styles.bounceCanvas}
+                data-testid="bounce-canvas"
                 width={900}
                 height={430}
                 tabIndex={0}
@@ -326,14 +350,18 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
     return (
         <div className={styles.game}>
             <div className={styles.liveHud}><span>{phase === 'reveal' ? 'MEMORIZE' : 'REBUILD'}</span><span><strong>{time.toFixed(1)}s</strong></span></div>
-            <div className={styles.symbolBoard}>
+            <div
+                className={styles.symbolBoard}
+                data-testid="symbol-board"
+                data-qa-sequence={typeof navigator !== 'undefined' && navigator.webdriver ? sequence.join('') : undefined}
+            >
                 {sequence.map((symbol, index) => (
                     <span key={index} className={phase === 'reveal' && index === revealIndex - 1 ? styles.symbolFlash : input[index] ? styles.symbolLocked : ''}>
                         {phase === 'reveal' ? (index === revealIndex - 1 ? symbol : '·') : input[index] || '?'}
                     </span>
                 ))}
             </div>
-            <div className={styles.symbolPad}>
+            <div className={styles.symbolPad} data-testid="symbol-pad">
                 {palette.map((symbol) => <button type="button" key={symbol} onClick={() => choose(symbol)} disabled={phase !== 'input'}>{symbol}</button>)}
             </div>
             <p>{errors > 0 ? `+${(errors * 1.2).toFixed(1)}s penalty` : (isFr ? 'Chaque erreur retire du temps.' : 'Every mistake removes time.')}</p>
@@ -383,9 +411,9 @@ function BombRound({ round, isFr, finish }: RoundProps) {
 
     return (
         <div className={styles.game}>
-            <div className={styles.liveHud}><span>PASSES <strong>{passes}</strong></span><span>FUSE <strong>{Math.max(0, fuse).toFixed(1)}s</strong></span></div>
+            <div className={styles.liveHud}><span>PASSES <strong data-testid="bomb-passes">{passes}</strong></span><span>FUSE <strong>{Math.max(0, fuse).toFixed(1)}s</strong></span></div>
             <div className={`${styles.bombCore} ${fuse < 2.5 ? styles.bombCritical : ''}`}><span>●</span><i style={{ width: `${Math.max(0, fuse / 8.5) * 100}%` }} /></div>
-            <button type="button" className={styles.bombTrack} onClick={pass}>
+            <button type="button" className={styles.bombTrack} data-testid="bomb-track" onClick={pass}>
                 <span className={styles.safeZone} style={{ left: `${safeCenter - safeWidth / 2}%`, width: `${safeWidth}%` }} />
                 <i style={{ left: `${marker}%` }} />
             </button>
@@ -436,7 +464,7 @@ function CupRound({ round, isFr, finish }: RoundProps) {
     return (
         <div className={styles.game}>
             <div className={styles.liveHud}><span>{phase === 'reveal' ? 'LOCK ON' : phase === 'shuffle' ? 'TRACK' : 'CHOOSE'}</span><span><strong>{step}/{swaps.length}</strong></span></div>
-            <div className={styles.cupTable}>
+            <div className={styles.cupTable} data-testid="cup-table">
                 {[0, 1, 2].map((cupId) => {
                     const slot = order.indexOf(cupId);
                     return (
@@ -493,8 +521,8 @@ function NumericRound({ round, isFr, finish }: RoundProps) {
     return (
         <div className={styles.game}>
             <div className={styles.liveHud}><span>STACK <strong>{index + 1}/{questions.length}</strong></span><span>TIME <strong>{time.toFixed(1)}s</strong></span></div>
-            <div className={styles.equation}>{question.label}</div>
-            <div className={styles.answerGrid}>
+            <div className={styles.equation} data-testid="numeric-equation">{question.label}</div>
+            <div className={styles.answerGrid} data-testid="numeric-answers">
                 {question.options.map((option) => <button type="button" key={option} onClick={() => answer(option)}>{option}</button>)}
             </div>
             <p>{errors ? `${errors} ${isFr ? 'erreur, -1s chacune' : 'miss, -1s each'}` : (isFr ? 'Lis, tranche, enchaine.' : 'Read, decide, chain.')}</p>
@@ -549,7 +577,12 @@ function makeQuestion(round: number) {
     const b = 2 + Math.floor(Math.random() * 9);
     const multiply = Math.random() > .62;
     const answer = multiply ? a * b : a + b;
-    const options = shuffle(Array.from(new Set([answer, answer + b, Math.max(0, answer - a), answer + 3, Math.max(0, answer - 2)]))).slice(0, 4);
-    if (!options.includes(answer)) options[0] = answer;
-    return { label: `${a} ${multiply ? '×' : '+'} ${b}`, answer, options: shuffle(options) };
+    const candidates = new Set([answer, answer + b, Math.max(0, answer - a), answer + 3, Math.max(0, answer - 2)]);
+    let offset = 1;
+    while (candidates.size < 4) {
+        candidates.add(answer + offset);
+        offset += 1;
+    }
+    const options = shuffle(Array.from(candidates).filter((value) => value !== answer)).slice(0, 3);
+    return { label: `${a} ${multiply ? '×' : '+'} ${b}`, answer, options: shuffle([answer, ...options]) };
 }
