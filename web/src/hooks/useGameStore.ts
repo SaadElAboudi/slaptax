@@ -72,7 +72,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => ({
     // Server
-    apiBase: (() => { try { return localStorage.getItem('slaptax_api_base') || 'http://localhost:8787'; } catch { return 'http://localhost:8787'; } })(),
+    apiBase: (() => { try { return localStorage.getItem('slaptax_api_base') || ''; } catch { return ''; } })(),
     apiOnline: false,
     setApiBase: (base) => {
         try { localStorage.setItem('slaptax_api_base', base); } catch { /* ignore */ }

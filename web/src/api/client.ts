@@ -269,7 +269,7 @@ export interface AnalyticsResponse {
 
 // ─── Client ───────────────────────────────────────────────────────────────────
 
-const DEFAULT_BASE = 'http://localhost:8787';
+const DEFAULT_BASE = '';
 
 function getBase(): string {
     try {

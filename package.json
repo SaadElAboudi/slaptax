@@ -5,6 +5,7 @@
     "description": "SLAPTAX MVP API server",
     "main": "api/server.js",
     "scripts": {
+        "build": "npm --prefix web ci && npm --prefix web run build",
         "start": "node api/server.js",
         "dev": "node api/server.js",
         "test": "node --test api/tests"

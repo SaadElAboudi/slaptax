@@ -143,6 +143,23 @@ npm test
 cd web && npm run build
 ```
 
+## Deploy On Render
+
+The repository includes a root `render.yaml` Blueprint. It builds the React app
+and serves both the frontend and `/api` from one Node web service.
+
+1. Push the repository to GitHub.
+2. In Render, choose **New > Blueprint**.
+3. Connect `SaadElAboudi/slaptax`.
+4. Confirm the `slaptax` service and deploy.
+
+The health check is available at `/api/health`.
+
+The free Render plan uses an ephemeral filesystem, so demo players and match
+history can reset after restarts or deploys. For persistence, upgrade the web
+service, attach a disk, and set `DB_PATH` to a file under its mount path, such
+as `/var/data/mvp_db.json`.
+
 ## Lancer les prototypes HTML / Run the HTML Prototypes
 
 No build step required.

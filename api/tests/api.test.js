@@ -28,6 +28,27 @@ async function withServer(run) {
     }
 }
 
+async function withWebServer(run) {
+    const dbPath = makeTempDbPath();
+    const webDistPath = fs.mkdtempSync(path.join(os.tmpdir(), "slaptax-web-test-"));
+    fs.mkdirSync(path.join(webDistPath, "assets"), { recursive: true });
+    fs.writeFileSync(path.join(webDistPath, "index.html"), "<!doctype html><div id=\"root\">SLAPTAX</div>");
+    fs.writeFileSync(path.join(webDistPath, "assets", "app.js"), "console.log('slaptax')");
+    const server = createServer({ dbPath, webDistPath });
+
+    await new Promise((resolve) => server.listen(0, resolve));
+    const address = server.address();
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    try {
+        await run(baseUrl);
+    } finally {
+        await new Promise((resolve, reject) => {
+            server.close((err) => (err ? reject(err) : resolve()));
+        });
+    }
+}
+
 async function jfetch(baseUrl, method, pathName, body) {
     const res = await fetch(baseUrl + pathName, {
         method,
@@ -48,6 +69,21 @@ test("health endpoint is reachable", async () => {
         assert.equal(data.ok, true);
         assert.equal(data.service, "slaptax-mvp-api");
         assert.equal(data.schemaVersion, 2);
+    });
+});
+
+test("production server serves the React app and SPA routes", async () => {
+    await withWebServer(async (baseUrl) => {
+        const home = await fetch(`${baseUrl}/`);
+        const route = await fetch(`${baseUrl}/invite/friend`);
+        const asset = await fetch(`${baseUrl}/assets/app.js`);
+
+        assert.equal(home.status, 200);
+        assert.match(await home.text(), /SLAPTAX/);
+        assert.equal(route.status, 200);
+        assert.match(await route.text(), /SLAPTAX/);
+        assert.equal(asset.status, 200);
+        assert.match(asset.headers.get("cache-control"), /immutable/);
     });
 });
 
