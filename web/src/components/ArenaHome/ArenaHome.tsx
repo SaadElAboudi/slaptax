@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import styles from './ArenaHome.module.css';
+import { useEffect, useMemo, useState } from 'react';
+import { api } from '../../api/client';
 import { COMPETITIVE_GAMES } from '../../gameplay/catalog';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
+import styles from './ArenaHome.module.css';
 
 interface ArenaHomeProps {
     onEnter: (tab: Tab) => void;
@@ -18,10 +19,13 @@ const GAME_MARKS: Record<string, string> = {
 export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const language = useGameStore((state) => state.language);
     const playerName = useGameStore((state) => state.playerName);
+    const userId = useGameStore((state) => state.userId);
     const wallet = useGameStore((state) => state.wallet);
     const history = useGameStore((state) => state.history);
     const isFr = language === 'fr';
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [activeDuel, setActiveDuel] = useState(false);
+    const [activeTournament, setActiveTournament] = useState(false);
     const selectedGame = COMPETITIVE_GAMES[selectedIndex];
 
     const streak = useMemo(() => {
@@ -34,9 +38,31 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
         return value;
     }, [history]);
 
-    function quickPlay() {
-        const index = Math.floor(Math.random() * COMPETITIVE_GAMES.length);
-        onEnter(COMPETITIVE_GAMES[index].tab);
+    useEffect(() => {
+        if (!userId) return;
+        let cancelled = false;
+        Promise.all([
+            api.getActiveLiveDuel(userId),
+            api.getActiveLiveTournament(userId),
+        ]).then(([duel, tournament]) => {
+            if (cancelled) return;
+            setActiveDuel(Boolean(duel.match));
+            setActiveTournament(Boolean(tournament.tournament));
+        }).catch(() => {
+            // The home remains fully usable while the live service reconnects.
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [userId]);
+
+    function openTraining() {
+        try {
+            localStorage.setItem('slaptax_training_game', selectedGame.id);
+        } catch {
+            // Training falls back to Bounce Panic.
+        }
+        onEnter('training');
     }
 
     return (
@@ -56,57 +82,76 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                 </div>
             </div>
 
-            <div className={styles.stage}>
-                <div className={styles.crowd} aria-hidden>
-                    {Array.from({ length: 28 }, (_, index) => <i key={index} />)}
+            {(activeDuel || activeTournament) && (
+                <div className={styles.resume}>
+                    <div>
+                        <span>{isFr ? 'SESSION EN COURS' : 'ACTIVE SESSION'}</span>
+                        <strong>{isFr ? 'Ta partie t attend.' : 'Your game is waiting.'}</strong>
+                    </div>
+                    <div>
+                        {activeDuel && <button type="button" onClick={() => onEnter('defy')}>{isFr ? 'Reprendre le duel' : 'Resume duel'}</button>}
+                        {activeTournament && <button type="button" onClick={() => onEnter('tournament')}>{isFr ? 'Reprendre le tournoi' : 'Resume tournament'}</button>}
+                    </div>
                 </div>
-                <div className={styles.spotlight} aria-hidden />
-                <div className={styles.gameMark} aria-hidden>{GAME_MARKS[selectedGame.id]}</div>
-                <div className={styles.stageCopy}>
-                    <span className={styles.eyebrow}>{isFr ? 'PROCHAIN MATCH' : 'NEXT MATCH'}</span>
-                    <h1>{isFr ? selectedGame.labelFr : selectedGame.labelEn}</h1>
-                    <p>{isFr ? selectedGame.skillFr : selectedGame.skillEn}</p>
+            )}
+
+            <header className={styles.intro}>
+                <span>{isFr ? 'CHOISIS TON TERRAIN' : 'CHOOSE YOUR ARENA'}</span>
+                <h1>{isFr ? 'Comment veux-tu jouer ?' : 'How do you want to play?'}</h1>
+                <p>{isFr ? 'Trois modes distincts, une seule progression.' : 'Three distinct modes, one shared progression.'}</p>
+            </header>
+
+            <div className={styles.modeGrid}>
+                <article className={styles.trainingMode}>
+                    <span>SOLO</span>
+                    <strong>{isFr ? 'Entrainement' : 'Training'}</strong>
+                    <p>{isFr ? 'Apprends les jeux et bats tes records, sans mise.' : 'Learn every game and beat your records, with no stake.'}</p>
+                    <button type="button" onClick={openTraining}>{isFr ? 'Jouer solo' : 'Play solo'} <b>→</b></button>
+                </article>
+                <article className={styles.duelMode}>
+                    <span>1V1 · BO3</span>
+                    <strong>{isFr ? 'Duel entre amis' : 'Friend duel'}</strong>
+                    <p>{isFr ? 'Partage un lien. Le premier à deux manches gagne.' : 'Share a link. First to win two rounds takes it.'}</p>
+                    <button type="button" onClick={() => onEnter('defy')}>{isFr ? 'Créer un duel' : 'Create duel'} <b>→</b></button>
+                </article>
+                <article className={styles.tournamentMode}>
+                    <span>LAST STANDING</span>
+                    <strong>{isFr ? 'Tournoi' : 'Tournament'}</strong>
+                    <p>{isFr ? 'Enchaine les adversaires. Une défaite termine le run.' : 'Clear each opponent. One loss ends the run.'}</p>
+                    <button type="button" onClick={() => onEnter('tournament')}>{isFr ? 'Lancer un run' : 'Start a run'} <b>→</b></button>
+                </article>
+            </div>
+
+            <div className={styles.trainingStrip}>
+                <div className={styles.gamePreview}>
+                    <span aria-hidden>{GAME_MARKS[selectedGame.id]}</span>
+                    <div>
+                        <small>{isFr ? 'ECHAUFFEMENT RAPIDE' : 'QUICK WARM-UP'}</small>
+                        <strong>{isFr ? selectedGame.labelFr : selectedGame.labelEn}</strong>
+                        <p>{isFr ? selectedGame.skillFr : selectedGame.skillEn}</p>
+                    </div>
+                    <button type="button" onClick={openTraining}>{isFr ? 'Jouer' : 'Play'}</button>
                 </div>
-                <button className={styles.playButton} type="button" onClick={() => onEnter(selectedGame.tab)}>
-                    <span>{isFr ? 'JOUER' : 'PLAY'}</span>
-                    <small>BO3</small>
-                </button>
+                <div className={styles.selector} aria-label={isFr ? 'Choisir une épreuve' : 'Choose an event'}>
+                    {COMPETITIVE_GAMES.map((game, index) => (
+                        <button
+                            key={game.id}
+                            type="button"
+                            className={index === selectedIndex ? styles.selected : ''}
+                            onClick={() => setSelectedIndex(index)}
+                            aria-label={isFr ? game.labelFr : game.labelEn}
+                            aria-pressed={index === selectedIndex}
+                        >
+                            {GAME_MARKS[game.id]}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className={styles.selector} aria-label={isFr ? 'Choisir un jeu' : 'Choose a game'}>
-                {COMPETITIVE_GAMES.map((game, index) => (
-                    <button
-                        key={game.id}
-                        type="button"
-                        className={index === selectedIndex ? styles.selected : ''}
-                        onClick={() => setSelectedIndex(index)}
-                        aria-pressed={index === selectedIndex}
-                    >
-                        <span>{GAME_MARKS[game.id]}</span>
-                        <strong>{isFr ? game.labelFr : game.labelEn}</strong>
-                    </button>
-                ))}
-            </div>
-
-            <div className={styles.actions}>
-                <button type="button" className={styles.quickPlay} onClick={quickPlay}>
-                    <span>!</span>
-                    <strong>{isFr ? 'MATCH RAPIDE' : 'QUICK MATCH'}</strong>
-                </button>
-                <button type="button" onClick={() => onEnter('defy')}>
-                    <span>VS</span>
-                    <strong>{isFr ? 'DEFIER' : 'CHALLENGE'}</strong>
-                </button>
-                <button type="button" onClick={() => onEnter('tournament')}>
-                    <span>T</span>
-                    <strong>{isFr ? 'TOURNOI' : 'TOURNAMENT'}</strong>
-                </button>
-            </div>
-
-            <div className={styles.secondary}>
-                <button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Classement' : 'Leaderboard'}</button>
-                <button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Historique' : 'History'}</button>
-            </div>
+            <nav className={styles.secondary} aria-label={isFr ? 'Progression' : 'Progress'}>
+                <button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Voir le classement' : 'View leaderboard'}</button>
+                <button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Voir mon historique' : 'View my history'}</button>
+            </nav>
         </section>
     );
 }

@@ -1,755 +1,450 @@
-import { useEffect, useMemo, useState } from 'react';
-import styles from './FriendDuelPanel.module.css';
-import { api, type Challenge, type DuelRoomState, type PlayP2PResponse, type UserListEntry } from '../../api/client';
-import { useGameStore } from '../../hooks/useGameStore';
-import { getDifficultyLabel, getRiskStakeCap } from '../../gameplay/difficulty';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type UserListEntry } from '../../api/client';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { getRiskStakeCap } from '../../gameplay/difficulty';
+import { useGameStore } from '../../hooks/useGameStore';
+import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
+import styles from './FriendDuelPanel.module.css';
 
 const STAKES = [2, 5, 10, 20];
-const PENDING_INVITE_KEY = 'slaptax_pending_invite';
-const DRAFT_GAMES = COMPETITIVE_GAMES;
-type DraftGameId = CompetitiveGameId;
-
-interface DraftSide {
-    ban: DraftGameId;
-    pick: DraftGameId;
-}
 
 interface DraftPlan {
-    challenger: DraftSide;
-    opponent: DraftSide;
+    challenger: { ban: CompetitiveGameId; pick: CompetitiveGameId };
+    opponent: { ban: CompetitiveGameId; pick: CompetitiveGameId };
 }
 
-interface PendingInvitePayload {
-    opponentId: string;
-    stake?: number;
-    message?: string;
-    fromName?: string;
-}
-
-function formatNet(result: PlayP2PResponse | null, activeUserId: string | null): string {
-    if (!result || !activeUserId) return '--';
-    const didWin = result.winnerId === activeUserId;
-    const net = didWin ? result.duel.stake * 0.7 : -result.duel.stake;
-    return `${net >= 0 ? '+' : ''}SLAP$ ${net.toFixed(2)}`;
-}
-
-function labelGame(gameId: string, isFr: boolean): string {
-    return gameLabel(gameId, isFr);
+function createDraft(preferred: CompetitiveGameId): DraftPlan {
+    const ids = COMPETITIVE_GAMES.map((game) => game.id);
+    const challengerBan = ids.find((id) => id !== preferred) || 'duelnumeric';
+    const opponentBan = ids.find((id) => id !== preferred && id !== challengerBan) || 'bombpass';
+    const opponentPick = ids.find((id) => id !== preferred && id !== challengerBan && id !== opponentBan) || preferred;
+    return {
+        challenger: { ban: challengerBan, pick: preferred },
+        opponent: { ban: opponentBan, pick: opponentPick },
+    };
 }
 
 export function FriendDuelPanel() {
-    const refreshLiveState = useGameStore((s) => s.refreshLiveState);
-    const currentUserId = useGameStore((s) => s.userId);
-    const clientId = useGameStore((s) => s.clientId);
-    const language = useGameStore((s) => s.language);
-    const difficultyMode = useGameStore((s) => s.difficultyMode);
+    const userId = useGameStore((state) => state.userId);
+    const clientId = useGameStore((state) => state.clientId);
+    const wallet = useGameStore((state) => state.wallet);
+    const language = useGameStore((state) => state.language);
+    const difficulty = useGameStore((state) => state.difficultyMode);
+    const refreshLiveState = useGameStore((state) => state.refreshLiveState);
     const isFr = language === 'fr';
-    const wallet = useGameStore((s) => s.wallet);
-    const safeWallet = Number(wallet ?? 0);
-    const stakeCap = getRiskStakeCap(difficultyMode);
-    const cappedStakes = STAKES.filter((s) => s <= stakeCap);
+    const stakeCap = getRiskStakeCap(difficulty);
 
     const [users, setUsers] = useState<UserListEntry[]>([]);
-    const [activeUserId, setActiveUserId] = useState<string | null>(null);
-    const [opponentId, setOpponentId] = useState<string>('');
-    const [stake, setStake] = useState<number>(5);
-    const [message, setMessage] = useState<string>('');
-    const [pending, setPending] = useState<Challenge[]>([]);
-    const [newPlayerName, setNewPlayerName] = useState('');
-    const [draft, setDraft] = useState<DraftPlan>({
-        challenger: { ban: 'duelnumeric', pick: 'symbolrush' },
-        opponent: { ban: 'duelnumeric', pick: 'bounce' },
-    });
-    const [rivalryWins, setRivalryWins] = useState<string>(isFr ? 'Pas encore de rivalite' : 'No rivalry data yet');
-    const [lastResult, setLastResult] = useState<PlayP2PResponse | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string>('');
-    const [inviteNotice, setInviteNotice] = useState<string>('');
-    const [roomReady, setRoomReady] = useState(false);
-    const [armedDuelId, setArmedDuelId] = useState<string | null>(null);
-    const [roomState, setRoomState] = useState<DuelRoomState | null>(null);
-    const [countdown, setCountdown] = useState<number | null>(null);
-    const [roomEvents, setRoomEvents] = useState<Array<{ time: string; event: string }>>([]);
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [opponentId, setOpponentId] = useState('');
+    const [stake, setStake] = useState(5);
+    const [message, setMessage] = useState('');
+    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>('bounce');
+    const [duelId, setDuelId] = useState<string | null>(null);
+    const [pendingChallengeId, setPendingChallengeId] = useState<string | null>(null);
+    const [inviteLink, setInviteLink] = useState('');
+    const [linkCopied, setLinkCopied] = useState(false);
+    const [linkInvite, setLinkInvite] = useState<OpenInvite | null>(null);
+    const [room, setRoom] = useState<DuelRoomState | null>(null);
+    const [match, setMatch] = useState<LiveDuelMatch | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [intermission, setIntermission] = useState<LiveDuelMatch['rounds'][number] | null>(null);
+    const seenRoundsRef = useRef<number | null>(null);
 
-    const opponents = useMemo(
-        () => users.filter((u) => u.id !== activeUserId),
-        [users, activeUserId]
-    );
+    const opponents = useMemo(() => users.filter((user) => user.id !== userId), [users, userId]);
+    const incoming = challenges.filter((challenge) => challenge.direction === 'incoming' && challenge.status === 'pending');
+    const outgoing = challenges.filter((challenge) => challenge.direction === 'outgoing' && challenge.status === 'pending');
+    const affordableStakes = STAKES.filter((value) => value <= Math.min(Number(wallet), stakeCap));
+    const myRole = match?.challengerId === userId ? 'challenger' : 'opponent';
+    const rivalRole = myRole === 'challenger' ? 'opponent' : 'challenger';
+    const submitted = !!(match && userId && match.submittedBy[String(match.currentRound)]?.includes(userId));
 
-    async function loadChallenges(uid: string) {
-        const data = await api.listChallenges(uid, 'pending');
-        setPending(data.challenges ?? []);
-    }
+    async function loadLobby() {
+        if (!userId) return;
+        const [userData, challengeData] = await Promise.all([
+            api.listUsers(userId, clientId),
+            api.listChallenges(userId, 'all'),
+        ]);
+        setUsers(userData.users);
+        setChallenges(challengeData.challenges);
+        setOpponentId((current) => current || userData.users.find((user) => user.id !== userId)?.id || '');
 
-    function addRoomEvent(event: string) {
-        const now = new Date();
-        const time = now.toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setRoomEvents((prev) => [...prev.slice(-4), { time, event }]); // Keep last 5 events
-    }
-
-    async function loadUsersAndChallenges() {
-        setError('');
-        const data = await api.listUsers(currentUserId, clientId);
-        const list = data.users ?? [];
-        setUsers(list);
-        setActiveUserId(data.activeUserId || null);
-
-        const initialOpponent = list.find((u) => u.id !== data.activeUserId)?.id || '';
-        setOpponentId((current) => current || initialOpponent);
-
-        if (data.activeUserId) {
-            await loadChallenges(data.activeUserId);
-        }
+        const accepted = pendingChallengeId
+            ? challengeData.challenges.find((challenge) => challenge.id === pendingChallengeId && challenge.status === 'accepted' && challenge.duelId)
+            : null;
+        if (accepted?.duelId && !duelId) setDuelId(accepted.duelId);
     }
 
     useEffect(() => {
-        loadUsersAndChallenges().catch((e: unknown) => {
-            setError(e instanceof Error ? e.message : (isFr ? 'Chargement des joueurs impossible' : 'Failed to load users'));
-        });
-    }, [isFr, currentUserId, clientId]);
+        void loadLobby().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Lobby unavailable'));
+        const timer = window.setInterval(() => void loadLobby(), 3000);
+        return () => window.clearInterval(timer);
+    }, [userId, clientId, duelId, pendingChallengeId]);
 
     useEffect(() => {
-        if (!activeUserId) return;
-        const iv = window.setInterval(() => {
-            void loadChallenges(activeUserId);
-            if (armedDuelId) {
-                void api.getDuelRoom(armedDuelId, activeUserId)
-                    .then((room) => setRoomState(room.room))
-                    .catch(() => { /* room may be cleared */ });
-            }
-        }, 7000);
-        return () => window.clearInterval(iv);
-    }, [activeUserId, armedDuelId]);
-
-    useEffect(() => {
-        setDraft((current) => {
-            const allowed = new Set(DRAFT_GAMES.map((game) => game.id));
-            const sanitize = (side: DraftSide): DraftSide => {
-                const fallback = DRAFT_GAMES[0].id;
-                const ban = allowed.has(side.ban) ? side.ban : fallback;
-                const pick = allowed.has(side.pick) && side.pick !== ban ? side.pick : (DRAFT_GAMES[1]?.id ?? fallback);
-                return { ban, pick: pick === ban ? (DRAFT_GAMES[2]?.id ?? fallback) : pick };
-            };
-            return { challenger: sanitize(current.challenger), opponent: sanitize(current.opponent) };
-        });
-    }, []);
-
-    useEffect(() => {
-        if (!activeUserId || !opponentId) {
-            setRivalryWins(isFr ? 'Pas encore de rivalite' : 'No rivalry data yet');
-            return;
-        }
-        api.getRivalry(activeUserId, opponentId)
-            .then((r) => {
-                if (!r.exists || !r.wins) {
-                    setRivalryWins(isFr ? 'Pas encore de rivalite' : 'No rivalry data yet');
-                    return;
-                }
-                const a = r.wins[activeUserId] ?? 0;
-                const b = r.wins[opponentId] ?? 0;
-                setRivalryWins(isFr ? `Victoires face-a-face : ${a} - ${b}` : `Head-to-head wins: ${a} - ${b}`);
-            })
-            .catch(() => setRivalryWins(isFr ? 'Pas encore de rivalite' : 'No rivalry data yet'));
-    }, [activeUserId, opponentId, isFr]);
-
-    useEffect(() => {
-        setArmedDuelId(null);
-        setRoomState(null);
-        setRoomReady(false);
-        setCountdown(null);
-        setRoomEvents([]);
-    }, [opponentId]);
-
-    useEffect(() => {
-        if (!armedDuelId || !activeUserId) {
-            setRoomState(null);
-            setCountdown(null);
-            return;
-        }
-
-        let cancelled = false;
-        void api.getDuelRoom(armedDuelId, activeUserId)
-            .then((room) => {
-                if (cancelled) return;
-                setRoomState(room.room);
+        if (!userId || duelId) return;
+        void api.getActiveLiveDuel(userId)
+            .then((data) => {
+                if (!data.match) return;
+                setDuelId(data.match.duelId);
+                setMatch(data.match);
+                seenRoundsRef.current = data.match.rounds.length;
             })
             .catch(() => {
-                if (cancelled) return;
-                setRoomState(null);
+                // No match to recover.
             });
+    }, [userId, duelId]);
 
+    useEffect(() => {
+        const inviteId = new URLSearchParams(window.location.search).get('invite');
+        if (!inviteId || !userId || duelId) return;
+
+        void api.getOpenInvite(inviteId)
+            .then(async ({ invite }) => {
+                setLinkInvite(invite);
+                if (invite.challengerId === userId) {
+                    setInviteLink(window.location.href);
+                    return;
+                }
+                const claimed = await api.claimOpenInvite(inviteId, userId);
+                setOpponentId(invite.challengerId);
+                setDuelId(claimed.duel.id);
+                window.history.replaceState({}, '', `${window.location.pathname}?tab=defy`);
+            })
+            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Invitation unavailable'));
+    }, [userId, duelId]);
+
+    useEffect(() => {
+        if (!duelId || !userId) return;
+        let cancelled = false;
+
+        async function sync() {
+            try {
+                const data = await api.getLiveDuel(duelId as string, userId as string);
+                if (cancelled) return;
+                const previousCount = seenRoundsRef.current;
+                if (previousCount == null) {
+                    seenRoundsRef.current = data.match.rounds.length;
+                } else if (data.match.rounds.length > previousCount) {
+                    seenRoundsRef.current = data.match.rounds.length;
+                    setIntermission(data.match.rounds[data.match.rounds.length - 1] || null);
+                }
+                setMatch(data.match);
+                if (data.match.status === 'done' && data.match.rematchId) {
+                    setDuelId(data.match.rematchId);
+                    setMatch(null);
+                    setRoom(null);
+                    return;
+                }
+                if (data.match.status === 'pending') {
+                    const roomData = await api.getDuelRoom(duelId as string, userId as string);
+                    if (!cancelled) setRoom(roomData.room);
+                }
+                if (data.match.status === 'done') await refreshLiveState();
+            } catch {
+                const roomData = await api.getDuelRoom(duelId as string, userId as string);
+                if (!cancelled) setRoom(roomData.room);
+            }
+        }
+
+        void sync();
+        const timer = window.setInterval(() => void sync(), 1200);
         return () => {
             cancelled = true;
+            window.clearInterval(timer);
         };
-    }, [armedDuelId, activeUserId]);
+    }, [duelId, userId, refreshLiveState]);
 
     useEffect(() => {
-        if (!roomState || !activeUserId) {
-            setRoomReady(false);
-            return;
-        }
-        setRoomReady(!!roomState.readyBy?.[activeUserId]);
-    }, [roomState, activeUserId]);
-
-    useEffect(() => {
-        if (!roomState?.readyCountdownAt) {
-            setCountdown(null);
-            return;
-        }
-
-        addRoomEvent(isFr ? '▸ Les deux READY! Lancement auto...' : '▸ Both READY! Auto-launch...');
-
-        const countFrom = () => {
-            const started = new Date(roomState.readyCountdownAt as string).getTime();
-            const elapsed = Math.floor((Date.now() - started) / 1000);
-            const remaining = Math.max(0, 3 - elapsed);
-            return Number.isFinite(remaining) ? remaining : 0;
-        };
-
-        setCountdown(countFrom());
-        const interval = window.setInterval(() => {
-            setCountdown(countFrom());
-        }, 1000);
-
-        return () => window.clearInterval(interval);
-    }, [roomState?.readyCountdownAt, isFr]);
-
-    useEffect(() => {
-        if (countdown !== 0 || !armedDuelId || !activeUserId) return;
-
-        setCountdown(null);
-        setLoading(true);
-        setError('');
-
-        void (async () => {
-            try {
-                const played = await api.playP2PDuel(armedDuelId);
-                setLastResult(played);
-                setArmedDuelId(null);
-                setRoomState(null);
-                setRoomReady(false);
-                await refreshLiveState();
-                await loadChallenges(activeUserId);
-            } catch (e) {
-                setError(e instanceof Error ? e.message : (isFr ? 'Le duel verrouille a echoue' : 'Locked duel failed'));
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [countdown, armedDuelId, activeUserId, isFr, refreshLiveState]);
-
-    useEffect(() => {
-        if (!activeUserId || users.length === 0) return;
-
-        let payload: PendingInvitePayload | null = null;
-        try {
-            const raw = localStorage.getItem(PENDING_INVITE_KEY);
-            if (!raw) return;
-            payload = JSON.parse(raw) as PendingInvitePayload;
-            localStorage.removeItem(PENDING_INVITE_KEY);
-        } catch {
-            return;
-        }
-
-        if (!payload?.opponentId || payload.opponentId === activeUserId) return;
-
-        const invitedOpponent = users.find((user) => user.id === payload?.opponentId && user.id !== activeUserId);
-        if (!invitedOpponent) return;
-
-        setOpponentId(invitedOpponent.id);
-
-        if (typeof payload.stake === 'number' && Number.isFinite(payload.stake)) {
-            const affordable = STAKES.filter((value) => value <= Math.min(stakeCap, safeWallet));
-            const target = affordable.includes(payload.stake)
-                ? payload.stake
-                : (affordable[affordable.length - 1] ?? STAKES[0]);
-            setStake(target);
-        }
-
-        if (payload.message) {
-            setMessage(payload.message);
-        }
-
-        setInviteNotice(
-            payload.fromName
-                ? (isFr ? `Invitation chargee depuis ${payload.fromName}.` : `Invite loaded from ${payload.fromName}.`)
-                : (isFr ? 'Invitation chargee. Duel preconfigure.' : 'Invite loaded. Duel preconfigured.')
-        );
-    }, [activeUserId, users, safeWallet, stakeCap, isFr]);
-
-    useEffect(() => {
-        const effectiveCap = Math.min(stakeCap, safeWallet);
-        if (stake <= effectiveCap) return;
-        const affordable = STAKES.filter((s) => s <= effectiveCap);
-        if (affordable.length > 0) {
-            setStake(affordable[affordable.length - 1]);
-        }
-    }, [safeWallet, stake, stakeCap]);
-
-    async function handleSendChallenge() {
-        if (!activeUserId || !opponentId) return;
-        setLoading(true);
-        setError('');
-        try {
-            await api.createChallenge(activeUserId, opponentId, stake, draft, message.trim() || undefined);
-            await loadChallenges(activeUserId);
-            setMessage('');
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Echec de l envoi du defi' : 'Challenge failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleCreateRival() {
-        if (!activeUserId) return;
-        const name = newPlayerName.trim();
-        if (!name) return;
-
-        setLoading(true);
-        setError('');
-        try {
-            await api.createUser(name);
-            await api.selectUser(activeUserId);
-            await loadUsersAndChallenges();
-            setNewPlayerName('');
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Creation du joueur impossible' : 'Create player failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleInstantDuel() {
-        if (!activeUserId || !opponentId) return;
-        setLoading(true);
-        setError('');
-        try {
-            const created = await api.createDuel(activeUserId, opponentId, stake, draft);
-            const played = await api.playP2PDuel(created.duel.id);
-            setLastResult(played);
-            await refreshLiveState();
-            await loadChallenges(activeUserId);
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Le duel a echoue' : 'Duel failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handlePlayArmedDuel() {
-        if (!armedDuelId || !activeUserId) return;
-        setLoading(true);
-        setError('');
-        try {
-            const played = await api.playP2PDuel(armedDuelId);
-            setLastResult(played);
-            setArmedDuelId(null);
-            setRoomState(null);
-            setRoomReady(false);
-            await refreshLiveState();
-            await loadChallenges(activeUserId);
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Le duel verrouille a echoue' : 'Locked duel failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleRematch() {
-        if (!lastResult?.duel.id || !activeUserId) return;
-        setLoading(true);
-        setError('');
-        try {
-            const created = await api.rematchP2P(lastResult.duel.id);
-            const played = await api.playP2PDuel(created.duel.id);
-            setLastResult(played);
-            await refreshLiveState();
-            await loadChallenges(activeUserId);
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Revanche impossible' : 'Rematch failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleAccept(challengeId: string) {
-        if (!activeUserId) return;
-        setLoading(true);
-        setError('');
-        try {
-            const accepted = await api.acceptChallenge(challengeId, activeUserId);
-            setArmedDuelId(accepted.duel.id);
-            const room = await api.getDuelRoom(accepted.duel.id, activeUserId);
-            setRoomState(room.room);
-            setRoomReady(false);
-            addRoomEvent(isFr ? '✓ Duel verrouillé, salon ouvert.' : '✓ Duel locked, room open.');
-            await loadChallenges(activeUserId);
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Acceptation impossible' : 'Accept failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleDecline(challengeId: string) {
-        if (!activeUserId) return;
-        setLoading(true);
-        setError('');
-        try {
-            await api.declineChallenge(challengeId, activeUserId);
-            await loadChallenges(activeUserId);
-        } catch (e) {
-            setError(e instanceof Error ? e.message : (isFr ? 'Refus impossible' : 'Decline failed'));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    const incoming = pending.filter((c) => c.direction === 'incoming');
-    const outgoing = pending.filter((c) => c.direction === 'outgoing');
-    const opponentReady = !!(roomState && opponentId && roomState.readyBy?.[opponentId]);
-    const incomingFromActiveOpponent = incoming.find((challenge) => challenge.challengerId === opponentId);
-    const outgoingToActiveOpponent = outgoing.find((challenge) => challenge.opponentId === opponentId);
-    const opponentSignal = armedDuelId
-        ? (opponentReady ? (isFr ? 'READY confirme' : 'READY confirmed') : (isFr ? 'Connexion salon...' : 'Joining room...'))
-        : incomingFromActiveOpponent
-            ? (isFr ? 'Adversaire pret (defi entrant)' : 'Opponent ready (incoming challenge)')
-            : outgoingToActiveOpponent
-                ? (isFr ? 'En attente de sa reponse' : 'Waiting for opponent response')
-                : (isFr ? 'Aucun signal de duel' : 'No duel signal yet');
-    const roomHint = !opponentId
-        ? (isFr ? 'Selectionne d abord un adversaire pour activer le salon READY.' : 'Select an opponent first to enable the READY room.')
-        : countdown != null
-            ? (isFr ? `Lancement auto dans ${countdown}...` : `Auto-launch in ${countdown}...`)
-            : armedDuelId && roomReady && !opponentReady
-                ? (isFr ? 'Ton rival rejoint le salon, reste READY.' : 'Your rival is joining the room, stay READY.')
-                : incomingFromActiveOpponent
-                    ? (isFr ? 'Defi entrant detecte: verrouille puis lance quand tu es READY.' : 'Incoming challenge detected: lock it, then launch when READY.')
-                    : outgoingToActiveOpponent
-                        ? (isFr ? 'Defi envoye: attends sa reponse ou lance un duel instantane.' : 'Challenge sent: wait for response or launch instant duel.')
-                        : (isFr ? 'Envoie un defi ou colle une invitation pour amorcer le salon.' : 'Send a challenge or paste an invite to start the room.');
-
-    const draftFields: Array<{ key: keyof DraftPlan; title: string }> = [
-        { key: 'challenger', title: isFr ? 'Toi' : 'You' },
-        { key: 'opponent', title: isFr ? 'Adversaire' : 'Opponent' },
-    ];
-
-    function updateDraftSide(side: keyof DraftPlan, field: keyof DraftSide, value: DraftGameId) {
-        setDraft((current) => {
-            const next = {
-                ...current,
-                [side]: {
-                    ...current[side],
-                    [field]: value,
-                },
-            } as DraftPlan;
-            if (next[side].ban === next[side].pick) {
-                const alt = DRAFT_GAMES.find((game) => game.id !== value)?.id ?? value;
-                next[side].pick = alt;
-            }
-            return next;
+        if (!duelId || !userId || !room) return;
+        const bothReady = room.readyBy[room.challengerId] && room.readyBy[room.opponentId];
+        if (!bothReady || match?.status === 'playing' || match?.status === 'done') return;
+        void api.startLiveDuel(duelId, userId).then((data) => setMatch(data.match)).catch((cause: unknown) => {
+            setError(cause instanceof Error ? cause.message : 'Unable to start match');
         });
+    }, [duelId, userId, room, match?.status]);
+
+    async function createInviteLink() {
+        if (!userId) return;
+        setBusy(true);
+        setError('');
+        try {
+            const created = await api.createOpenInvite(userId, stake, createDraft(preferredGame), message);
+            const link = `${window.location.origin}${window.location.pathname}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
+            setInviteLink(link);
+            setPendingChallengeId(created.challenge.id);
+            try {
+                await navigator.clipboard.writeText(link);
+                setLinkCopied(true);
+            } catch {
+                setLinkCopied(false);
+            }
+            setMessage('');
+            await loadLobby();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Challenge failed');
+        } finally {
+            setBusy(false);
+        }
     }
 
-    // Status ribbon computation
-    const computeRoomStatus = (): { label: string; className: string } => {
-        if (!armedDuelId) {
-            return { label: isFr ? 'AUCUN DUEL' : 'NO DUEL', className: '' };
+    async function sendDirectChallenge() {
+        if (!userId || !opponentId) return;
+        setBusy(true);
+        setError('');
+        try {
+            const created = await api.createChallenge(userId, opponentId, stake, createDraft(preferredGame), message);
+            setPendingChallengeId(created.challenge.id);
+            setMessage('');
+            await loadLobby();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Challenge failed');
+        } finally {
+            setBusy(false);
         }
-        if (countdown !== null) {
-            return { label: isFr ? `COUNTDOWN: ${countdown}` : `COUNTDOWN: ${countdown}`, className: styles.countdown };
+    }
+
+    async function copyInviteLink() {
+        if (!inviteLink) return;
+        try {
+            await navigator.clipboard.writeText(inviteLink);
+            setLinkCopied(true);
+        } catch {
+            setLinkCopied(false);
         }
-        if (roomReady && opponentReady) {
-            return { label: isFr ? 'LES DEUX READY !' : 'BOTH READY!', className: styles.ready };
+    }
+
+    async function acceptChallenge(challenge: Challenge) {
+        if (!userId) return;
+        setBusy(true);
+        try {
+            const data = await api.acceptChallenge(challenge.id, userId);
+            setOpponentId(challenge.challengerId);
+            setDuelId(data.duel.id);
+            setRoom((await api.getDuelRoom(data.duel.id, userId)).room);
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Accept failed');
+        } finally {
+            setBusy(false);
         }
-        if (roomReady) {
-            return { label: isFr ? 'TU ES READY' : 'YOU READY', className: styles.ready };
+    }
+
+    async function toggleReady() {
+        if (!duelId || !userId) return;
+        setBusy(true);
+        try {
+            const next = !room?.readyBy[userId];
+            const data = await api.setDuelReady(duelId, userId, next);
+            setRoom(data.room);
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Ready failed');
+        } finally {
+            setBusy(false);
         }
-        if (opponentReady) {
-            return { label: isFr ? 'ADVERSAIRE READY' : 'OPPONENT READY', className: styles.ready };
+    }
+
+    async function submitRound(result: { score: number; metric: number }) {
+        if (!duelId || !userId || !match) return;
+        setBusy(true);
+        try {
+            const data = await api.submitLiveDuelRound(duelId, userId, match.currentRound, result.score, result.metric);
+            if (data.match.rounds.length > match.rounds.length) {
+                seenRoundsRef.current = data.match.rounds.length;
+                setIntermission(data.match.rounds[data.match.rounds.length - 1] || null);
+            }
+            setMatch(data.match);
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Score submission failed');
+        } finally {
+            setBusy(false);
         }
-        return { label: isFr ? 'VERROUILLE, ATTENTE' : 'LOCKED, WAITING', className: styles.locked };
-    };
+    }
+
+    if (intermission && match) {
+        const wonRound = intermission.winnerId === userId;
+        const myRoundScore = match.challengerId === userId ? intermission.challengerScore : intermission.opponentScore;
+        const rivalRoundScore = match.challengerId === userId ? intermission.opponentScore : intermission.challengerScore;
+        return (
+            <section className={`${styles.intermission} ${wonRound ? styles.intermissionWin : styles.intermissionLoss}`}>
+                <span>{wonRound ? (isFr ? 'MANCHE GAGNEE' : 'ROUND WON') : (isFr ? 'MANCHE PERDUE' : 'ROUND LOST')}</span>
+                <h2>{myRoundScore} - {rivalRoundScore}</h2>
+                <p>{gameLabel(intermission.gameId, isFr)}</p>
+                <div className={styles.scoreboard}>
+                    <strong>{match.score[myRole]}</strong><span>BO3</span><strong>{match.score[rivalRole]}</strong>
+                </div>
+                <button type="button" onClick={() => setIntermission(null)}>
+                    {match.status === 'done' ? (isFr ? 'Voir le resultat' : 'See result') : (isFr ? 'Manche suivante' : 'Next round')}
+                </button>
+            </section>
+        );
+    }
+
+    async function rematch() {
+        if (!duelId) return;
+        setBusy(true);
+        try {
+            const data = await api.rematchP2P(duelId);
+            setDuelId(data.duel.id);
+            setMatch(null);
+            setRoom(null);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    if (match?.status === 'playing') {
+        if (submitted) {
+            return (
+                <section className={styles.waiting}>
+                    <span className={styles.liveDot} />
+                    <p>{isFr ? 'SCORE VERROUILLE' : 'SCORE LOCKED'}</p>
+                    <h2>{isFr ? `${match.opponentName} joue sa manche` : `${match.opponentName} is playing`}</h2>
+                    <div className={styles.scoreboard}>
+                        <strong>{match.score[myRole]}</strong><span>BO3</span><strong>{match.score[rivalRole]}</strong>
+                    </div>
+                </section>
+            );
+        }
+        return (
+            <LiveGameArena
+                key={`${match.duelId}-${match.currentRound}`}
+                mode="duel"
+                gameId={match.games[match.currentRound - 1]}
+                series={match.games}
+                round={match.currentRound}
+                opponentName={match.opponentName}
+                isFr={isFr}
+                onComplete={submitRound}
+            />
+        );
+    }
+
+    if (match?.status === 'done') {
+        const won = match.winnerId === userId;
+        return (
+            <section className={`${styles.final} ${won ? styles.finalWin : styles.finalLoss}`}>
+                <span>{won ? (isFr ? 'VICTOIRE' : 'VICTORY') : (isFr ? 'DEFAITE' : 'DEFEAT')}</span>
+                <h2>{match.score[myRole]} - {match.score[rivalRole]}</h2>
+                <div className={styles.roundRecap}>
+                    {match.rounds.map((round) => (
+                        <div key={round.round}>
+                            <span>R{round.round}</span>
+                            <strong>{round.challengerScore} - {round.opponentScore}</strong>
+                        </div>
+                    ))}
+                </div>
+                <button type="button" onClick={rematch} disabled={busy}>{isFr ? 'Revanche' : 'Rematch'}</button>
+            </section>
+        );
+    }
+
+    const ready = !!(room && userId && room.readyBy[userId]);
+    const rivalId = room?.challengerId === userId ? room?.opponentId : room?.challengerId;
+    const rivalReady = !!(room && rivalId && room.readyBy[rivalId]);
 
     return (
         <section className={styles.panel}>
-            <div className={styles.head}>
+            <header className={styles.hero}>
                 <div>
-                    <h2 className={styles.title}>Friend Duel</h2>
-                    <p className={styles.sub}>{isFr ? 'Mode partage stable pour jouer vite avec tes potes en duel 1v1.' : 'Stable shareable mode to run fast 1v1 duels with friends.'}</p>
-                    <p className={styles.meta}>{isFr ? 'Difficulte globale' : 'Global difficulty'}: {getDifficultyLabel(difficultyMode, isFr)} · {isFr ? 'Mise max ici' : 'Max stake here'}: SLAP$ {stakeCap}</p>
+                    <span>LIVE 1V1</span>
+                    <h2>{isFr ? 'Duel entre amis' : 'Friend Duel'}</h2>
+                    <p>{isFr ? 'Trois jeux. Deux victoires. Aucun resultat simule.' : 'Three games. Two wins. No simulated outcome.'}</p>
                 </div>
-                <span className={styles.kpi}>{rivalryWins}</span>
-            </div>
+                <strong>SLAP$ {Number(wallet).toFixed(2)}</strong>
+            </header>
 
-            <div className={styles.form}>
-                <div className={styles.messageField}>
-                    <div className={styles.roomCard}>
-                        <div className={styles.roomHead}>
-                            <strong>{isFr ? 'Salon 1v1' : '1v1 Ready Room'}</strong>
-                            <span>{armedDuelId ? `${isFr ? 'Verrou' : 'Lock'}: ${armedDuelId.slice(0, 8)}` : (isFr ? 'Aucun duel verrouille' : 'No duel locked')}</span>
-                        </div>
-                        <div className={styles.roomSignals}>
-                            <span className={styles.signal}>{isFr ? 'Toi' : 'You'}: {roomReady ? (isFr ? 'Pret' : 'Ready') : (isFr ? 'Pas pret' : 'Not ready')}</span>
-                            <span className={styles.signal}>{isFr ? 'Adversaire' : 'Opponent'}: {opponentSignal}</span>
-                            {countdown != null && <span className={`${styles.signal} ${styles.signalHot}`}>{isFr ? 'Countdown' : 'Countdown'}: {countdown}</span>}
-                        </div>
-                        {(() => {
-                            const status = computeRoomStatus();
-                            return (
-                                <>
-                                    <div className={styles.roomStatusRibbon}>
-                                        <span className={`${styles.roomStatus} ${status.className}`}>
-                                            {status.label}
-                                        </span>
-                                    </div>
-                                    {roomEvents.length > 0 && (
-                                        <div className={styles.roomEventLog}>
-                                            {roomEvents.map((evt, idx) => (
-                                                <div key={idx} className={styles.roomEventItem}>
-                                                    <span className={styles.roomEventTime}>{evt.time}</span>
-                                                    <span>{evt.event}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            );
-                        })()}
-                        <p className={styles.roomHint}>{roomHint}</p>
-                        <div className={styles.roomActions}>
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (!armedDuelId || !activeUserId) {
-                                        setRoomReady((v) => !v);
-                                        return;
-                                    }
-                                    const next = !roomReady;
-                                    setLoading(true);
-                                    setError('');
-                                    try {
-                                        const response = await api.setDuelReady(armedDuelId, activeUserId, next);
-                                        setRoomState(response.room);
-                                        setRoomReady(next);
-                                        addRoomEvent(next ? (isFr ? '✓ Tu es READY!' : '✓ You are READY!') : (isFr ? '✗ Tu as retire READY.' : '✗ You unset READY.'));
-                                    } catch (e) {
-                                        setError(e instanceof Error ? e.message : (isFr ? 'READY impossible' : 'READY failed'));
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
-                                disabled={loading || !opponentId}
-                            >
-                                {roomReady ? (isFr ? 'Retirer mon READY' : 'Unset READY') : (isFr ? 'Je suis READY' : 'I am READY')}
-                            </button>
-                            {incomingFromActiveOpponent && !armedDuelId && (
-                                <button type="button" className={styles.mainAction} onClick={() => handleAccept(incomingFromActiveOpponent.id)} disabled={loading}>
-                                    {isFr ? 'Verrouiller le duel' : 'Lock this duel'}
-                                </button>
-                            )}
-                            {armedDuelId && (
-                                <button type="button" className={styles.mainAction} onClick={handlePlayArmedDuel} disabled={loading || !roomReady || !opponentReady}>
-                                    {countdown != null
-                                        ? (isFr ? `Auto start (${countdown})` : `Auto start (${countdown})`)
-                                        : (isFr ? 'Lancer maintenant' : 'Launch now')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <label className={styles.messageField}>
-                    {isFr ? 'Creer un joueur rival' : 'Create rival player'}
-                    <div className={styles.inlineCreate}>
-                        <input
-                            value={newPlayerName}
-                            onChange={(e) => setNewPlayerName(e.target.value)}
-                            maxLength={20}
-                            placeholder={isFr ? 'Nom du nouveau joueur' : 'Enter new player name'}
-                        />
-                        <button onClick={handleCreateRival} disabled={loading || !activeUserId || !newPlayerName.trim()}>
-                            {isFr ? 'Ajouter' : 'Add'}
-                        </button>
-                    </div>
-                </label>
-
-                <div className={styles.messageField}>
-                    <div className={styles.draftHeader}>
-                        <strong>{isFr ? 'Draft ban / pick' : 'Ban / pick draft'}</strong>
-                        <span>
-                            {isFr
-                                ? '6 jeux distincts. Premier a 2 manches, avec une belle uniquement si necessaire.'
-                                : '6 distinct games. First to 2 rounds, with a decider only when needed.'}
-                        </span>
-                    </div>
-                    <div className={styles.gameRoster}>
-                        {DRAFT_GAMES.map((game) => (
-                            <article key={game.id} className={styles.gameRosterCard}>
-                                <strong>{isFr ? game.labelFr : game.labelEn}</strong>
-                                <span className={styles.gameSkill}>{isFr ? game.skillFr : game.skillEn}</span>
-                                <p>{isFr ? game.ruleFr : game.ruleEn}</p>
-                            </article>
-                        ))}
-                    </div>
-                    <div className={styles.draftGrid}>
-                        {draftFields.map((entry) => (
-                            <div key={entry.key} className={styles.draftCard}>
-                                <h4>{entry.title}</h4>
-                                <label>
-                                    {isFr ? 'Ban' : 'Ban'}
-                                    <select
-                                        value={draft[entry.key].ban}
-                                        onChange={(e) => updateDraftSide(entry.key, 'ban', e.target.value as DraftGameId)}
-                                    >
-                                        {DRAFT_GAMES.map((game) => (
-                                            <option key={game.id} value={game.id}>
-                                                {isFr ? game.labelFr : game.labelEn}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                                <label>
-                                    {isFr ? 'Pick' : 'Pick'}
-                                    <select
-                                        value={draft[entry.key].pick}
-                                        onChange={(e) => updateDraftSide(entry.key, 'pick', e.target.value as DraftGameId)}
-                                    >
-                                        {DRAFT_GAMES.map((game) => (
-                                            <option key={game.id} value={game.id} disabled={game.id === draft[entry.key].ban}>
-                                                {isFr ? game.labelFr : game.labelEn}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
-                            </div>
-                        ))}
-                    </div>
-                    <p className={styles.draftHint}>
-                        {isFr
-                            ? 'Chaque joueur bannit un jeu et en favorise un. Les jeux restants composent une serie sans doublon.'
-                            : 'Each player bans one game and favors one. The remaining games form a duplicate-free series.'}
-                    </p>
-                </div>
-
-                <label>
-                    {isFr ? 'Adversaire' : 'Opponent'}
-                    <select value={opponentId} onChange={(e) => setOpponentId(e.target.value)}>
-                        {opponents.length === 0 && <option value="">{isFr ? 'Aucun autre joueur' : 'No other players'}</option>}
-                        {opponents.map((u) => (
-                            <option key={u.id} value={u.id}>
-                                {u.playerName} (SLAP$ {Number(u.wallet ?? 0).toFixed(2)})
-                            </option>
-                        ))}
-                    </select>
-                </label>
-
-                <label>
-                    {isFr ? 'Mise' : 'Stake'}
-                    <select value={stake} onChange={(e) => setStake(Number(e.target.value))}>
-                        {cappedStakes.map((s) => (
-                            <option key={s} value={s} disabled={s > safeWallet}>
-                                {isFr ? 'SLAP$' : 'SLAP$'} {s}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-
-                <label className={styles.messageField}>
-                    {isFr ? 'Message (optionnel)' : 'Message (optional)'}
-                    <input
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        maxLength={140}
-                        placeholder={isFr ? 'Pret pour un duel ?' : 'Ready for a duel?'}
-                    />
-                </label>
-
-                <div className={styles.actions}>
-                    <button onClick={handleSendChallenge} disabled={loading || !activeUserId || !opponentId || stake > safeWallet || stake > stakeCap}>
-                        {isFr ? 'Envoyer Defi' : 'Send Challenge'}
-                    </button>
-                    <button className={styles.main} onClick={handleInstantDuel} disabled={loading || !activeUserId || !opponentId || stake > safeWallet || stake > stakeCap}>
-                        {isFr ? 'Duel Instantane (sans salon)' : 'Instant Duel (skip room)'}
-                    </button>
-                </div>
-            </div>
-
-            {inviteNotice && <div className={styles.inviteNotice}>{inviteNotice}</div>}
-
-            {error && <p className={styles.error}>{error}</p>}
-
-            {lastResult && (
-                <div className={styles.result}>
-                    <strong>{lastResult.winnerId === activeUserId ? (isFr ? 'Tu as gagne' : 'You won') : (isFr ? 'Tu as perdu' : 'You lost')}</strong>
-                    <span>{formatNet(lastResult, activeUserId)}</span>
-                    <span>{isFr ? 'ID Duel' : 'Duel ID'}: {lastResult.duel.id.slice(0, 8)}</span>
-                    {Array.isArray(lastResult.games) && lastResult.games.length > 0 && (
-                        <span>{isFr ? 'Pool joue' : 'Games played'}: {lastResult.games.map((gameId) => labelGame(gameId, isFr)).join(' · ')}</span>
-                    )}
-                    {lastResult.draftSummary && <span>{lastResult.draftSummary}</span>}
-                    {Array.isArray(lastResult.rounds) && lastResult.rounds.length > 0 && (
-                        <div className={styles.roundsPlayed}>
-                            {lastResult.rounds.map((round) => (
-                                <span key={`${round.round}-${round.gameId}`} className={styles.roundPill}>
-                                    {isFr ? 'M' : 'R'}{round.round} · {labelGame(round.gameId, isFr)}
-                                    {typeof round.challengerMetric === 'number' && typeof round.opponentMetric === 'number'
-                                        ? ` · ${round.challengerMetric}-${round.opponentMetric}`
-                                        : ''}
-                                    {round.winner
-                                        ? ` · ${
-                                            (round.winner === 'CHALLENGER') === (lastResult.duel.challengerId === activeUserId)
-                                                ? (isFr ? 'Gagnee' : 'Won')
-                                                : (isFr ? 'Perdue' : 'Lost')
-                                        }`
-                                        : ''}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                    <div className={styles.resultActions}>
-                        <button type="button" className={styles.rematchBtn} onClick={handleRematch} disabled={loading}>
-                            {isFr ? 'Revanche Immediate' : 'Instant Rematch'}
-                        </button>
-                    </div>
+            {linkInvite && !duelId && linkInvite.challengerId !== userId && (
+                <div className={styles.inviteBanner}>
+                    <span>{isFr ? 'INVITATION RECUE' : 'INVITE RECEIVED'}</span>
+                    <strong>{linkInvite.challengerName}</strong>
+                    <small>SLAP$ {linkInvite.stake}</small>
                 </div>
             )}
 
-            <div className={styles.columns}>
-                <div>
-                    <h3>{isFr ? 'Entrants' : 'Incoming'}</h3>
-                    {incoming.length === 0 && <p className={styles.empty}>{isFr ? 'Aucun defi entrant.' : 'No incoming challenges.'}</p>}
-                    {incoming.map((c) => (
-                        <article key={c.id} className={styles.challenge}>
-                            <div>
-                                <strong>{c.challengerName || c.challengerId}</strong>
-                                <span>{isFr ? 'Mise' : 'Stake'} SLAP$ {c.stake}</span>
-                                {c.message && <p className={styles.challengeMessage}>{c.message}</p>}
-                            </div>
-                            <div className={styles.inlineActions}>
-                                <button onClick={() => handleAccept(c.id)} disabled={loading}>{isFr ? 'Accepter (verrouiller)' : 'Accept (lock duel)'}</button>
-                                <button onClick={() => handleDecline(c.id)} disabled={loading}>{isFr ? 'Refuser' : 'Decline'}</button>
-                            </div>
-                        </article>
-                    ))}
+            {duelId ? (
+                <div className={styles.readyRoom}>
+                    <div className={styles.readyTitle}>
+                        <span>{isFr ? 'SALON PRIVE' : 'PRIVATE ROOM'}</span>
+                        <strong>{duelId.slice(0, 8).toUpperCase()}</strong>
+                    </div>
+                    <div className={styles.players}>
+                        <div className={ready ? styles.isReady : ''}><strong>{isFr ? 'TOI' : 'YOU'}</strong><span>{ready ? 'READY' : 'WAITING'}</span></div>
+                        <b>VS</b>
+                        <div className={rivalReady ? styles.isReady : ''}><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? 'READY' : 'WAITING'}</span></div>
+                    </div>
+                    <button className={styles.primary} type="button" onClick={toggleReady} disabled={busy}>
+                        {ready ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
+                    </button>
                 </div>
+            ) : (
+                <div className={styles.setup}>
+                    <div className={styles.setupIntro}>
+                        <strong>{isFr ? '1. Configure la partie' : '1. Set up the match'}</strong>
+                        <span>{isFr ? 'Ton épreuve favorite sera incluse dans la rotation BO3.' : 'Your preferred event will be included in the BO3 rotation.'}</span>
+                    </div>
+                    <div className={styles.fields}>
+                        <label>{isFr ? 'Mise' : 'Stake'}
+                            <select value={stake} onChange={(event) => setStake(Number(event.target.value))}>
+                                {affordableStakes.map((value) => <option key={value} value={value}>SLAP$ {value}</option>)}
+                            </select>
+                        </label>
+                        <label>{isFr ? 'Invitation directe' : 'Direct invite'}
+                            <select value={opponentId} onChange={(event) => setOpponentId(event.target.value)} disabled={opponents.length === 0}>
+                                {opponents.length === 0 && <option value="">{isFr ? 'Aucun joueur disponible' : 'No player available'}</option>}
+                                {opponents.map((user) => <option key={user.id} value={user.id}>{user.playerName}</option>)}
+                            </select>
+                        </label>
+                    </div>
+                    <div className={styles.gameDraft}>
+                        {COMPETITIVE_GAMES.map((game) => (
+                            <button
+                                type="button"
+                                key={game.id}
+                                className={preferredGame === game.id ? styles.picked : ''}
+                                onClick={() => setPreferredGame(game.id)}
+                            >
+                                <strong>{isFr ? game.labelFr : game.labelEn}</strong>
+                                <span>{preferredGame === game.id ? (isFr ? 'FAVORI' : 'PREFERRED') : (isFr ? game.skillFr : game.skillEn)}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder={isFr ? 'Ajoute un message...' : 'Add a message...'} maxLength={140} />
+                    <div className={styles.setupIntro}>
+                        <strong>{isFr ? '2. Invite ton rival' : '2. Invite your rival'}</strong>
+                        <span>{isFr ? 'Le lien fonctionne même si ton ami n est pas encore inscrit.' : 'The link works even if your friend has not joined yet.'}</span>
+                    </div>
+                    <div className={styles.setupActions}>
+                        <button className={styles.primary} type="button" onClick={createInviteLink} disabled={busy}>
+                            {busy ? (isFr ? 'Création...' : 'Creating...') : (isFr ? 'Créer et copier le lien' : 'Create and copy link')}
+                        </button>
+                        <button className={styles.secondary} type="button" onClick={sendDirectChallenge} disabled={busy || !opponentId}>
+                            {isFr ? 'Defier ce joueur' : 'Challenge this player'}
+                        </button>
+                    </div>
+                    {inviteLink && (
+                        <div className={styles.shareLink}>
+                            <span>{linkCopied ? (isFr ? 'LIEN COPIE' : 'LINK COPIED') : (isFr ? 'LIEN PRET' : 'LINK READY')}</span>
+                            <input readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
+                            <button type="button" onClick={() => void copyInviteLink()}>{isFr ? 'Copier' : 'Copy'}</button>
+                        </div>
+                    )}
+                </div>
+            )}
 
-                <div>
-                    <h3>{isFr ? 'Sortants' : 'Outgoing'}</h3>
-                    {outgoing.length === 0 && <p className={styles.empty}>{isFr ? 'Aucun defi sortant.' : 'No outgoing challenges.'}</p>}
-                    {outgoing.map((c) => (
-                        <article key={c.id} className={styles.challenge}>
-                            <div>
-                                <strong>{isFr ? 'Vers' : 'To'} {c.opponentName || c.opponentId}</strong>
-                                <span>{isFr ? 'Mise' : 'Stake'} SLAP$ {c.stake}</span>
-                                {c.message && <p className={styles.challengeMessage}>{c.message}</p>}
-                            </div>
+            {incoming.length > 0 && !duelId && (
+                <div className={styles.inbox}>
+                    <span>{isFr ? 'DEFIS ENTRANTS' : 'INCOMING'}</span>
+                    {incoming.map((challenge) => (
+                        <article key={challenge.id}>
+                            <div><strong>{challenge.challengerName}</strong><small>SLAP$ {challenge.stake}</small></div>
+                            <button type="button" onClick={() => acceptChallenge(challenge)} disabled={busy}>{isFr ? 'Accepter' : 'Accept'}</button>
                         </article>
                     ))}
                 </div>
-            </div>
+            )}
+            {outgoing.length > 0 && !duelId && <p className={styles.pending}>{isFr ? 'Invitation envoyee. En attente du rival...' : 'Invite sent. Waiting for your rival...'}</p>}
+            {error && <p className={styles.error}>{error}</p>}
         </section>
     );
 }

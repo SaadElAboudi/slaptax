@@ -1,508 +1,71 @@
-.panel {
-    border: 1px solid rgba(255, 212, 0, 0.2);
-    border-radius: 16px;
-    background: rgba(10, 14, 20, 0.84);
-    padding: 16px;
-    display: grid;
-    gap: 14px;
-}
-
-.head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.title {
-    margin: 0;
-    font-size: 1.1rem;
-}
-
-.sub {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 0.85rem;
-}
-
-.meta {
-    margin: 6px 0 0;
-    color: var(--accent);
-    font-size: 0.74rem;
-    font-family: 'Space Mono', monospace;
-}
-
-.kpi {
-    font-size: 0.78rem;
-    color: var(--muted);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    padding: 6px 10px;
-    white-space: nowrap;
-}
-
-.form {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.form label {
-    display: grid;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: var(--muted);
-}
-
-.form select,
-.form input {
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(8, 11, 16, 0.9);
-    color: var(--text);
-    padding: 8px 10px;
-}
-
-.roomCard {
-    border: 1px solid rgba(255, 212, 0, 0.22);
-    border-radius: 14px;
-    background: linear-gradient(140deg, rgba(255, 212, 0, 0.08), rgba(255, 255, 255, 0.03));
-    padding: 12px;
-    display: grid;
-    gap: 10px;
-}
-
-.roomHead {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.roomHead strong {
-    color: var(--text);
-    font-size: 0.88rem;
-}
-
-.roomHead span {
-    color: var(--muted);
-    font-size: 0.75rem;
-    font-family: 'Space Mono', monospace;
-}
-
-.roomSignals {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.roomHint {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.76rem;
-    line-height: 1.45;
-}
-
-.signal {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
-    padding: 6px 10px;
-    color: var(--text);
-    font-size: 0.74rem;
-    background: rgba(8, 11, 16, 0.55);
-    font-family: 'Space Mono', monospace;
-}
-
-.signalHot {
-    border-color: rgba(255, 212, 0, 0.4);
-    color: var(--accent);
-    background: rgba(255, 212, 0, 0.12);
-}
-
-.roomActions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.roomActions button {
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.mainAction {
-    border-color: rgba(255, 212, 0, 0.42) !important;
-    color: var(--accent) !important;
-    background: rgba(255, 212, 0, 0.08) !important;
-}
-
-.messageField {
-    grid-column: 1 / -1;
-}
-
-.draftHeader {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-bottom: 8px;
-}
-
-.draftHeader strong {
-    font-size: 0.82rem;
-    color: var(--text);
-}
-
-.draftHeader span {
-    font-size: 0.74rem;
-    color: var(--muted);
-}
-
-.draftGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.gameRoster {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.gameRosterCard {
-    min-width: 0;
-    border-left: 2px solid rgba(255, 212, 0, 0.42);
-    background: rgba(255, 255, 255, 0.035);
-    padding: 8px 9px;
-}
-
-.gameRosterCard strong,
-.gameRosterCard span {
-    display: block;
-}
-
-.gameRosterCard strong {
-    color: var(--text);
-    font-size: 0.76rem;
-}
-
-.gameSkill {
-    margin-top: 2px;
-    color: var(--accent);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-}
-
-.gameRosterCard p {
-    margin: 5px 0 0;
-    color: var(--muted);
-    font-size: 0.68rem;
-    line-height: 1.4;
-}
-
-.draftCard {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 10px;
-    display: grid;
-    gap: 8px;
-}
-
-.draftCard h4 {
-    margin: 0;
-    font-size: 0.82rem;
-    color: var(--accent);
-}
-
-.draftCard label {
-    display: grid;
-    gap: 4px;
-    font-size: 0.72rem;
-    color: var(--muted);
-}
-
-.draftHint {
-    margin: 8px 0 0;
-    font-size: 0.74rem;
-    color: var(--muted);
-}
-
-.inlineCreate {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-}
-
-.inlineCreate button {
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text);
-    padding: 8px 10px;
-    cursor: pointer;
-}
-
-.actions {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 8px;
-}
-
-.actions button {
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.actions .main {
-    border-color: rgba(255, 212, 0, 0.45);
-    color: var(--accent);
-}
-
-.error {
-    margin: 0;
-    color: #f87171;
-    font-size: 0.82rem;
-}
-
-.inviteNotice {
-    margin: 0;
-    border: 1px solid rgba(255, 212, 0, 0.18);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: rgba(255, 212, 0, 0.08);
-    color: var(--accent);
-    font-size: 0.8rem;
-    font-family: 'Space Mono', monospace;
-}
-
-.result {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    font-size: 0.82rem;
-    color: var(--muted);
-}
-
-.roundsPlayed {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-}
-
-.resultActions {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-}
-
-.rematchBtn {
-    border-radius: 999px;
-    border: 1px solid rgba(255, 212, 0, 0.35);
-    background: rgba(255, 212, 0, 0.08);
-    color: var(--accent);
-    font-family: 'Space Mono', monospace;
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.roundPill {
-    border-radius: 999px;
-    border: 1px solid rgba(255, 212, 0, 0.24);
-    background: rgba(255, 212, 0, 0.08);
-    color: var(--text);
-    padding: 4px 10px;
-    font-size: 0.74rem;
-    font-family: 'Space Mono', monospace;
-}
-
-.columns {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.columns h3 {
-    margin: 0 0 6px;
-    font-size: 0.9rem;
-}
-
-.empty {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.82rem;
-}
-
-.challenge {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 10px;
-    display: grid;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.challenge strong {
-    display: block;
-    font-size: 0.88rem;
-}
-
-.challenge span {
-    font-size: 0.78rem;
-    color: var(--muted);
-}
-
-.challengeMessage {
-    margin: 8px 0 0;
-    color: var(--text);
-    font-size: 0.76rem;
-    line-height: 1.45;
-}
-
-.inlineActions {
-    display: flex;
-    gap: 8px;
-}
-
-.inlineActions button {
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-    font-size: 0.76rem;
-    padding: 6px 10px;
-    cursor: pointer;
-}
-
-@media (max-width: 767px) {
-    .head {
-        flex-direction: column;
-    }
-
-    .kpi {
-        white-space: normal;
-    }
-
-    .form {
-        grid-template-columns: 1fr;
-    }
-
-    .draftGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .gameRoster {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .columns {
-        grid-template-columns: 1fr;
-    }
-
-    .roomActions button {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-/* Status Ribbon + Event Log */
-.roomStatusRibbon {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 8px 0 0;
-    padding: 6px 8px;
+.panel,.waiting,.final,.intermission {
+    min-height: 620px;
+    border: 1px solid var(--line-strong);
     border-radius: 8px;
-    background: linear-gradient(90deg, rgba(255, 212, 0, 0.12), rgba(255, 212, 0, 0.04));
-    border: 1px solid rgba(255, 212, 0, 0.18);
-    font-size: 0.75rem;
-    font-family: 'Space Mono', monospace;
+    background: var(--surface-1);
+    box-shadow: var(--shadow-panel);
+    overflow: hidden;
 }
-
-.roomStatus {
-    font-weight: 500;
-    color: var(--accent);
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(255, 212, 0, 0.08);
-    white-space: nowrap;
-}
-
-.roomStatus.locked {
-    color: #fbbf24;
-}
-
-.roomStatus.ready {
-    color: #86efac;
-    background: rgba(134, 239, 172, 0.1);
-}
-
-.roomStatus.countdown {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.1);
-    animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-}
-
-.roomEventLog {
-    margin: 6px 0 0;
-    padding: 6px 8px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.7rem;
-    font-family: 'Space Mono', monospace;
-    color: var(--muted);
-    max-height: 80px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.roomEventLog::-webkit-scrollbar {
-    width: 4px;
-}
-
-.roomEventLog::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.roomEventLog::-webkit-scrollbar-thumb {
-    background: rgba(255, 212, 0, 0.15);
-    border-radius: 2px;
-}
-
-.roomEventItem {
-    display: flex;
-    gap: 8px;
-    color: var(--muted);
-}
-
-.roomEventTime {
-    color: rgba(255, 212, 0, 0.4);
-    white-space: nowrap;
+.panel { display: grid; align-content: start; gap: 20px; padding-bottom: 24px; }
+.hero { padding: 24px; display: flex; justify-content: space-between; gap: 20px; background: var(--surface-2); border-bottom: 1px solid var(--line-soft); }
+.hero span,.readyTitle span,.inbox > span { color: var(--accent); font: 700 .68rem 'Space Mono', monospace; }
+.hero h2 { margin: 5px 0; font-size: 1.45rem; }
+.hero p { margin: 0; color: var(--muted); font-size: .82rem; }
+.hero > strong { color: var(--accent); font-size: .84rem; white-space: nowrap; }
+.setup,.readyRoom,.inbox { margin-inline: 24px; }
+.setup { display: grid; gap: 16px; }
+.setupIntro { display: grid; gap: 3px; }.setupIntro strong { font-size: .78rem; }.setupIntro span { color: var(--muted); font-size: .68rem; }
+.fields { display: grid; grid-template-columns: 180px 1fr; gap: 12px; }
+.fields label { display: grid; gap: 6px; color: var(--muted); font-size: .75rem; }
+.fields select,.setup input { min-height: 44px; border: 1px solid var(--line-soft); border-radius: 6px; background: #090c10; color: var(--text); padding: 0 12px; }
+.gameDraft { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+.gameDraft button { min-height: 90px; padding: 10px; display: grid; align-content: center; gap: 5px; text-align: left; border: 1px solid var(--line-soft); border-radius: 6px; background: var(--surface-2); color: var(--text); cursor: pointer; }
+.gameDraft button span { color: var(--muted); font-size: .65rem; }
+.gameDraft .picked { border-color: var(--accent); box-shadow: inset 0 -3px var(--accent); }
+.primary { min-height: 48px; border: 0; border-radius: 6px; background: var(--accent); color: #0a0d12; font-weight: 800; cursor: pointer; }
+.setupActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.secondary { min-height: 48px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 700; cursor: pointer; }
+.shareLink,.inviteBanner { padding: 12px; display: grid; gap: 7px; border: 1px solid rgba(54,211,153,.45); background: rgba(54,211,153,.06); }
+.shareLink { grid-template-columns: 1fr auto; }.shareLink span { grid-column: 1/-1; }.shareLink button { min-width: 74px; border: 1px solid var(--success); border-radius: 4px; background: transparent; color: var(--success); font-weight: 800; cursor: pointer; }
+.shareLink span,.inviteBanner span { color: var(--success); font: 700 .65rem 'Space Mono', monospace; }
+.shareLink input { min-height: 38px; border: 1px solid var(--line-soft); border-radius: 4px; background: #080b0f; color: var(--muted); padding: 0 10px; font-size: .68rem; }
+.inviteBanner { margin-inline: 24px; grid-template-columns: 1fr auto; align-items: center; }
+.inviteBanner span { grid-column: 1/-1; }.inviteBanner small { color: var(--accent); }
+.readyRoom { padding: 20px; border: 1px solid var(--line-soft); background: #090c10; display: grid; gap: 20px; }
+.readyTitle { display: flex; justify-content: space-between; }
+.players { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+.players > div { min-height: 105px; display: grid; place-content: center; text-align: center; gap: 7px; border: 1px solid var(--line-soft); color: var(--muted); }
+.players > div span { font-size: .68rem; }
+.players .isReady { border-color: var(--success); color: var(--success); background: rgba(54,211,153,.06); }
+.inbox { display: grid; gap: 8px; }
+.inbox article { padding: 12px; display: flex; justify-content: space-between; border: 1px solid var(--line-soft); }
+.inbox article div { display: grid; gap: 3px; }
+.inbox small { color: var(--muted); }
+.inbox button { border: 0; border-radius: 5px; padding: 0 16px; background: var(--success); color: #06100c; font-weight: 800; cursor: pointer; }
+.pending,.error { margin-inline: 24px; font-size: .78rem; }
+.pending { color: var(--accent); } .error { color: var(--danger); }
+.waiting,.final { display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; }
+.intermission { display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; box-shadow: inset 0 5px var(--accent); }
+.intermission > span { color: var(--accent); font: 700 .7rem 'Space Mono',monospace; }.intermission h2 { margin: 0; color: var(--text); font: 400 4rem 'Black Ops One',sans-serif; }.intermission p { margin: 0; color: var(--muted); }
+.intermission button { min-width: 210px; min-height: 48px; border: 0; border-radius: 5px; background: var(--accent); color: #090b0f; font-weight: 900; cursor: pointer; }
+.intermissionWin { box-shadow: inset 0 5px var(--success); }.intermissionLoss { box-shadow: inset 0 5px var(--danger); }
+.waiting p,.final > span { color: var(--accent); font: 700 .7rem 'Space Mono', monospace; }
+.waiting h2,.final h2 { margin: 0; font-size: 2rem; }
+.liveDot { width: 12px; height: 12px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 8px rgba(239,71,111,.12); animation: pulseLive 1s infinite; }
+.scoreboard { display: flex; align-items: center; gap: 24px; font-size: 2rem; }
+.scoreboard span { color: var(--muted); font-size: .7rem; }
+.roundRecap { display: flex; gap: 8px; }
+.roundRecap div { padding: 10px; display: grid; gap: 4px; border: 1px solid var(--line-soft); }
+.roundRecap span { color: var(--muted); font-size: .65rem; }
+.final button { min-width: 180px; min-height: 46px; border: 0; border-radius: 6px; background: var(--accent); font-weight: 800; cursor: pointer; }
+.finalWin { box-shadow: inset 0 5px var(--success); } .finalLoss { box-shadow: inset 0 5px var(--danger); }
+@keyframes pulseLive { 50% { transform: scale(.72); opacity: .6; } }
+@media (max-width: 760px) {
+    .panel,.waiting,.final { border-radius: 0; min-height: calc(100dvh - 145px); }
+    .hero { padding: 18px 14px; }
+    .setup,.readyRoom,.inbox { margin-inline: 14px; }
+    .fields { grid-template-columns: 1fr; }
+    .gameDraft { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .setupActions { grid-template-columns: 1fr; }
+    .players { gap: 8px; }
 }

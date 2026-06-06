@@ -105,6 +105,55 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "POST" && url.pathname === "/api/tournaments/live") {
+            const body = await parseBody(req);
+            const result = service.createLiveTournament(
+                body.size,
+                body.stake,
+                body.draft || null,
+                body.userId || null
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/api/tournaments/active") {
+            const result = service.getActiveLiveTournament(url.searchParams.get("userId") || "");
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const abandonTournamentMatch = url.pathname.match(/^\/api\/tournaments\/([^/]+)\/abandon$/);
+        if (req.method === "POST" && abandonTournamentMatch) {
+            const body = await parseBody(req);
+            const result = service.abandonLiveTournament(abandonTournamentMatch[1], body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const liveTournamentMatch = url.pathname.match(/^\/api\/tournaments\/([^/]+)$/);
+        if (req.method === "GET" && liveTournamentMatch) {
+            const result = service.getLiveTournament(
+                liveTournamentMatch[1],
+                url.searchParams.get("userId") || ""
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const liveTournamentRoundMatch = url.pathname.match(/^\/api\/tournaments\/([^/]+)\/rounds$/);
+        if (req.method === "POST" && liveTournamentRoundMatch) {
+            const body = await parseBody(req);
+            const result = service.submitLiveTournamentRound(
+                liveTournamentRoundMatch[1],
+                body.userId,
+                body.score,
+                body.metric
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
         if (req.method === "POST" && url.pathname === "/api/reset") {
             json(res, 200, service.reset());
             return;
@@ -128,6 +177,33 @@ function createRequestHandler(service) {
                 body.draft,
                 body.message
             );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/invites") {
+            const body = await parseBody(req);
+            const result = service.createOpenInvite(
+                body.challengerId,
+                body.stake,
+                body.draft || null,
+                body.message || ""
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const inviteMatch = url.pathname.match(/^\/api\/invites\/([^/]+)$/);
+        if (req.method === "GET" && inviteMatch) {
+            const result = service.getOpenInvite(inviteMatch[1]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const claimInviteMatch = url.pathname.match(/^\/api\/invites\/([^/]+)\/claim$/);
+        if (req.method === "POST" && claimInviteMatch) {
+            const body = await parseBody(req);
+            const result = service.claimOpenInvite(claimInviteMatch[1], body.userId);
             json(res, result.code || 200, result);
             return;
         }
@@ -196,6 +272,44 @@ function createRequestHandler(service) {
         if (req.method === "POST" && duelReadyMatch) {
             const body = await parseBody(req);
             const result = service.setDuelReady(duelReadyMatch[1], body.userId, body.ready);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const liveDuelStartMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/start$/);
+        if (req.method === "POST" && liveDuelStartMatch) {
+            const body = await parseBody(req);
+            const result = service.startLiveDuel(liveDuelStartMatch[1], body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const liveDuelMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/match$/);
+        if (req.method === "GET" && liveDuelMatch) {
+            const result = service.getLiveDuel(
+                liveDuelMatch[1],
+                url.searchParams.get("userId") || ""
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/api/duels/active") {
+            const result = service.getActiveLiveDuel(url.searchParams.get("userId") || "");
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const liveDuelRoundMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/rounds$/);
+        if (req.method === "POST" && liveDuelRoundMatch) {
+            const body = await parseBody(req);
+            const result = service.submitLiveDuelRound(
+                liveDuelRoundMatch[1],
+                body.userId,
+                body.round,
+                body.score,
+                body.metric
+            );
             json(res, result.code || 200, result);
             return;
         }

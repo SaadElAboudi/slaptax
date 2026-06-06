@@ -5,7 +5,7 @@
     margin-bottom: 12px;
     padding: 10px 14px;
     border: 1px solid var(--line);
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     background: rgba(12, 16, 23, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -42,11 +42,11 @@
     background: rgba(17, 23, 34, 0.8);
     color: var(--muted);
     padding: 8px 18px;
-    border-radius: 999px;
+    border-radius: 5px;
     font-family: 'Space Mono', monospace;
     font-size: 0.8rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
     cursor: pointer;
     transition: all var(--transition);
 }

@@ -318,6 +318,9 @@ function simulateP2PDuel(stake, challengerStats, opponentStats, draft = null) {
 }
 
 module.exports = {
+    P2P_GAME_LIBRARY,
+    resolveP2PGames,
+    resolveTournamentGames,
     simulateDuel,
     simulateTournament,
     simulateP2PDuel,

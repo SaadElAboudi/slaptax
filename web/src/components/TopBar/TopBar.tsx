@@ -1,10 +1,9 @@
 import styles from './TopBar.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
-import { getDifficultyLabel } from '../../gameplay/difficulty';
 import { useEffect, useState } from 'react';
 
 export function TopBar() {
-    const { wallet, apiOnline, language, toggleLanguage, difficultyMode, cycleDifficultyMode, playerName, setProfile } = useGameStore();
+    const { wallet, apiOnline, language, toggleLanguage, playerName, setProfile } = useGameStore();
     const safeWallet = Number(wallet ?? 0);
     const isFr = language === 'fr';
     const [draftName, setDraftName] = useState(playerName);
@@ -48,12 +47,9 @@ export function TopBar() {
                         }
                     }}
                     maxLength={20}
-                    title={isFr ? 'Changer de joueur' : 'Switch user'}
+                    title={isFr ? 'Modifier le pseudo' : 'Edit nickname'}
                     aria-label={isFr ? 'Nom du joueur' : 'Player name'}
                 />
-                <button className={styles.langBtn} onClick={cycleDifficultyMode} type="button" aria-label={isFr ? 'Changer la difficulté' : 'Change difficulty'}>
-                    {getDifficultyLabel(difficultyMode, isFr)}
-                </button>
                 <button className={styles.langBtn} onClick={toggleLanguage} type="button" aria-label={isFr ? 'Changer la langue' : 'Change language'}>
                     {isFr ? 'FR' : 'EN'}
                 </button>

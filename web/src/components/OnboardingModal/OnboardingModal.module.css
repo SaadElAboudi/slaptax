@@ -26,10 +26,10 @@
         radial-gradient(ellipse at 50% 0%, rgba(255, 212, 0, 0.10) 0%, transparent 55%),
         linear-gradient(180deg, #13192a 0%, #0d111c 100%);
     border: 1px solid rgba(255, 212, 0, 0.28);
-    border-radius: 22px;
+    border-radius: 8px;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03);
     padding: 40px 32px 32px;
-    max-width: 380px;
+    max-width: 440px;
     width: calc(100% - 32px);
     text-align: center;
     display: flex;
@@ -87,7 +87,7 @@
 
 .input {
     padding: 11px 14px;
-    border-radius: 10px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 212, 0, 0.30);
     background: rgba(255, 255, 255, 0.04);
     color: var(--text);
@@ -107,7 +107,7 @@
     background: linear-gradient(90deg, #ffd400, #ff9500);
     color: #111;
     border: none;
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 13px 0;
     font-family: 'Black Ops One', cursive;
     font-size: 1rem;
@@ -126,4 +126,41 @@
     opacity: 0.35;
     cursor: not-allowed;
     transform: none;
+}
+
+.modeChoices {
+    display: grid;
+    gap: 8px;
+}
+
+.modeChoices button {
+    min-height: 66px;
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    padding: 10px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    color: var(--text);
+    background: var(--surface-2);
+    text-align: left;
+    cursor: pointer;
+}
+
+.modeChoices button:first-child {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 var(--accent);
+}
+
+.modeChoices button:hover {
+    border-color: var(--accent);
+}
+
+.modeChoices strong {
+    font-size: 0.9rem;
+}
+
+.modeChoices span {
+    color: var(--muted);
+    font-size: 0.68rem;
 }

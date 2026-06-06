@@ -1,30 +1,19 @@
 import styles from './Tabs.module.css';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
-import { COMPETITIVE_GAMES } from '../../gameplay/catalog';
 
 const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
-    ...COMPETITIVE_GAMES.map((game, index) => ({
-        id: game.tab,
-        label: game.labelEn,
-        advanced: index > 1,
-    })),
+    { id: 'training', label: 'Training' },
     { id: 'defy', label: 'Friend Duel' },
     { id: 'tournament', label: 'Tournament' },
-    { id: 'leaderboard', label: 'Leaderboard', advanced: true },
-    { id: 'analytics', label: 'Analytics', advanced: true },
-    { id: 'stats', label: 'History', advanced: true },
+    { id: 'leaderboard', label: 'Leaderboard' },
+    { id: 'stats', label: 'History' },
 ];
 
 const TAB_LABELS_FR: Record<Tab, string> = {
-    bounce: 'Bounce Panic',
-    symbolrush: 'Symbol Sprint',
-    bomb: 'Bomb Pass',
-    cups: 'Cup Shuffle',
-    duelnumeric: 'Duel Numeric',
+    training: 'Entrainement',
     defy: 'Duel Ami',
     tournament: 'Tournoi',
     leaderboard: 'Classement',
-    analytics: 'Analytics',
     stats: 'Historique',
 };
 

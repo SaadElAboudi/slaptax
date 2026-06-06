@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import { api, type AnalyticsKpi, type HistoryEntry, type LeaderboardEntry, type RoundResult } from '../api/client';
+import { api, type HistoryEntry, type LeaderboardEntry } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'bounce' | 'symbolrush' | 'bomb' | 'cups' | 'duelnumeric' | 'defy' | 'tournament' | 'leaderboard' | 'analytics' | 'stats';
-export type QuickMode = 'duel' | 'defy' | 'tournament';
+export type Tab = 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
 export type DifficultyMode = 'casual' | 'standard' | 'hardcore';
@@ -36,9 +35,6 @@ interface GameStore {
     language: Language;
     setLanguage: (language: Language) => void;
     toggleLanguage: () => void;
-    quickMode: QuickMode;
-    setQuickMode: (mode: QuickMode) => void;
-
     // Difficulty
     difficultyMode: DifficultyMode;
     setDifficultyMode: (mode: DifficultyMode) => void;
@@ -50,19 +46,9 @@ interface GameStore {
 
     // Live panels
     leaderboard: LeaderboardEntry[];
-    analyticsKpi: AnalyticsKpi | null;
     loadLeaderboard: () => Promise<void>;
-    loadAnalytics: () => Promise<void>;
     loadDashboardData: () => Promise<void>;
     refreshLiveState: () => Promise<void>;
-
-    // Duel
-    isDueling: boolean;
-    lastRounds: RoundResult[];
-    lastNet: number | null;
-    startDuel: () => void;
-    cancelDuel: () => void;
-    resolveDuel: (won: boolean, rounds: RoundResult[]) => Promise<void>;
 
     // Bootstrap
     bootstrap: () => Promise<void>;
@@ -154,33 +140,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     // Navigation
-    activeTab: 'bounce',
-    setActiveTab: (tab) => {
-        const state = get();
-        const leavingActiveDuel = state.activeTab !== tab && state.isDueling;
-
-        if (!leavingActiveDuel) {
-            set({ activeTab: tab });
-            return;
-        }
-
-        // Leaving an active stake duel counts as forfeit.
-        set({ activeTab: tab, isDueling: false });
-
-        void (async () => {
-            const lockedStake = Number(state.stake ?? 0);
-            try {
-                const result = await api.resolveReflex(lockedStake, false, [], state.userId);
-                const net = Number(result.net ?? result.duel?.net ?? -Math.abs(lockedStake));
-                const wallet = Number(result.newWallet ?? result.wallet ?? Math.max(0, get().wallet + net));
-                set({ lastRounds: [], lastNet: net, wallet });
-                await get().loadDashboardData();
-            } catch {
-                const net = -Math.abs(lockedStake);
-                set({ lastRounds: [], lastNet: net, wallet: Math.max(0, get().wallet + net) });
-            }
-        })();
-    },
+    activeTab: 'training',
+    setActiveTab: (tab) => set({ activeTab: tab }),
     language: (() => {
         try {
             const lang = localStorage.getItem('slaptax_lang');
@@ -199,9 +160,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             try { localStorage.setItem('slaptax_lang', next); } catch { /* ignore */ }
             return { language: next };
         }),
-    quickMode: 'duel',
-    setQuickMode: (mode) => set({ quickMode: mode }),
-
     difficultyMode: (() => {
         try {
             const value = localStorage.getItem('slaptax_difficulty_mode');
@@ -231,59 +189,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     leaderboard: [],
-    analyticsKpi: null,
     loadLeaderboard: async () => {
         try {
             const data = await api.getLeaderboard();
             set({ leaderboard: Array.isArray(data.leaderboard) ? data.leaderboard : [] });
         } catch { /* offline */ }
     },
-    loadAnalytics: async () => {
-        try {
-            const data = await api.getAnalyticsKpi();
-            set({ analyticsKpi: data.kpi ?? null });
-        } catch { /* offline */ }
-    },
     loadDashboardData: async () => {
-        await Promise.all([get().loadHistory(), get().loadLeaderboard(), get().loadAnalytics()]);
+        await Promise.all([get().loadHistory(), get().loadLeaderboard()]);
     },
     refreshLiveState: async () => {
         await Promise.all([get().checkHealth(), get().loadState(), get().loadDashboardData()]);
     },
 
-    // Duel
-    isDueling: false,
-    lastRounds: [],
-    lastNet: null,
-    startDuel: () => set({ isDueling: true }),
-    cancelDuel: () => set({ isDueling: false }),
-    resolveDuel: async (won, rounds) => {
-        const { stake, userId } = get();
-        try {
-            const result = await api.resolveReflex(stake, won, rounds, userId);
-            const net = Number(result.net ?? result.duel?.net ?? (won ? stake : -stake));
-            const wallet = Number(result.newWallet ?? result.wallet ?? Math.max(0, get().wallet + net));
-            set({
-                isDueling: false,
-                lastRounds: rounds,
-                lastNet: net,
-                wallet,
-            });
-            await get().loadDashboardData();
-        } catch {
-            const net = won ? stake : -stake;
-            set({
-                isDueling: false,
-                lastRounds: rounds,
-                lastNet: net,
-                wallet: Math.max(0, get().wallet + net),
-            });
-        }
-    },
-
     // Bootstrap
     bootstrap: async () => {
-        await get().joinSession();
-        await get().refreshLiveState();
+        let hasCompletedOnboarding = false;
+        try {
+            hasCompletedOnboarding = localStorage.getItem('slaptax_onboarded') === '1';
+        } catch {
+            hasCompletedOnboarding = false;
+        }
+
+        if (get().userId || hasCompletedOnboarding) {
+            await get().joinSession();
+            await get().refreshLiveState();
+            return;
+        }
+
+        await get().checkHealth();
     },
 }));

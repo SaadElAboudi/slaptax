@@ -1,5 +1,3 @@
-import type { Tab } from '../hooks/useGameStore';
-
 export type CompetitiveGameId =
     | 'bounce'
     | 'symbolrush'
@@ -9,7 +7,6 @@ export type CompetitiveGameId =
 
 export interface CompetitiveGame {
     id: CompetitiveGameId;
-    tab: Tab;
     labelEn: string;
     labelFr: string;
     skillEn: string;
@@ -21,7 +18,6 @@ export interface CompetitiveGame {
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
     {
         id: 'bounce',
-        tab: 'bounce',
         labelEn: 'Bounce Panic',
         labelFr: 'Bounce Panic',
         skillEn: 'Control + survival',
@@ -31,7 +27,6 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
     },
     {
         id: 'symbolrush',
-        tab: 'symbolrush',
         labelEn: 'Symbol Sprint',
         labelFr: 'Symbol Sprint',
         skillEn: 'Memory + speed',
@@ -41,7 +36,6 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
     },
     {
         id: 'bombpass',
-        tab: 'bomb',
         labelEn: 'Bomb Pass',
         labelFr: 'Bomb Pass',
         skillEn: 'Timing + pressure',
@@ -51,7 +45,6 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
     },
     {
         id: 'cupshuffle',
-        tab: 'cups',
         labelEn: 'Cup Shuffle',
         labelFr: 'Cup Shuffle',
         skillEn: 'Tracking + focus',
@@ -61,7 +54,6 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
     },
     {
         id: 'duelnumeric',
-        tab: 'duelnumeric',
         labelEn: 'Duel Numeric',
         labelFr: 'Duel Numeric',
         skillEn: 'Logic + calculation',

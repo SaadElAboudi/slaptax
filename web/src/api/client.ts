@@ -1,3 +1,5 @@
+import type { CompetitiveGameId } from '../gameplay/catalog';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface HealthResponse {
@@ -138,7 +140,7 @@ export interface P2PDuel {
     challengerId: string;
     opponentId: string;
     stake: number;
-    status: 'pending' | 'done';
+    status: 'pending' | 'playing' | 'done';
     createdAt: string;
     playedAt?: string;
     winnerId?: string;
@@ -150,7 +152,7 @@ export interface Challenge {
     challengerId: string;
     opponentId: string;
     stake: number;
-    status: 'pending' | 'accepted' | 'declined';
+    status: 'open' | 'pending' | 'accepted' | 'declined';
     message?: string;
     createdAt: string;
     challengerName?: string;
@@ -204,12 +206,83 @@ export interface PlayP2PResponse {
 
 export interface DuelRoomState {
     duelId: string;
-    status: 'pending' | 'done';
+    status: 'pending' | 'playing' | 'done';
     challengerId: string;
     opponentId: string;
     readyBy: Record<string, boolean>;
     readyCountdownAt: string | null;
+    games: string[];
+    currentRound: number;
+    score: { challenger: number; opponent: number };
     createdAt: string;
+}
+
+export interface LiveDuelRound {
+    round: number;
+    gameId: CompetitiveGameId;
+    challengerScore: number;
+    opponentScore: number;
+    challengerMetric: number;
+    opponentMetric: number;
+    winnerId: string;
+}
+
+export interface LiveDuelMatch {
+    duelId: string;
+    status: 'pending' | 'playing' | 'done';
+    challengerId: string;
+    opponentId: string;
+    opponentName: string;
+    stake: number;
+    games: CompetitiveGameId[];
+    currentRound: number;
+    score: { challenger: number; opponent: number };
+    rounds: LiveDuelRound[];
+    winnerId: string | null;
+    loserId: string | null;
+    rematchId: string | null;
+    submittedBy: Record<string, string[]>;
+}
+
+export interface LiveTournament {
+    id: string;
+    userId: string;
+    size: number;
+    stake: number;
+    status: 'playing' | 'done';
+    games: CompetitiveGameId[];
+    currentRound: number;
+    roundsTotal: number;
+    rounds: Array<{
+        round: number;
+        gameId: CompetitiveGameId;
+        label: string;
+        opponentName: string;
+        scoreFor: number;
+        scoreAgainst: number;
+        metric: number;
+        won: boolean;
+    }>;
+    champion?: boolean;
+    abandoned?: boolean;
+    payout?: number;
+    net?: number;
+}
+
+export interface LiveTournamentResponse {
+    ok: boolean;
+    tournament: LiveTournament | null;
+    wallet?: number;
+}
+
+export interface OpenInvite {
+    id: string;
+    status: 'open' | 'accepted';
+    challengerId: string;
+    challengerName: string;
+    stake: number;
+    message: string;
+    duelId: string | null;
 }
 
 export interface DuelRoomResponse {
@@ -293,7 +366,14 @@ async function req<T>(
     });
     if (!res.ok) {
         const text = await res.text();
-        throw new Error(`API ${method} ${path} → ${res.status}: ${text}`);
+        let detail = text;
+        try {
+            const parsed = JSON.parse(text) as { error?: string; message?: string };
+            detail = parsed.error || parsed.message || text;
+        } catch {
+            // Keep the plain-text response when the API did not return JSON.
+        }
+        throw new Error(detail || `Request failed (${res.status})`);
     }
     return res.json() as Promise<T>;
 }
@@ -377,6 +457,23 @@ export const api = {
     setDuelReady: (duelId: string, userId: string, ready: boolean) =>
         req<DuelRoomResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/ready`, { userId, ready }),
 
+    startLiveDuel: (duelId: string, userId: string) =>
+        req<{ ok: boolean; match: LiveDuelMatch }>('POST', `/api/duels/${encodeURIComponent(duelId)}/start`, { userId }),
+
+    getLiveDuel: (duelId: string, userId: string) =>
+        req<{ ok: boolean; match: LiveDuelMatch }>('GET', `/api/duels/${encodeURIComponent(duelId)}/match?userId=${encodeURIComponent(userId)}`),
+
+    getActiveLiveDuel: (userId: string) =>
+        req<{ ok: boolean; match: LiveDuelMatch | null }>('GET', `/api/duels/active?userId=${encodeURIComponent(userId)}`),
+
+    submitLiveDuelRound: (duelId: string, userId: string, round: number, score: number, metric: number) =>
+        req<{ ok: boolean; match: LiveDuelMatch }>('POST', `/api/duels/${encodeURIComponent(duelId)}/rounds`, {
+            userId,
+            round,
+            score,
+            metric,
+        }),
+
     rematchP2P: (duelId: string) =>
         req<CreateDuelResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`),
 
@@ -389,6 +486,20 @@ export const api = {
             message: message === undefined ? draftOrMessage : message,
         }),
 
+    createOpenInvite: (challengerId: string, stake: number, draft: unknown, message?: string) =>
+        req<{ ok: boolean; challenge: Challenge }>('POST', '/api/invites', {
+            challengerId,
+            stake,
+            draft,
+            message,
+        }),
+
+    getOpenInvite: (inviteId: string) =>
+        req<{ ok: boolean; invite: OpenInvite }>('GET', `/api/invites/${encodeURIComponent(inviteId)}`),
+
+    claimOpenInvite: (inviteId: string, userId: string) =>
+        req<AcceptChallengeResponse>('POST', `/api/invites/${encodeURIComponent(inviteId)}/claim`, { userId }),
+
     listChallenges: (userId: string, status = 'pending') =>
         req<ChallengeListResponse>('GET', `/api/challenges?userId=${encodeURIComponent(userId)}&status=${encodeURIComponent(status)}`),
 
@@ -400,4 +511,23 @@ export const api = {
 
     getRivalry: (userAId: string, userBId: string) =>
         req<RivalryResponse>('GET', `/api/rivalries/${encodeURIComponent(userAId)}/vs/${encodeURIComponent(userBId)}`),
+
+    createLiveTournament: (size: number, stake: number, draft: unknown, userId: string) =>
+        req<LiveTournamentResponse>('POST', '/api/tournaments/live', { size, stake, draft, userId }),
+
+    getLiveTournament: (tournamentId: string, userId: string) =>
+        req<LiveTournamentResponse>('GET', `/api/tournaments/${encodeURIComponent(tournamentId)}?userId=${encodeURIComponent(userId)}`),
+
+    getActiveLiveTournament: (userId: string) =>
+        req<LiveTournamentResponse>('GET', `/api/tournaments/active?userId=${encodeURIComponent(userId)}`),
+
+    submitLiveTournamentRound: (tournamentId: string, userId: string, score: number, metric: number) =>
+        req<LiveTournamentResponse>('POST', `/api/tournaments/${encodeURIComponent(tournamentId)}/rounds`, {
+            userId,
+            score,
+            metric,
+        }),
+
+    abandonLiveTournament: (tournamentId: string, userId: string) =>
+        req<LiveTournamentResponse>('POST', `/api/tournaments/${encodeURIComponent(tournamentId)}/abandon`, { userId }),
 };

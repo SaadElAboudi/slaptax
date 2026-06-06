@@ -4,21 +4,15 @@ import { useGameStore, type Tab } from './hooks/useGameStore';
 import { TopBar } from './components/TopBar/TopBar';
 import { Tabs } from './components/Tabs/Tabs';
 import { ArenaHome } from './components/ArenaHome/ArenaHome';
-import { BouncePanicPanel } from './components/BouncePanicPanel/BouncePanicPanel';
-import { SymbolSprintPanel } from './components/SymbolSprintPanel/SymbolSprintPanel';
-import { DuelNumericPanel } from './components/DuelNumericPanel/DuelNumericPanel';
-import { BombPassPanel } from './components/BombPassPanel/BombPassPanel';
-import { CupShufflePanel } from './components/CupShufflePanel/CupShufflePanel';
 import { LeaderboardPanel } from './components/LeaderboardPanel/LeaderboardPanel';
-import { AnalyticsPanel } from './components/AnalyticsPanel/AnalyticsPanel';
 import { HistoryPanel } from './components/HistoryPanel/HistoryPanel';
 import { FriendDuelPanel } from './components/FriendDuelPanel/FriendDuelPanel';
 import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
+import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
 import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
-import { gameLabel } from './gameplay/catalog';
 
 function App() {
-    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, lastNet } = useGameStore();
+    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language } = useGameStore();
     const isFr = language === 'fr';
     const [arenaOpen, setArenaOpen] = useState(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
@@ -32,15 +26,22 @@ function App() {
         }
     });
 
-    const handleOnboardingClose = () => {
+    const handleOnboardingComplete = (tab: Tab) => {
         try {
             localStorage.setItem('slaptax_onboarded', '1');
         } catch { }
         setShowOnboarding(false);
+        enterArena(tab);
     };
 
     useEffect(() => {
         bootstrap();
+        const requestedTab = new URLSearchParams(window.location.search).get('tab');
+        if (requestedTab && ['training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats'].includes(requestedTab)) {
+            const migratedTab = ['bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric'].includes(requestedTab) ? 'training' : requestedTab;
+            setActiveTab(migratedTab as Tab);
+            setArenaOpen(true);
+        }
 
         // Keep dashboard and wallet in sync with backend.
         const iv = setInterval(() => {
@@ -61,11 +62,6 @@ function App() {
         };
     }, [bootstrap, refreshLiveState]);
 
-    useEffect(() => {
-        if (lastNet == null || !('vibrate' in navigator)) return;
-        navigator.vibrate(lastNet >= 0 ? [40, 35, 90] : [130, 55, 130]);
-    }, [lastNet]);
-
     function enterArena(tab: Tab) {
         setActiveTab(tab);
         setArenaOpen(true);
@@ -73,13 +69,20 @@ function App() {
     }
 
     const sectionLabels: Partial<Record<Tab, string>> = {
+        training: isFr ? 'Entrainement' : 'Training',
         defy: isFr ? 'Duel Ami' : 'Friend Duel',
         tournament: isFr ? 'Tournoi' : 'Tournament',
         leaderboard: isFr ? 'Classement' : 'Leaderboard',
-        analytics: 'Analytics',
         stats: isFr ? 'Historique' : 'History',
     };
-    const activeGameName = sectionLabels[activeTab] || gameLabel(activeTab, isFr);
+    const activeGameName = sectionLabels[activeTab] || (isFr ? 'Entrainement' : 'Training');
+    const modeStatus: Record<Tab, { label: string; tone: string }> = {
+        training: { label: 'SOLO', tone: styles.statusSolo },
+        defy: { label: '1V1', tone: styles.statusLive },
+        tournament: { label: 'RUN', tone: styles.statusTournament },
+        leaderboard: { label: 'RANK', tone: styles.statusMeta },
+        stats: { label: isFr ? 'BILAN' : 'LOG', tone: styles.statusMeta },
+    };
 
     return (
         <>
@@ -97,30 +100,27 @@ function App() {
                                 ←
                             </button>
                             <div>
-                                <span>{isFr ? 'ARENE LIVE' : 'LIVE ARENA'}</span>
+                                <span>{isFr ? 'SLAP$TAX ARENE' : 'SLAP$TAX ARENA'}</span>
                                 <strong>{activeGameName}</strong>
                             </div>
-                            <i className={styles.livePulse} aria-hidden />
+                            <span className={`${styles.modeStatus} ${modeStatus[activeTab].tone}`}>
+                                {modeStatus[activeTab].label}
+                            </span>
                         </div>
 
                         <Tabs />
 
                         <div key={activeTab} className={styles.panelArea}>
-                            {activeTab === 'bounce' && <BouncePanicPanel />}
-                            {activeTab === 'symbolrush' && <SymbolSprintPanel />}
-                            {activeTab === 'bomb' && <BombPassPanel />}
-                            {activeTab === 'cups' && <CupShufflePanel />}
-                            {activeTab === 'duelnumeric' && <DuelNumericPanel />}
+                            {activeTab === 'training' && <TrainingPanel />}
                             {activeTab === 'defy' && <FriendDuelPanel />}
                             {activeTab === 'tournament' && <TournamentPanel />}
                             {activeTab === 'leaderboard' && <LeaderboardPanel />}
-                            {activeTab === 'analytics' && <AnalyticsPanel />}
                             {activeTab === 'stats' && <HistoryPanel />}
                         </div>
                     </>
                 )}
 
-                {showOnboarding && <OnboardingModal onClose={handleOnboardingClose} />}
+                {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
             </main>
         </>
     );

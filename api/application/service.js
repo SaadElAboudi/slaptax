@@ -1,5 +1,12 @@
 const { getStats } = require("../domain/stats");
-const { simulateDuel, simulateTournament, simulateP2PDuel } = require("../domain/simulations");
+const {
+    P2P_GAME_LIBRARY,
+    resolveP2PGames,
+    resolveTournamentGames,
+    simulateDuel,
+    simulateTournament,
+    simulateP2PDuel,
+} = require("../domain/simulations");
 const { toMoney2 } = require("../shared/money");
 const { SCHEMA_VERSION } = require("../infrastructure/db");
 const crypto = require("crypto");
@@ -213,6 +220,7 @@ function resolveUserByIdentity(db, userId, clientId) {
 
 function ensureCollections(db) {
     if (!Array.isArray(db.duels)) db.duels = [];
+    if (!Array.isArray(db.tournaments)) db.tournaments = [];
     if (!db.rivalries || typeof db.rivalries !== "object") db.rivalries = {};
     if (!Array.isArray(db.challenges)) db.challenges = [];
     if (!Array.isArray(db.users)) db.users = [];
@@ -242,8 +250,101 @@ function duelRoomSnapshot(duel) {
         opponentId: duel.opponentId,
         readyBy: duel.room.readyBy,
         readyCountdownAt: duel.room.readyCountdownAt,
+        games: duel.games || [],
+        currentRound: duel.currentRound || 1,
+        score: duel.score || { challenger: 0, opponent: 0 },
         createdAt: duel.createdAt,
     };
+}
+
+function isDuelParticipant(duel, userId) {
+    return duel.challengerId === userId || duel.opponentId === userId;
+}
+
+function publicDuelMatch(duel, userId, db) {
+    const opponentId = duel.challengerId === userId ? duel.opponentId : duel.challengerId;
+    const usersById = Object.fromEntries(db.users.map((user) => [user.id, user]));
+    const submissions = duel.submissions || {};
+
+    return {
+        duelId: duel.id,
+        status: duel.status,
+        challengerId: duel.challengerId,
+        opponentId: duel.opponentId,
+        opponentName: usersById[opponentId]?.playerName || "Rival",
+        stake: duel.stake,
+        games: duel.games || [],
+        currentRound: duel.currentRound || 1,
+        score: duel.score || { challenger: 0, opponent: 0 },
+        rounds: duel.rounds || [],
+        winnerId: duel.winnerId || null,
+        loserId: duel.loserId || null,
+        rematchId: duel.rematchId || null,
+        submittedBy: Object.fromEntries(
+            Object.entries(submissions).map(([round, values]) => [
+                round,
+                Object.keys(values || {}),
+            ])
+        ),
+    };
+}
+
+function settleLiveDuel(db, duel, winnerId) {
+    const challenger = db.users.find((user) => user.id === duel.challengerId);
+    const opponent = db.users.find((user) => user.id === duel.opponentId);
+    const loserId = winnerId === duel.challengerId ? duel.opponentId : duel.challengerId;
+    const winner = winnerId === challenger.id ? challenger : opponent;
+    const stake = duel.stake;
+    const payout = toMoney2(stake * 2 * 0.85);
+    const gainToday = dailyGainToday(winner);
+    const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
+    const cappedPayout = toMoney2(Math.min(payout, stake + allowedGain));
+    const winnerNet = toMoney2(cappedPayout - stake);
+    const loserNet = toMoney2(-stake);
+    const capApplied = cappedPayout < payout;
+
+    winner.wallet = toMoney2(winner.wallet + cappedPayout);
+    pushHistory(challenger, {
+        type: "DUEL_P2P",
+        result: winnerId === challenger.id ? "WIN" : "LOSS",
+        opponentId: opponent.id,
+        opponentName: opponent.playerName,
+        stake,
+        net: winnerId === challenger.id ? winnerNet : loserNet,
+        note: duel.draft ? summarizeDraft(duel.draft) : "Live Best-of-3",
+        ...(winnerId === challenger.id && capApplied ? { capApplied: true } : {}),
+    });
+    pushHistory(opponent, {
+        type: "DUEL_P2P",
+        result: winnerId === opponent.id ? "WIN" : "LOSS",
+        opponentId: challenger.id,
+        opponentName: challenger.playerName,
+        stake,
+        net: winnerId === opponent.id ? winnerNet : loserNet,
+        note: duel.draft ? summarizeDraft(duel.draft) : "Live Best-of-3",
+        ...(winnerId === opponent.id && capApplied ? { capApplied: true } : {}),
+    });
+
+    applyWalletFloor(challenger);
+    applyWalletFloor(opponent);
+    duel.status = "done";
+    duel.winnerId = winnerId;
+    duel.loserId = loserId;
+    duel.playedAt = new Date().toISOString();
+    duel.room.readyBy = {};
+    duel.room.readyCountdownAt = null;
+
+    const pairKey = [duel.challengerId, duel.opponentId].sort().join("_");
+    if (!db.rivalries[pairKey]) {
+        db.rivalries[pairKey] = {
+            users: [duel.challengerId, duel.opponentId],
+            wins: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
+            last5: [],
+        };
+    }
+    db.rivalries[pairKey].wins[winnerId] = (db.rivalries[pairKey].wins[winnerId] || 0) + 1;
+    db.rivalries[pairKey].last5.unshift({ winnerId, date: duel.playedAt });
+    db.rivalries[pairKey].last5 = db.rivalries[pairKey].last5.slice(0, 5);
 }
 
 function getSkillProfile(user) {
@@ -699,6 +800,154 @@ function createService(store) {
             };
         },
 
+        createLiveTournament(size, stake, draft = null, userId = null) {
+            const db = store.read();
+            ensureCollections(db);
+            const activeUser = resolveUserByIdentity(db, userId, null);
+            const tournamentSize = Number(size || 8);
+            const numericStake = Number(stake || activeUser.stake);
+
+            if (!ALLOWED_TOURNAMENT_SIZES.includes(tournamentSize)) {
+                return { error: "size must be one of 8, 16, 32", code: 400 };
+            }
+            if (!ALLOWED_STAKES.includes(numericStake)) {
+                return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+            }
+            if (activeUser.wallet < numericStake) {
+                return { error: "Insufficient wallet balance", code: 400 };
+            }
+
+            const safeDraft = draft && normalizeDraftSide(draft);
+            if (draft && !safeDraft) return { error: "Invalid tournament draft", code: 400 };
+
+            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
+            const games = resolveTournamentGames(safeDraft).slice(0, Math.log2(tournamentSize));
+            const tournament = {
+                id: crypto.randomUUID(),
+                userId: activeUser.id,
+                size: tournamentSize,
+                stake: numericStake,
+                status: "playing",
+                games,
+                currentRound: 1,
+                roundsTotal: Math.log2(tournamentSize),
+                rounds: [],
+                draft: safeDraft,
+                createdAt: new Date().toISOString(),
+            };
+            db.tournaments.push(tournament);
+            store.write(db);
+            return { ok: true, tournament, wallet: activeUser.wallet };
+        },
+
+        getLiveTournament(tournamentId, userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = db.tournaments.find((entry) => entry.id === tournamentId);
+            if (!tournament) return { error: "Tournament not found", code: 404 };
+            if (tournament.userId !== userId) return { error: "Tournament does not belong to user", code: 403 };
+            return { ok: true, tournament };
+        },
+
+        getActiveLiveTournament(userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = [...db.tournaments]
+                .reverse()
+                .find((entry) => entry.userId === userId && entry.status === "playing");
+            return { ok: true, tournament: tournament || null };
+        },
+
+        abandonLiveTournament(tournamentId, userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = db.tournaments.find((entry) => entry.id === tournamentId);
+            if (!tournament) return { error: "Tournament not found", code: 404 };
+            if (tournament.userId !== userId) return { error: "Tournament does not belong to user", code: 403 };
+            if (tournament.status !== "playing") return { ok: true, tournament };
+
+            const user = db.users.find((entry) => entry.id === userId);
+            tournament.status = "done";
+            tournament.champion = false;
+            tournament.payout = 0;
+            tournament.net = toMoney2(-tournament.stake);
+            tournament.abandoned = true;
+            tournament.finishedAt = new Date().toISOString();
+            pushHistory(user, {
+                type: "TOURNAMENT",
+                result: "LOSS",
+                stake: tournament.stake,
+                net: tournament.net,
+                note: `Abandoned live tournament ${tournament.size} players`,
+            });
+            applyWalletFloor(user);
+            store.write(db);
+            return { ok: true, tournament, wallet: user.wallet };
+        },
+
+        submitLiveTournamentRound(tournamentId, userId, score, metric) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = db.tournaments.find((entry) => entry.id === tournamentId);
+            if (!tournament) return { error: "Tournament not found", code: 404 };
+            if (tournament.userId !== userId) return { error: "Tournament does not belong to user", code: 403 };
+            if (tournament.status !== "playing") return { error: "Tournament already finished", code: 400 };
+            if (tournament.submittingRound === tournament.currentRound) {
+                return { ok: true, tournament };
+            }
+
+            const numericScore = clampInt(score, 0, 100000);
+            const numericMetric = clampInt(metric, 0, 1000000);
+            const round = tournament.currentRound;
+            const gameId = tournament.games[round - 1];
+            const opponentName = `Seed ${Math.max(1, Math.floor(tournament.size / (2 ** round)))}-${round}`;
+            const difficultyBase = 480 + round * 75;
+            const opponentScore = clampInt(
+                difficultyBase + Math.random() * 220 - (tournament.draft?.pick === gameId ? 45 : 0),
+                300,
+                980
+            );
+            const won = numericScore >= opponentScore;
+            tournament.submittingRound = round;
+
+            tournament.rounds.push({
+                round,
+                gameId,
+                label: P2P_GAME_LIBRARY[gameId]?.label || gameId,
+                opponentName,
+                scoreFor: numericScore,
+                scoreAgainst: opponentScore,
+                metric: numericMetric,
+                won,
+            });
+
+            const user = db.users.find((entry) => entry.id === userId);
+            if (!won || round >= tournament.roundsTotal) {
+                const champion = won && round >= tournament.roundsTotal;
+                const payout = champion ? toMoney2(tournament.size * tournament.stake * 0.72) : 0;
+                if (champion) user.wallet = toMoney2(user.wallet + payout);
+                tournament.status = "done";
+                tournament.champion = champion;
+                tournament.payout = payout;
+                tournament.net = champion ? toMoney2(payout - tournament.stake) : toMoney2(-tournament.stake);
+                tournament.finishedAt = new Date().toISOString();
+                pushHistory(user, {
+                    type: "TOURNAMENT",
+                    result: champion ? "WIN" : "LOSS",
+                    stake: tournament.stake,
+                    net: tournament.net,
+                    note: `Live tournament ${tournament.size} players`,
+                });
+                applyWalletFloor(user);
+            } else {
+                tournament.currentRound += 1;
+            }
+            tournament.submittingRound = null;
+
+            store.write(db);
+            return { ok: true, tournament, wallet: user.wallet };
+        },
+
         reset() {
             const state = store.reset();
             return { ok: true, state };
@@ -787,6 +1036,93 @@ function createService(store) {
             return { ok: true, challenge, draftSummary: summarizeDraft(normalizedDraft) };
         },
 
+        createOpenInvite(challengerId, stake, draft = null, message = "") {
+            const db = store.read();
+            ensureCollections(db);
+            const challenger = db.users.find((user) => user.id === challengerId);
+            if (!challenger) return { error: "challengerId not found", code: 404 };
+
+            const numericStake = Number(stake || challenger.stake);
+            if (!ALLOWED_STAKES.includes(numericStake)) {
+                return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+            }
+            if (challenger.wallet < numericStake) {
+                return { error: "Challenger has insufficient wallet balance", code: 400 };
+            }
+
+            const normalizedDraft = draft ? normalizeDraftPlan(draft) : null;
+            if (draft && !normalizedDraft) return { error: "Invalid draft plan", code: 400 };
+
+            const challenge = {
+                id: crypto.randomUUID(),
+                challengerId,
+                opponentId: null,
+                stake: numericStake,
+                status: "open",
+                draft: normalizedDraft,
+                message: String(message || "").trim().slice(0, 140),
+                createdAt: new Date().toISOString(),
+            };
+            db.challenges.unshift(challenge);
+            store.write(db);
+            return { ok: true, challenge };
+        },
+
+        getOpenInvite(challengeId) {
+            const db = store.read();
+            ensureCollections(db);
+            const challenge = db.challenges.find((entry) => entry.id === challengeId);
+            if (!challenge) return { error: "Invite not found", code: 404 };
+            const challenger = db.users.find((user) => user.id === challenge.challengerId);
+            return {
+                ok: true,
+                invite: {
+                    id: challenge.id,
+                    status: challenge.status,
+                    challengerId: challenge.challengerId,
+                    challengerName: challenger?.playerName || "Player",
+                    stake: challenge.stake,
+                    message: challenge.message || "",
+                    duelId: challenge.duelId || null,
+                },
+            };
+        },
+
+        claimOpenInvite(challengeId, userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const challenge = db.challenges.find((entry) => entry.id === challengeId);
+            if (!challenge) return { error: "Invite not found", code: 404 };
+            if (challenge.status !== "open") {
+                if (challenge.opponentId === userId && challenge.duelId) {
+                    const duel = db.duels.find((entry) => entry.id === challenge.duelId);
+                    return { ok: true, challenge, duel };
+                }
+                return { error: "Invite is no longer available", code: 409 };
+            }
+            if (challenge.challengerId === userId) return { error: "Cannot claim your own invite", code: 400 };
+            if (!db.users.some((user) => user.id === userId)) return { error: "userId not found", code: 404 };
+
+            const duel = {
+                id: crypto.randomUUID(),
+                challengerId: challenge.challengerId,
+                opponentId: userId,
+                stake: challenge.stake,
+                status: "pending",
+                draft: challenge.draft,
+                room: { readyBy: {}, readyCountdownAt: null },
+                createdAt: new Date().toISOString(),
+            };
+            db.duels.push(duel);
+            challenge.status = "accepted";
+            challenge.opponentId = userId;
+            challenge.respondedAt = new Date().toISOString();
+            challenge.respondedBy = userId;
+            challenge.duelId = duel.id;
+            store.write(db);
+            return { ok: true, challenge, duel };
+        },
+
         listChallenges(userId, status = "pending") {
             const id = String(userId || "").trim();
             if (!id) return { error: "userId is required", code: 400 };
@@ -798,7 +1134,7 @@ function createService(store) {
 
             const filtered = db.challenges.filter((c) => {
                 const belongsToUser = c.challengerId === id || c.opponentId === id;
-                const statusMatch = status ? c.status === status : true;
+                const statusMatch = status && status !== "all" ? c.status === status : true;
                 return belongsToUser && statusMatch;
             });
 
@@ -1027,6 +1363,109 @@ function createService(store) {
             };
         },
 
+        startLiveDuel(duelId, userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const duel = db.duels.find((entry) => entry.id === duelId);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
+            if (duel.status === "playing" || duel.status === "done") {
+                return { ok: true, match: publicDuelMatch(duel, userId, db) };
+            }
+
+            normalizeDuelRoomState(duel);
+            if (!duel.room.readyBy[duel.challengerId] || !duel.room.readyBy[duel.opponentId]) {
+                return { error: "Both players must be ready", code: 400 };
+            }
+
+            const challenger = db.users.find((entry) => entry.id === duel.challengerId);
+            const opponent = db.users.find((entry) => entry.id === duel.opponentId);
+            if (challenger.wallet < duel.stake || opponent.wallet < duel.stake) {
+                return { error: "A player has insufficient wallet balance", code: 400 };
+            }
+
+            challenger.wallet = toMoney2(challenger.wallet - duel.stake);
+            opponent.wallet = toMoney2(opponent.wallet - duel.stake);
+            duel.status = "playing";
+            duel.games = resolveP2PGames(duel.draft);
+            duel.currentRound = 1;
+            duel.score = { challenger: 0, opponent: 0 };
+            duel.rounds = [];
+            duel.submissions = {};
+            duel.startedAt = new Date().toISOString();
+            store.write(db);
+            return { ok: true, match: publicDuelMatch(duel, userId, db) };
+        },
+
+        getLiveDuel(duelId, userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const duel = db.duels.find((entry) => entry.id === duelId);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
+            return { ok: true, match: publicDuelMatch(duel, userId, db) };
+        },
+
+        getActiveLiveDuel(userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const duel = [...db.duels]
+                .reverse()
+                .find((entry) => isDuelParticipant(entry, userId) && (entry.status === "pending" || entry.status === "playing"));
+            return { ok: true, match: duel ? publicDuelMatch(duel, userId, db) : null };
+        },
+
+        submitLiveDuelRound(duelId, userId, round, score, metric) {
+            const db = store.read();
+            ensureCollections(db);
+            const duel = db.duels.find((entry) => entry.id === duelId);
+            if (!duel) return { error: "Duel not found", code: 404 };
+            if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
+            if (duel.status !== "playing") return { error: "Duel is not active", code: 400 };
+            if (Number(round) !== duel.currentRound) return { error: "This round is not active", code: 409 };
+
+            const roundKey = String(duel.currentRound);
+            if (!duel.submissions[roundKey]) duel.submissions[roundKey] = {};
+            if (duel.submissions[roundKey][userId]) {
+                return { ok: true, match: publicDuelMatch(duel, userId, db) };
+            }
+
+            duel.submissions[roundKey][userId] = {
+                score: clampInt(score, 0, 100000),
+                metric: clampInt(metric, 0, 1000000),
+                completedAt: new Date().toISOString(),
+            };
+
+            const challengerRun = duel.submissions[roundKey][duel.challengerId];
+            const opponentRun = duel.submissions[roundKey][duel.opponentId];
+            if (challengerRun && opponentRun) {
+                const challengerWon = challengerRun.score === opponentRun.score
+                    ? challengerRun.metric <= opponentRun.metric
+                    : challengerRun.score > opponentRun.score;
+                const winnerId = challengerWon ? duel.challengerId : duel.opponentId;
+                const role = challengerWon ? "challenger" : "opponent";
+                duel.score[role] += 1;
+                duel.rounds.push({
+                    round: duel.currentRound,
+                    gameId: duel.games[duel.currentRound - 1],
+                    challengerScore: challengerRun.score,
+                    opponentScore: opponentRun.score,
+                    challengerMetric: challengerRun.metric,
+                    opponentMetric: opponentRun.metric,
+                    winnerId,
+                });
+
+                if (duel.score[role] >= 2 || duel.currentRound >= duel.games.length) {
+                    settleLiveDuel(db, duel, winnerId);
+                } else {
+                    duel.currentRound += 1;
+                }
+            }
+
+            store.write(db);
+            return { ok: true, match: publicDuelMatch(duel, userId, db) };
+        },
+
         rematch(duelId) {
             const db = store.read();
             ensureCollections(db);
@@ -1035,7 +1474,15 @@ function createService(store) {
             if (original.status !== "done") return { error: "Original duel not finished", code: 400 };
 
             // Swap sides for fairness
-            return this.createDuel(original.opponentId, original.challengerId, original.stake, original.draft);
+            const created = this.createDuel(original.opponentId, original.challengerId, original.stake, original.draft);
+            if (!created.ok) return created;
+            const persisted = store.read();
+            const persistedOriginal = persisted.duels.find((duel) => duel.id === duelId);
+            if (persistedOriginal) {
+                persistedOriginal.rematchId = created.duel.id;
+                store.write(persisted);
+            }
+            return created;
         },
 
         getRivalry(userAId, userBId) {

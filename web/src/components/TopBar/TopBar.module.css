@@ -40,7 +40,7 @@
     padding: 5px 8px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    border-radius: 999px;
+    border-radius: 4px;
 }
 
 .live {
@@ -57,7 +57,7 @@
     border: 2px solid var(--accent);
     color: var(--accent);
     padding: 6px 14px;
-    border-radius: 999px;
+    border-radius: 5px;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 1px;
@@ -90,7 +90,7 @@
     border: 1px solid var(--line);
     color: var(--text);
     background: rgba(255, 255, 255, 0.04);
-    border-radius: 999px;
+    border-radius: 5px;
     padding: 5px 10px;
     font-size: 0.7rem;
     font-weight: 700;
@@ -109,6 +109,19 @@
 
     .brand {
         font-size: 1.05rem;
+    }
+
+    .right {
+        gap: 5px;
+    }
+
+    .liveDot {
+        width: 9px;
+        height: 9px;
+        overflow: hidden;
+        padding: 0;
+        border-radius: 50%;
+        color: transparent;
     }
 
     .walletChip {

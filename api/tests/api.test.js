@@ -457,6 +457,170 @@ test("opponent can accept or decline challenge", async () => {
     });
 });
 
+test("live P2P duel waits for both real scores and resolves best-of-three", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "LiveA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "LiveB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+        });
+        const duelId = created.data.duel.id;
+
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        const started = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+        assert.equal(started.status, 200);
+        assert.equal(started.data.match.status, "playing");
+        assert.equal(started.data.match.games.length, 3);
+
+        const recovered = await jfetch(baseUrl, "GET", `/api/duels/active?userId=${aId}`);
+        assert.equal(recovered.status, 200);
+        assert.equal(recovered.data.match.duelId, duelId);
+
+        const onlyA = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: aId,
+            round: 1,
+            score: 900,
+            metric: 1000,
+        });
+        assert.equal(onlyA.data.match.currentRound, 1);
+        assert.deepEqual(onlyA.data.match.score, { challenger: 0, opponent: 0 });
+
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: bId,
+            round: 1,
+            score: 500,
+            metric: 1200,
+        });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: aId,
+            round: 2,
+            score: 850,
+            metric: 1100,
+        });
+        const finished = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+            userId: bId,
+            round: 2,
+            score: 400,
+            metric: 1300,
+        });
+
+        assert.equal(finished.data.match.status, "done");
+        assert.equal(finished.data.match.winnerId, aId);
+        assert.deepEqual(finished.data.match.score, { challenger: 2, opponent: 0 });
+        assert.equal(finished.data.match.rounds.length, 2);
+    });
+});
+
+test("shareable invite can be claimed by a different browser identity", async () => {
+    await withServer(async (baseUrl) => {
+        const host = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "InviteHost",
+            clientId: "invite-host-client",
+        });
+        const guest = await jfetch(baseUrl, "POST", "/api/session/join", {
+            playerName: "InviteGuest",
+            clientId: "invite-guest-client",
+        });
+        const invite = await jfetch(baseUrl, "POST", "/api/invites", {
+            challengerId: host.data.userId,
+            stake: 2,
+            draft: {
+                challenger: { ban: "duelnumeric", pick: "bounce" },
+                opponent: { ban: "bombpass", pick: "symbolrush" },
+            },
+        });
+
+        assert.equal(invite.status, 200);
+        assert.equal(invite.data.challenge.status, "open");
+
+        const claimed = await jfetch(
+            baseUrl,
+            "POST",
+            `/api/invites/${invite.data.challenge.id}/claim`,
+            { userId: guest.data.userId }
+        );
+        assert.equal(claimed.status, 200);
+        assert.equal(claimed.data.duel.challengerId, host.data.userId);
+        assert.equal(claimed.data.duel.opponentId, guest.data.userId);
+
+        const hostChallenges = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/challenges?userId=${host.data.userId}&status=all`
+        );
+        assert.equal(hostChallenges.data.challenges[0].duelId, claimed.data.duel.id);
+    });
+});
+
+test("live tournament advances only after played rounds", async () => {
+    await withServer(async (baseUrl) => {
+        const user = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BracketLive" });
+        const userId = user.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/tournaments/live", {
+            userId,
+            size: 8,
+            stake: 2,
+            draft: { ban: "duelnumeric", pick: "bounce" },
+        });
+
+        assert.equal(created.status, 200);
+        assert.equal(created.data.tournament.status, "playing");
+        assert.equal(created.data.tournament.rounds.length, 0);
+
+        const resumed = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/tournaments/active?userId=${userId}`
+        );
+        assert.equal(resumed.status, 200);
+        assert.equal(resumed.data.tournament.id, created.data.tournament.id);
+
+        let current = created;
+        for (let round = 1; round <= 3; round += 1) {
+            current = await jfetch(
+                baseUrl,
+                "POST",
+                `/api/tournaments/${created.data.tournament.id}/rounds`,
+                { userId, score: 1000, metric: 900 }
+            );
+        }
+
+        assert.equal(current.data.tournament.status, "done");
+        assert.equal(current.data.tournament.champion, true);
+        assert.equal(current.data.tournament.rounds.length, 3);
+        assert.ok(current.data.tournament.payout > 0);
+    });
+});
+
+test("active tournament can be abandoned exactly once", async () => {
+    await withServer(async (baseUrl) => {
+        const user = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ExitRunner" });
+        const userId = user.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/tournaments/live", {
+            userId,
+            size: 8,
+            stake: 2,
+            draft: { ban: "duelnumeric", pick: "bounce" },
+        });
+        const tournamentId = created.data.tournament.id;
+        const abandoned = await jfetch(baseUrl, "POST", `/api/tournaments/${tournamentId}/abandon`, { userId });
+        assert.equal(abandoned.status, 200);
+        assert.equal(abandoned.data.tournament.status, "done");
+        assert.equal(abandoned.data.tournament.abandoned, true);
+
+        const repeated = await jfetch(baseUrl, "POST", `/api/tournaments/${tournamentId}/abandon`, { userId });
+        assert.equal(repeated.status, 200);
+
+        const history = await jfetch(baseUrl, "GET", `/api/history?userId=${userId}`);
+        assert.equal(history.data.history.filter((entry) => entry.type === "TOURNAMENT").length, 1);
+    });
+});
+
 test("leaderboard lists all users sorted by wins", async () => {
     await withServer(async (baseUrl) => {
         await jfetch(baseUrl, "POST", "/api/users", { playerName: "Extra" });

@@ -1,11 +1,12 @@
 import { useEffect, useId, useState } from 'react';
 import styles from './OnboardingModal.module.css';
-import { useGameStore } from '../../hooks/useGameStore';
+import { useGameStore, type Tab } from '../../hooks/useGameStore';
 
-export function OnboardingModal({ onClose }: { onClose: () => void }) {
-    const { playerName, joinSession, setActiveTab, language } = useGameStore();
+export function OnboardingModal({ onComplete }: { onComplete: (tab: Tab) => void }) {
+    const { playerName, joinSession, language } = useGameStore();
     const [name, setName] = useState(playerName || '');
     const [step, setStep] = useState(0);
+    const [joining, setJoining] = useState(false);
     const isFr = language === 'fr';
     const titleId = useId();
     const descId = useId();
@@ -14,8 +15,8 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
         {
             title: isFr ? 'Bienvenue sur SLAP$TAX !' : 'Welcome to SLAP$TAX!',
             desc: isFr
-                ? 'Ici, tu vas défier tes amis sur des mini-jeux rapides et miser pour gagner.'
-                : 'Here, you challenge friends in quick mini-games and bet to win.',
+                ? 'Entraîne-toi en solo, défie un ami en trois manches ou tente un run de tournoi.'
+                : 'Train solo, challenge a friend over three rounds, or attempt a tournament run.',
             action: isFr ? 'Continuer' : 'Continue',
         },
         {
@@ -27,41 +28,36 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
             action: isFr ? 'Valider' : 'Confirm',
         },
         {
-            title: isFr ? 'Prêt à jouer ?' : 'Ready to play?',
+            title: isFr ? 'Choisis ton point de départ' : 'Choose where to start',
             desc: isFr
-                ? 'Commence ton premier duel ou invite un ami !'
-                : 'Start your first duel or invite a friend!',
-            action: isFr ? 'C’est parti !' : 'Let’s go!',
+                ? 'Chaque mode est indépendant. Tu pourras changer à tout moment.'
+                : 'Each mode is independent. You can switch at any time.',
+            action: '',
         },
     ];
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (step === 1 && name.trim()) {
-            void joinSession(name.trim());
+            setJoining(true);
+            await joinSession(name.trim());
+            setJoining(false);
         }
         if (step < steps.length - 1) {
             setStep(step + 1);
-        } else {
-            onClose();
-            setActiveTab('bounce');
         }
     };
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onClose();
-                return;
-            }
-            if (event.key === 'Enter' && !(step === 1 && !name.trim())) {
+            if (event.key === 'Enter' && step < steps.length - 1 && !(step === 1 && !name.trim())) {
                 event.preventDefault();
-                handleNext();
+                void handleNext();
             }
         };
 
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [step, name, onClose]);
+    }, [step, name]);
 
     return (
         <div className={styles.overlay}>
@@ -90,13 +86,30 @@ export function OnboardingModal({ onClose }: { onClose: () => void }) {
                         autoFocus
                     />
                 )}
-                <button
-                    className={styles.btnMain}
-                    onClick={handleNext}
-                    disabled={steps[step].input && !name.trim()}
-                >
-                    {steps[step].action}
-                </button>
+                {step === steps.length - 1 ? (
+                    <div className={styles.modeChoices}>
+                        <button type="button" onClick={() => onComplete('training')}>
+                            <strong>{isFr ? 'Entrainement' : 'Training'}</strong>
+                            <span>{isFr ? 'Solo · sans mise' : 'Solo · no stakes'}</span>
+                        </button>
+                        <button type="button" onClick={() => onComplete('defy')}>
+                            <strong>{isFr ? 'Duel ami' : 'Friend duel'}</strong>
+                            <span>1V1 · BO3</span>
+                        </button>
+                        <button type="button" onClick={() => onComplete('tournament')}>
+                            <strong>{isFr ? 'Tournoi' : 'Tournament'}</strong>
+                            <span>{isFr ? 'Run à élimination' : 'Elimination run'}</span>
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        className={styles.btnMain}
+                        onClick={() => void handleNext()}
+                        disabled={joining || (steps[step].input && !name.trim())}
+                    >
+                        {joining ? (isFr ? 'Connexion...' : 'Joining...') : steps[step].action}
+                    </button>
+                )}
             </div>
         </div>
     );
