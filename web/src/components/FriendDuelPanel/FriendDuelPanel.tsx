@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type UserListEntry } from '../../api/client';
+import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type RivalryResponse, type UserListEntry } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 import { getRiskStakeCap } from '../../gameplay/difficulty';
@@ -49,6 +49,7 @@ export function FriendDuelPanel() {
     const [linkInvite, setLinkInvite] = useState<OpenInvite | null>(null);
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
+    const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
     const [busy, setBusy] = useState(false);
     const [matchmaking, setMatchmaking] = useState(false);
     const [error, setError] = useState('');
@@ -186,6 +187,14 @@ export function FriendDuelPanel() {
             setError(cause instanceof Error ? cause.message : 'Unable to start match');
         });
     }, [duelId, userId, room, match?.status]);
+
+    useEffect(() => {
+        if (!userId || match?.status !== 'done') return;
+        const rivalId = match.challengerId === userId ? match.opponentId : match.challengerId;
+        void api.getRivalry(userId, rivalId)
+            .then(setRivalry)
+            .catch(() => setRivalry(null));
+    }, [userId, match?.status, match?.challengerId, match?.opponentId, realtimeTick]);
 
     async function createInviteLink() {
         if (!userId) return;
@@ -338,14 +347,22 @@ export function FriendDuelPanel() {
         );
     }
 
-    async function rematch() {
-        if (!duelId) return;
+    async function handleRematch(action: 'request' | 'accept' | 'decline') {
+        if (!duelId || !userId) return;
         setBusy(true);
+        setError('');
         try {
-            const data = await api.rematchP2P(duelId);
-            setDuelId(data.duel.id);
-            setMatch(null);
-            setRoom(null);
+            const data = await api.respondToRematch(duelId, userId, action);
+            if (data.status === 'accepted' && data.duel) {
+                setDuelId(data.duel.id);
+                setMatch(null);
+                setRoom(null);
+                setRivalry(null);
+            } else if (data.match) {
+                setMatch(data.match);
+            }
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Rematch unavailable');
         } finally {
             setBusy(false);
         }
@@ -404,10 +421,31 @@ export function FriendDuelPanel() {
 
     if (match?.status === 'done') {
         const won = match.winnerId === userId;
+        const rivalId = match.challengerId === userId ? match.opponentId : match.challengerId;
+        const myRivalryWins = rivalry?.wins?.[userId || ''] || 0;
+        const rivalWins = rivalry?.wins?.[rivalId] || 0;
+        const requestedByMe = match.rematch?.status === 'pending' && match.rematch.requestedBy === userId;
+        const requestedByRival = match.rematch?.status === 'pending' && match.rematch.requestedBy === rivalId;
         return (
             <section className={`${styles.final} ${won ? styles.finalWin : styles.finalLoss}`}>
                 <span>{won ? (isFr ? 'VICTOIRE' : 'VICTORY') : (isFr ? 'DEFAITE' : 'DEFEAT')}</span>
                 <h2>{match.score[myRole]} - {match.score[rivalRole]}</h2>
+                <div className={styles.rivalryCard}>
+                    <div>
+                        <small>{isFr ? 'FACE-A-FACE' : 'HEAD TO HEAD'}</small>
+                        <strong>{myRivalryWins} <span>–</span> {rivalWins}</strong>
+                        <p>{isFr ? `Toi contre ${match.opponentName}` : `You against ${match.opponentName}`}</p>
+                    </div>
+                    <div className={styles.rivalryForm} aria-label={isFr ? 'Cinq derniers duels' : 'Last five duels'}>
+                        {(rivalry?.last5 || []).map((entry) => (
+                            <i
+                                key={`${entry.date}-${entry.winnerId}`}
+                                className={entry.winnerId === userId ? styles.rivalryWin : styles.rivalryLoss}
+                                title={entry.winnerId === userId ? (isFr ? 'Victoire' : 'Win') : (isFr ? 'Défaite' : 'Loss')}
+                            />
+                        ))}
+                    </div>
+                </div>
                 <div className={styles.roundRecap}>
                     {match.rounds.map((round) => (
                         <div key={round.round}>
@@ -423,7 +461,31 @@ export function FriendDuelPanel() {
                 <div className={styles.reactionFeed}>
                     {match.reactions?.slice(-4).map((entry, index) => <span key={`${entry.at}-${index}`}>{entry.reaction}</span>)}
                 </div>
-                <button type="button" onClick={rematch} disabled={busy}>{isFr ? 'Revanche immédiate' : 'Instant rematch'}</button>
+                {requestedByRival ? (
+                    <div className={styles.rematchPrompt}>
+                        <strong>{isFr ? `${match.opponentName} veut une revanche` : `${match.opponentName} wants a rematch`}</strong>
+                        <div>
+                            <button type="button" onClick={() => void handleRematch('accept')} disabled={busy}>
+                                {isFr ? 'Accepter' : 'Accept'}
+                            </button>
+                            <button type="button" onClick={() => void handleRematch('decline')} disabled={busy}>
+                                {isFr ? 'Refuser' : 'Decline'}
+                            </button>
+                        </div>
+                    </div>
+                ) : requestedByMe ? (
+                    <div className={styles.rematchWaiting}>
+                        <span className={styles.liveDot} />
+                        <strong>{isFr ? `En attente de ${match.opponentName}` : `Waiting for ${match.opponentName}`}</strong>
+                    </div>
+                ) : (
+                    <button type="button" onClick={() => void handleRematch('request')} disabled={busy}>
+                        {match.rematch?.status === 'declined'
+                            ? (isFr ? 'Redemander une revanche' : 'Ask again')
+                            : (isFr ? 'Demander une revanche' : 'Request rematch')}
+                    </button>
+                )}
+                {error && <p className={styles.error}>{error}</p>}
             </section>
         );
     }
@@ -454,8 +516,8 @@ export function FriendDuelPanel() {
             {duelId ? (
                 <div className={styles.readyRoom}>
                     <div className={styles.readyTitle}>
-                        <span>{isFr ? 'SALON PRIVE' : 'PRIVATE ROOM'}</span>
-                        <strong>{duelId.slice(0, 8).toUpperCase()}</strong>
+                        <span>{isFr ? 'SALON RIVALITE' : 'RIVALRY ROOM'}</span>
+                        <strong>{(room?.seriesId || duelId).slice(0, 8).toUpperCase()}</strong>
                     </div>
                     <div className={styles.players}>
                         <div className={ready ? styles.isReady : ''}><strong>{isFr ? 'TOI' : 'YOU'}</strong><span>{ready ? 'READY' : 'WAITING'}</span></div>

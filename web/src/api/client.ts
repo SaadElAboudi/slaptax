@@ -55,6 +55,8 @@ export interface HistoryEntry {
     won?: boolean;
     result?: string;
     net: number;
+    opponentId?: string;
+    opponentName?: string;
     rounds?: RoundResult[];
 }
 
@@ -237,6 +239,7 @@ export interface PlayP2PResponse {
 
 export interface DuelRoomState {
     duelId: string;
+    seriesId: string;
     status: 'pending' | 'playing' | 'done';
     challengerId: string;
     opponentId: string;
@@ -272,6 +275,12 @@ export interface LiveDuelMatch {
     winnerId: string | null;
     loserId: string | null;
     rematchId: string | null;
+    rematch: {
+        status: 'pending' | 'accepted' | 'declined';
+        requestedBy: string;
+        requestedAt: string;
+        respondedAt: string | null;
+    } | null;
     attemptToken: string | null;
     roundStartedAt: string | null;
     submittedBy: Record<string, string[]>;
@@ -372,7 +381,17 @@ export interface DuelRoomResponse {
 export interface RivalryResponse {
     ok: boolean;
     exists: boolean;
-    wins?: Record<string, number>;
+    users?: Array<string | { id: string; playerName: string }>;
+    wins: Record<string, number>;
+    last5: Array<{ winnerId: string; date: string }>;
+}
+
+export interface RematchResponse {
+    ok: boolean;
+    status: 'pending' | 'accepted' | 'declined';
+    duel?: P2PDuel | null;
+    match?: LiveDuelMatch;
+    rematch?: LiveDuelMatch['rematch'];
 }
 
 export interface LeaderboardEntry {
@@ -569,8 +588,8 @@ export const api = {
             attemptToken,
         }),
 
-    rematchP2P: (duelId: string) =>
-        req<CreateDuelResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`),
+    respondToRematch: (duelId: string, userId: string, action: 'request' | 'accept' | 'decline') =>
+        req<RematchResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`, { userId, action }),
 
     reactToDuel: (duelId: string, userId: string, reaction: string) =>
         req<{ ok: boolean; reactions: LiveDuelMatch['reactions'] }>('POST', `/api/duels/${encodeURIComponent(duelId)}/reactions`, {

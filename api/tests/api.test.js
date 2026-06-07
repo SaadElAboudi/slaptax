@@ -777,7 +777,7 @@ test("playing a P2P duel updates both wallets and history", async () => {
     });
 });
 
-test("rematch swaps challengerId and opponentId", async () => {
+test("rematch requires the rival's acceptance and swaps sides", async () => {
     await withServer(async (baseUrl) => {
         const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "A" });
         const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "B" });
@@ -791,15 +791,71 @@ test("rematch swaps challengerId and opponentId", async () => {
                 opponent: { ban: "cupshuffle", pick: "duelnumeric" },
             },
         });
+        const originalRoom = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/duels/${created.data.duel.id}/room?userId=${a.data.user.id}`
+        );
         await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/play`);
 
-        const rematch = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`);
+        const requested = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`, {
+            userId: a.data.user.id,
+            action: "request",
+        });
+        assert.equal(requested.status, 200);
+        assert.equal(requested.data.status, "pending");
+        assert.equal(requested.data.duel, undefined);
+        assert.equal(requested.data.rematch.requestedBy, a.data.user.id);
 
+        const selfAccept = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`, {
+            userId: a.data.user.id,
+            action: "accept",
+        });
+        assert.equal(selfAccept.status, 403);
+
+        const rematch = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`, {
+            userId: b.data.user.id,
+            action: "accept",
+        });
         assert.equal(rematch.status, 200);
+        assert.equal(rematch.data.status, "accepted");
         // Sides are swapped: original opponentId becomes new challengerId
         assert.equal(rematch.data.duel.challengerId, b.data.user.id);
         assert.equal(rematch.data.duel.opponentId, a.data.user.id);
         assert.ok(rematch.data.duel.draft);
+        const rematchRoom = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/duels/${rematch.data.duel.id}/room?userId=${a.data.user.id}`
+        );
+        assert.equal(rematchRoom.data.room.seriesId, originalRoom.data.room.seriesId);
+    });
+});
+
+test("a declined rematch stays closed until a new request", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "DeclineA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "DeclineB" });
+        const duel = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 2,
+        });
+        await jfetch(baseUrl, "POST", `/api/duels/${duel.data.duel.id}/play`);
+        await jfetch(baseUrl, "POST", `/api/duels/${duel.data.duel.id}/rematch`, {
+            userId: a.data.user.id,
+            action: "request",
+        });
+        const declined = await jfetch(baseUrl, "POST", `/api/duels/${duel.data.duel.id}/rematch`, {
+            userId: b.data.user.id,
+            action: "decline",
+        });
+        assert.equal(declined.data.status, "declined");
+        assert.equal(declined.data.match.rematch.status, "declined");
+
+        const refreshed = await jfetch(baseUrl, "GET", `/api/duels/${duel.data.duel.id}/match?userId=${a.data.user.id}`);
+        assert.equal(refreshed.data.match.rematch.status, "declined");
+        assert.equal(refreshed.data.match.rematchId, null);
     });
 });
 
@@ -1259,7 +1315,14 @@ test("rematch rate increments after a rematch", async () => {
         await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/play`);
 
         // Rematch
-        const d2 = await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/rematch`);
+        await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/rematch`, {
+            userId: aId,
+            action: "request",
+        });
+        const d2 = await jfetch(baseUrl, "POST", `/api/duels/${d1.data.duel.id}/rematch`, {
+            userId: bId,
+            action: "accept",
+        });
         await jfetch(baseUrl, "POST", `/api/duels/${d2.data.duel.id}/play`);
 
         const kpiRes = await jfetch(baseUrl, "GET", "/api/analytics/kpi");

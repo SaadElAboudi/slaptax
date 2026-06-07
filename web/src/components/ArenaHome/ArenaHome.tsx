@@ -31,8 +31,11 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const [matchmakingStatus, setMatchmakingStatus] = useState<'idle' | 'waiting' | 'matched'>('idle');
     const [quickPlayBusy, setQuickPlayBusy] = useState(false);
     const [quickPlayError, setQuickPlayError] = useState('');
+    const [incomingChallenges, setIncomingChallenges] = useState(0);
+    const [rivalBusy, setRivalBusy] = useState(false);
     const [realtimeTick, setRealtimeTick] = useState(0);
     const selectedGame = COMPETITIVE_GAMES[selectedIndex];
+    const recentRival = history.find((entry) => entry.opponentId && entry.opponentName);
 
     useRealtime(userId, (event) => {
         if (event.type === 'state.changed' || event.type === 'connected') {
@@ -60,11 +63,13 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             api.getActiveLiveDuel(userId),
             api.getActiveLiveTournament(userId),
             api.getMatchmakingStatus(userId),
-        ]).then(([duel, tournament, matchmaking]) => {
+            api.listChallenges(userId, 'pending'),
+        ]).then(([duel, tournament, matchmaking, challenges]) => {
             if (cancelled) return;
             setActiveDuel(Boolean(duel.match));
             setActiveTournament(Boolean(tournament.tournament));
             setMatchmakingStatus(matchmaking.status);
+            setIncomingChallenges(challenges.challenges.filter((challenge) => challenge.direction === 'incoming').length);
         }).catch(() => {
             // The home remains fully usable while the live service reconnects.
         });
@@ -90,6 +95,20 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             setQuickPlayError(cause instanceof Error ? cause.message : (isFr ? 'Matchmaking indisponible' : 'Matchmaking unavailable'));
         } finally {
             setQuickPlayBusy(false);
+        }
+    }
+
+    async function challengeRecentRival() {
+        if (!userId || !recentRival?.opponentId) return;
+        setRivalBusy(true);
+        setQuickPlayError('');
+        try {
+            await api.createChallenge(userId, recentRival.opponentId, 2, isFr ? 'On remet ça ?' : 'Run it back?');
+            onEnter('defy');
+        } catch (cause) {
+            setQuickPlayError(cause instanceof Error ? cause.message : (isFr ? 'Défi indisponible' : 'Challenge unavailable'));
+        } finally {
+            setRivalBusy(false);
         }
     }
 
@@ -172,6 +191,30 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                 </button>
                 {quickPlayError && <small>{quickPlayError}</small>}
             </div>
+
+            {(incomingChallenges > 0 || recentRival) && (
+                <div className={styles.rivalRail}>
+                    {incomingChallenges > 0 && (
+                        <button type="button" className={styles.incomingChallenge} onClick={() => onEnter('defy')}>
+                            <span>{incomingChallenges}</span>
+                            <div>
+                                <small>{isFr ? 'DÉFI ENTRANT' : 'INCOMING CHALLENGE'}</small>
+                                <strong>{isFr ? 'Un rival t’attend' : 'A rival is waiting'}</strong>
+                            </div>
+                            <b aria-hidden>→</b>
+                        </button>
+                    )}
+                    {recentRival && (
+                        <button type="button" className={styles.recentRival} onClick={() => void challengeRecentRival()} disabled={rivalBusy}>
+                            <div>
+                                <small>{isFr ? 'DERNIER RIVAL' : 'LAST RIVAL'}</small>
+                                <strong>{recentRival.opponentName}</strong>
+                            </div>
+                            <span>{rivalBusy ? (isFr ? 'Envoi...' : 'Sending...') : (isFr ? 'Défier à nouveau' : 'Challenge again')}</span>
+                        </button>
+                    )}
+                </div>
+            )}
 
             <header className={styles.intro}>
                 <span>{isFr ? 'CHOISIS TON TERRAIN' : 'CHOOSE YOUR ARENA'}</span>

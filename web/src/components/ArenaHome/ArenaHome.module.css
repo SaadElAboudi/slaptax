@@ -213,6 +213,77 @@
     color: var(--danger);
 }
 
+.rivalRail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.rivalRail button {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    background: #090c10;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rivalRail button > div {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.rivalRail small {
+    color: var(--muted);
+    font: 700 0.58rem 'Space Mono', monospace;
+}
+
+.rivalRail strong {
+    overflow: hidden;
+    font-size: 0.8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.incomingChallenge > span {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    color: #090b0f;
+    background: var(--accent);
+    font-weight: 900;
+}
+
+.incomingChallenge b {
+    margin-left: auto;
+}
+
+.recentRival {
+    justify-content: space-between;
+    border-left: 3px solid #ff5f7d !important;
+}
+
+.recentRival > span {
+    color: #ff7892;
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.recentRival:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
 @keyframes signal {
     to {
         transform: scaleY(0.55);
@@ -469,6 +540,10 @@
 
     .quickPlay small {
         grid-column: 1 / -1;
+    }
+
+    .rivalRail {
+        grid-template-columns: 1fr;
     }
 
     .intro {

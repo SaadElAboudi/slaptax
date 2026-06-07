@@ -284,3 +284,69 @@ test('two browsers play the same shared Bounce rally', async ({ browser, request
     await challengerContext.close();
     await opponentContext.close();
 });
+
+test('two rivals negotiate a rematch in realtime', async ({ browser, request }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Realtime rematch negotiation is covered once on desktop.');
+
+    const challenger = await join(request, 'rematch-a');
+    const opponent = await join(request, 'rematch-b');
+    const created = await post(request, '/api/duels', {
+        challengerId: challenger.userId,
+        opponentId: opponent.userId,
+        stake: 2,
+        draft: duelDraft('duelnumeric'),
+    });
+    const duelId = created.duel.id as string;
+    await post(request, `/api/duels/${duelId}/ready`, { userId: challenger.userId, ready: true });
+    await post(request, `/api/duels/${duelId}/ready`, { userId: opponent.userId, ready: true });
+    await post(request, `/api/duels/${duelId}/start`, { userId: challenger.userId });
+
+    const challengerContext = await browser.newContext();
+    const opponentContext = await browser.newContext();
+    const challengerPage = await challengerContext.newPage();
+    const opponentPage = await opponentContext.newPage();
+    await identify(challengerPage, challenger);
+    await identify(opponentPage, opponent);
+    await Promise.all([
+        challengerPage.goto('/?tab=defy'),
+        opponentPage.goto('/?tab=defy'),
+    ]);
+
+    async function winRound(round: number) {
+        const first = await get(request, `/api/duels/${duelId}/match?userId=${challenger.userId}`);
+        const second = await get(request, `/api/duels/${duelId}/match?userId=${opponent.userId}`);
+        await post(request, `/api/duels/${duelId}/rounds`, {
+            userId: challenger.userId,
+            round,
+            score: 1000,
+            metric: 800,
+            attemptToken: first.match.attemptToken,
+        });
+        await post(request, `/api/duels/${duelId}/rounds`, {
+            userId: opponent.userId,
+            round,
+            score: 0,
+            metric: 1200,
+            attemptToken: second.match.attemptToken,
+        });
+    }
+
+    await winRound(1);
+    await winRound(2);
+    await Promise.all([
+        challengerPage.getByRole('button', { name: 'See result' }).click(),
+        opponentPage.getByRole('button', { name: 'See result' }).click(),
+    ]);
+    await expect(challengerPage.getByText('HEAD TO HEAD')).toBeVisible();
+    await expect(opponentPage.getByText('HEAD TO HEAD')).toBeVisible();
+
+    await challengerPage.getByRole('button', { name: 'Request rematch' }).click();
+    await expect(challengerPage.getByText(`Waiting for ${opponent.playerName}`)).toBeVisible();
+    await expect(opponentPage.getByText(`${challenger.playerName} wants a rematch`)).toBeVisible();
+    await opponentPage.getByRole('button', { name: 'Accept', exact: true }).click();
+
+    await expect(challengerPage.getByText('RIVALRY ROOM')).toBeVisible();
+    await expect(opponentPage.getByText('RIVALRY ROOM')).toBeVisible();
+    await challengerContext.close();
+    await opponentContext.close();
+});

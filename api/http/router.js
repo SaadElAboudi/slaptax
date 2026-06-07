@@ -397,7 +397,8 @@ function createRequestHandler(service) {
 
         const rematchMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/rematch$/);
         if (req.method === "POST" && rematchMatch) {
-            const result = service.rematch(rematchMatch[1]);
+            const body = await parseBody(req);
+            const result = service.rematch(rematchMatch[1], body.userId, body.action);
             json(res, result.code || 200, result);
             return;
         }

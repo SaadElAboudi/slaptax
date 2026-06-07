@@ -64,6 +64,21 @@
 .roundRecap { display: flex; gap: 8px; }
 .roundRecap div { padding: 10px; display: grid; gap: 4px; border: 1px solid var(--line-soft); }
 .roundRecap span { color: var(--muted); font-size: .65rem; }
+.rivalryCard { min-width: min(420px, calc(100vw - 40px)); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line-strong); border-left: 3px solid var(--accent); background: #090c10; text-align: left; }
+.rivalryCard > div:first-child { display: grid; gap: 3px; }
+.rivalryCard small { color: var(--accent); font: 800 .6rem 'Space Mono',monospace; }
+.rivalryCard strong { font: 400 1.55rem 'Black Ops One',sans-serif; }
+.rivalryCard strong span { color: var(--muted); }
+.rivalryCard p { margin: 0; color: var(--muted); font-size: .68rem; }
+.rivalryForm { display: flex; gap: 5px; }
+.rivalryForm i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); }
+.rivalryForm .rivalryWin { background: var(--success); box-shadow: 0 0 9px rgba(54,211,153,.32); }
+.rivalryForm .rivalryLoss { background: var(--danger); }
+.rematchPrompt { min-width: min(420px, calc(100vw - 40px)); display: grid; gap: 10px; padding: 14px; border: 1px solid rgba(255,212,0,.48); background: rgba(255,212,0,.06); }
+.rematchPrompt > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rematchPrompt button { min-width: 0; }
+.rematchPrompt button:last-child { border: 1px solid var(--line-strong); color: var(--text); background: #11161d; }
+.rematchWaiting { min-height: 48px; display: flex; align-items: center; gap: 13px; color: var(--accent); }
 .final button { min-width: 180px; min-height: 46px; border: 0; border-radius: 6px; background: var(--accent); font-weight: 800; cursor: pointer; }
 .finalWin { box-shadow: inset 0 5px var(--success); } .finalLoss { box-shadow: inset 0 5px var(--danger); }
 @keyframes pulseLive { 50% { transform: scale(.72); opacity: .6; } }
@@ -74,6 +89,7 @@
     .setup,.readyRoom,.inbox { margin-inline: 14px; }
     .queueRoom { min-height: 320px; margin-inline: 14px; grid-template-columns: auto 1fr; padding: 22px 18px; }
     .queueRoom button { grid-column: 1 / -1; width: 100%; }
+    .rivalryCard { align-items: flex-start; flex-direction: column; gap: 12px; }
     .fields { grid-template-columns: 1fr; }
     .gameDraft { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .setupActions { grid-template-columns: 1fr; }

@@ -28,7 +28,7 @@ Supporting metrics:
 
 ## Phase 1 - Instant Play
 
-Status: in progress
+Status: foundation shipped
 
 - Make `PLAY NOW` the primary home action.
 - Enter matchmaking without draft, stake or format configuration.
@@ -46,10 +46,13 @@ Success criteria:
 
 ## Phase 2 - Rivalry Loop
 
-- One-tap rematch with live accept/decline state.
+Status: in progress
+
+- One-tap rematch with live accept/decline state. Shipped.
 - `Change game` and `Double stake` options after a duel.
-- Head-to-head card with wins, streak, best game and recent results.
+- Head-to-head card with wins and recent results. Shipped.
 - Lightweight preset reactions before and after rounds.
+- Last-rival shortcut from the home screen. Shipped.
 - Daily rival and favorite rival shortcuts.
 
 Success criteria:

@@ -413,6 +413,7 @@ function duelRoomSnapshot(duel) {
     normalizeDuelRoomState(duel);
     return {
         duelId: duel.id,
+        seriesId: duel.seriesId || duel.id,
         status: duel.status,
         challengerId: duel.challengerId,
         opponentId: duel.opponentId,
@@ -556,6 +557,14 @@ function publicDuelMatch(duel, userId, db) {
         winnerId: duel.winnerId || null,
         loserId: duel.loserId || null,
         rematchId: duel.rematchId || null,
+        rematch: duel.rematch && typeof duel.rematch === "object"
+            ? {
+                status: duel.rematch.status,
+                requestedBy: duel.rematch.requestedBy,
+                requestedAt: duel.rematch.requestedAt,
+                respondedAt: duel.rematch.respondedAt || null,
+            }
+            : null,
         attemptToken: duel.status === "playing"
             ? duel.roundTokens?.[String(duel.currentRound)]?.[userId] || null
             : null,
@@ -2123,12 +2132,67 @@ function createService(store) {
             return { ok: true, match: publicDuelMatch(duel, winnerId, db) };
         },
 
-        rematch(duelId) {
+        rematch(duelId, userId, action = "request") {
             const db = store.read();
             ensureCollections(db);
             const original = db.duels.find((d) => d.id === duelId);
             if (!original) return { error: "Duel not found", code: 404 };
             if (original.status !== "done") return { error: "Original duel not finished", code: 400 };
+            if (!isDuelParticipant(original, userId)) {
+                return { error: "User is not part of duel", code: 403 };
+            }
+            if (original.rematchId) {
+                const existing = db.duels.find((duel) => duel.id === original.rematchId);
+                return { ok: true, status: "accepted", duel: existing || null };
+            }
+
+            const normalizedAction = String(action || "request").toLowerCase();
+            if (!["request", "accept", "decline"].includes(normalizedAction)) {
+                return { error: "Unsupported rematch action", code: 400 };
+            }
+
+            if (normalizedAction === "request") {
+                if (original.rematch?.status === "pending") {
+                    return {
+                        ok: true,
+                        status: "pending",
+                        rematch: original.rematch,
+                        match: publicDuelMatch(original, userId, db),
+                    };
+                }
+                original.rematch = {
+                    status: "pending",
+                    requestedBy: userId,
+                    requestedAt: new Date().toISOString(),
+                };
+                recordProductEvent(db, "rematch_requested", userId, { originalDuelId: duelId });
+                store.write(db);
+                return {
+                    ok: true,
+                    status: "pending",
+                    rematch: original.rematch,
+                    match: publicDuelMatch(original, userId, db),
+                };
+            }
+
+            if (!original.rematch || original.rematch.status !== "pending") {
+                return { error: "No pending rematch request", code: 409 };
+            }
+            if (original.rematch.requestedBy === userId) {
+                return { error: "The requester cannot respond to their own rematch", code: 403 };
+            }
+
+            if (normalizedAction === "decline") {
+                original.rematch.status = "declined";
+                original.rematch.respondedAt = new Date().toISOString();
+                store.write(db);
+                return {
+                    ok: true,
+                    status: "declined",
+                    rematch: original.rematch,
+                    match: publicDuelMatch(original, userId, db),
+                };
+            }
 
             // Swap sides for fairness
             const created = this.createDuel(
@@ -2140,9 +2204,15 @@ function createService(store) {
             );
             if (!created.ok) return created;
             const persisted = store.read();
+            ensureCollections(persisted);
             const persistedOriginal = persisted.duels.find((duel) => duel.id === duelId);
             if (persistedOriginal) {
                 persistedOriginal.rematchId = created.duel.id;
+                persistedOriginal.rematch.status = "accepted";
+                persistedOriginal.rematch.respondedAt = new Date().toISOString();
+                persistedOriginal.seriesId = persistedOriginal.seriesId || persistedOriginal.id;
+                const persistedRematch = persisted.duels.find((duel) => duel.id === created.duel.id);
+                if (persistedRematch) persistedRematch.seriesId = persistedOriginal.seriesId;
                 recordProductEvent(persisted, "rematch_created", original.challengerId, {
                     originalDuelId: duelId,
                     duelId: created.duel.id,
@@ -2153,7 +2223,7 @@ function createService(store) {
                 });
                 store.write(persisted);
             }
-            return created;
+            return { ...created, status: "accepted" };
         },
 
         trackProductEvent(type, userId, properties = {}) {
@@ -2232,7 +2302,7 @@ function createService(store) {
             const quickPlayUsers = eventUsers("quick_play_clicked");
             const matchedUsers = eventUsers("matchmaking_matched");
             const inviteUsers = eventUsers("invite_created");
-            const rematchUsers = eventUsers("rematch_created");
+            const rematchUsers = eventUsers("rematch_requested");
             const viralActionUsers = new Set([...inviteUsers, ...rematchUsers]);
             const matchedQuickPlayUsers = [...quickPlayUsers].filter((userId) => matchedUsers.has(userId));
             const matchmakingConversion = quickPlayUsers.size > 0
