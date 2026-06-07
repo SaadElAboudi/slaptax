@@ -328,6 +328,18 @@ function pushHistory(user, entry) {
     user.history = user.history.slice(0, 100);
 }
 
+function recordProductEvent(db, type, userId, properties = {}) {
+    if (!Array.isArray(db.productEvents)) db.productEvents = [];
+    db.productEvents.push({
+        id: crypto.randomUUID(),
+        type: String(type || "").slice(0, 64),
+        userId: String(userId || "").slice(0, 64),
+        properties: properties && typeof properties === "object" ? properties : {},
+        at: new Date().toISOString(),
+    });
+    db.productEvents = db.productEvents.slice(-10000);
+}
+
 /** Total net gains today (UTC day) for a user. */
 function dailyGainToday(user) {
     const todayPrefix = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
@@ -378,6 +390,7 @@ function ensureCollections(db) {
     if (!db.rivalries || typeof db.rivalries !== "object") db.rivalries = {};
     if (!Array.isArray(db.challenges)) db.challenges = [];
     if (!Array.isArray(db.matchmakingQueue)) db.matchmakingQueue = [];
+    if (!Array.isArray(db.productEvents)) db.productEvents = [];
     if (!Array.isArray(db.users)) db.users = [];
     if (!db.clientSessions || typeof db.clientSessions !== "object") db.clientSessions = {};
     db.users.forEach((user) => ensureUserProgression(user));
@@ -1487,6 +1500,7 @@ function createService(store) {
             if (!rival) {
                 db.matchmakingQueue = db.matchmakingQueue.filter((entry) => entry.userId !== userId);
                 db.matchmakingQueue.push({ userId, stake: numericStake, joinedAt: new Date().toISOString() });
+                recordProductEvent(db, "matchmaking_joined", userId, { stake: numericStake });
                 store.write(db);
                 return { ok: true, status: "waiting" };
             }
@@ -1497,13 +1511,43 @@ function createService(store) {
             store.write(db);
             const created = this.createDuel(rival.userId, userId, numericStake, null, 3);
             if (!created.ok) return created;
+            const persisted = store.read();
+            ensureCollections(persisted);
+            recordProductEvent(persisted, "matchmaking_matched", rival.userId, {
+                duelId: created.duel.id,
+                stake: numericStake,
+            });
+            recordProductEvent(persisted, "matchmaking_matched", userId, {
+                duelId: created.duel.id,
+                stake: numericStake,
+            });
+            store.write(persisted);
             return { ok: true, status: "matched", duel: created.duel };
+        },
+
+        getMatchmakingStatus(userId) {
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((entry) => entry.id === userId);
+            if (!user) return { error: "User not found", code: 404 };
+            const duel = [...db.duels]
+                .reverse()
+                .find((entry) => isDuelParticipant(entry, userId) && ["pending", "playing"].includes(entry.status));
+            if (duel) return { ok: true, status: "matched", duel };
+            const queued = db.matchmakingQueue.find((entry) => entry.userId === userId);
+            return {
+                ok: true,
+                status: queued ? "waiting" : "idle",
+                joinedAt: queued ? queued.joinedAt : null,
+            };
         },
 
         cancelMatchmaking(userId) {
             const db = store.read();
             ensureCollections(db);
+            const wasQueued = db.matchmakingQueue.some((entry) => entry.userId === userId);
             db.matchmakingQueue = db.matchmakingQueue.filter((entry) => entry.userId !== userId);
+            if (wasQueued) recordProductEvent(db, "matchmaking_cancelled", userId);
             store.write(db);
             return { ok: true };
         },
@@ -1544,6 +1588,12 @@ function createService(store) {
 
             db.challenges.unshift(challenge);
             db.challenges = db.challenges.slice(0, 300);
+            recordProductEvent(db, "invite_created", challengerId, {
+                challengeId: challenge.id,
+                opponentId,
+                stake: numericStake,
+                bestOf: challenge.bestOf,
+            });
             store.write(db);
             return { ok: true, challenge, draftSummary: summarizeDraft(normalizedDraft) };
         },
@@ -1577,6 +1627,11 @@ function createService(store) {
                 createdAt: new Date().toISOString(),
             };
             db.challenges.unshift(challenge);
+            recordProductEvent(db, "invite_created", challengerId, {
+                challengeId: challenge.id,
+                stake: numericStake,
+                bestOf: challenge.bestOf,
+            });
             store.write(db);
             return { ok: true, challenge };
         },
@@ -1917,6 +1972,8 @@ function createService(store) {
             duel.roundStartedAt = duel.startedAt;
             duel.roundTokens = {};
             ensureDuelRoundSecurity(duel);
+            recordProductEvent(db, "match_started", duel.challengerId, { duelId: duel.id });
+            recordProductEvent(db, "match_started", duel.opponentId, { duelId: duel.id });
             store.write(db);
             return { ok: true, match: publicDuelMatch(duel, userId, db) };
         },
@@ -2086,9 +2143,35 @@ function createService(store) {
             const persistedOriginal = persisted.duels.find((duel) => duel.id === duelId);
             if (persistedOriginal) {
                 persistedOriginal.rematchId = created.duel.id;
+                recordProductEvent(persisted, "rematch_created", original.challengerId, {
+                    originalDuelId: duelId,
+                    duelId: created.duel.id,
+                });
+                recordProductEvent(persisted, "rematch_created", original.opponentId, {
+                    originalDuelId: duelId,
+                    duelId: created.duel.id,
+                });
                 store.write(persisted);
             }
             return created;
+        },
+
+        trackProductEvent(type, userId, properties = {}) {
+            const allowed = new Set([
+                "quick_play_clicked",
+                "invite_link_copied",
+                "result_shared",
+            ]);
+            const normalizedType = String(type || "").trim();
+            if (!allowed.has(normalizedType)) return { error: "Unsupported event type", code: 400 };
+            const db = store.read();
+            ensureCollections(db);
+            if (!db.users.some((entry) => entry.id === userId)) {
+                return { error: "User not found", code: 404 };
+            }
+            recordProductEvent(db, normalizedType, userId, properties);
+            store.write(db);
+            return { ok: true };
         },
 
         reactToDuel(duelId, userId, reaction) {
@@ -2139,8 +2222,22 @@ function createService(store) {
 
         getAnalyticsKpi() {
             const db = store.read();
+            ensureCollections(db);
             const duels = db.duels || [];
             const playedDuels = duels.filter((d) => d.status === "done");
+            const events = db.productEvents || [];
+            const eventUsers = (type) => new Set(
+                events.filter((event) => event.type === type).map((event) => event.userId)
+            );
+            const quickPlayUsers = eventUsers("quick_play_clicked");
+            const matchedUsers = eventUsers("matchmaking_matched");
+            const inviteUsers = eventUsers("invite_created");
+            const rematchUsers = eventUsers("rematch_created");
+            const viralActionUsers = new Set([...inviteUsers, ...rematchUsers]);
+            const matchedQuickPlayUsers = [...quickPlayUsers].filter((userId) => matchedUsers.has(userId));
+            const matchmakingConversion = quickPlayUsers.size > 0
+                ? Math.round((matchedQuickPlayUsers.length / quickPlayUsers.size) * 100)
+                : 0;
 
             // Rematch rate: duels that have a subsequent rematch duel grouped by same pair
             const rematchedIds = new Set();
@@ -2205,10 +2302,15 @@ function createService(store) {
                     rematchRate,
                     duelsPerActiveUser,
                     losersReplayRate24h,
+                    quickPlayUsers: quickPlayUsers.size,
+                    matchmakingMatchedUsers: matchedUsers.size,
+                    matchmakingConversion,
+                    viralActionUsers: viralActionUsers.size,
                     targets: {
                         rematchRate: 35,
                         duelsPerActiveUser: 3,
                         losersReplayRate24h: 30,
+                        matchmakingConversion: 65,
                     },
                 },
             };

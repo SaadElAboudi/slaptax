@@ -405,10 +405,15 @@ export interface AnalyticsKpi {
     rematchRate: number;
     duelsPerActiveUser: number;
     losersReplayRate24h: number;
+    quickPlayUsers: number;
+    matchmakingMatchedUsers: number;
+    matchmakingConversion: number;
+    viralActionUsers: number;
     targets: {
         rematchRate: number;
         duelsPerActiveUser: number;
         losersReplayRate24h: number;
+        matchmakingConversion: number;
     };
 }
 
@@ -528,6 +533,12 @@ export const api = {
     joinMatchmaking: (userId: string, stake: number) =>
         req<{ ok: boolean; status: 'waiting' | 'matched'; duel?: P2PDuel }>('POST', '/api/matchmaking/join', { userId, stake }),
 
+    getMatchmakingStatus: (userId: string) =>
+        req<{ ok: boolean; status: 'idle' | 'waiting' | 'matched'; joinedAt?: string | null; duel?: P2PDuel }>(
+            'GET',
+            `/api/matchmaking/status?userId=${encodeURIComponent(userId)}`
+        ),
+
     cancelMatchmaking: (userId: string) =>
         req<{ ok: boolean }>('POST', '/api/matchmaking/cancel', { userId }),
 
@@ -603,6 +614,9 @@ export const api = {
 
     getRivalry: (userAId: string, userBId: string) =>
         req<RivalryResponse>('GET', `/api/rivalries/${encodeURIComponent(userAId)}/vs/${encodeURIComponent(userBId)}`),
+
+    trackProductEvent: (type: 'quick_play_clicked' | 'invite_link_copied' | 'result_shared', userId: string, properties?: Record<string, unknown>) =>
+        req<{ ok: boolean }>('POST', '/api/analytics/events', { type, userId, properties }),
 
     createLiveTournament: (size: number, stake: number, draft: unknown, userId: string) =>
         req<LiveTournamentResponse>('POST', '/api/tournaments/live', { size, stake, draft, userId }),

@@ -226,6 +226,12 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "GET" && url.pathname === "/api/matchmaking/status") {
+            const result = service.getMatchmakingStatus(url.searchParams.get("userId") || "");
+            json(res, result.code || 200, result);
+            return;
+        }
+
         if (req.method === "POST" && url.pathname === "/api/matchmaking/cancel") {
             const body = await parseBody(req);
             const result = service.cancelMatchmaking(body.userId);
@@ -418,6 +424,13 @@ function createRequestHandler(service) {
 
         if (req.method === "GET" && url.pathname === "/api/analytics/kpi") {
             json(res, 200, service.getAnalyticsKpi());
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/analytics/events") {
+            const body = await parseBody(req);
+            const result = service.trackProductEvent(body.type, body.userId, body.properties);
+            json(res, result.code || 200, result);
             return;
         }
 

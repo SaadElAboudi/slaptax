@@ -126,6 +126,22 @@ function duelDraft(preferred: string) {
     };
 }
 
+test('Play now enters a recoverable matchmaking queue', async ({ page, request }) => {
+    const player = await join(request, 'quick-play');
+    await identify(page, player);
+    await page.goto('/');
+
+    await expect(page.getByRole('button', { name: /Find a rival/ })).toBeVisible();
+    await page.getByRole('button', { name: /Find a rival/ }).click();
+    await expect(page.getByRole('heading', { name: 'Friend Duel' })).toBeVisible();
+    await expect(page.getByText('Finding a human rival')).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText('Finding a human rival')).toBeVisible();
+    await page.getByRole('button', { name: 'Leave queue' }).click();
+    await expect(page.getByRole('button', { name: 'Quick match' })).toBeVisible();
+});
+
 for (const game of GAMES) {
     test(`training launches and responds: ${game.label}`, async ({ page, request }, testInfo) => {
         const player = await join(request, `training-${game.id}`);

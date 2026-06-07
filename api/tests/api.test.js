@@ -239,12 +239,26 @@ test("matchmaking pairs compatible players and BO format is configurable", async
             stake: 2,
         });
         assert.equal(waiting.data.status, "waiting");
+        const waitingStatus = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/matchmaking/status?userId=${a.data.user.id}`
+        );
+        assert.equal(waitingStatus.data.status, "waiting");
+        assert.ok(waitingStatus.data.joinedAt);
         const matched = await jfetch(baseUrl, "POST", "/api/matchmaking/join", {
             userId: b.data.user.id,
             stake: 2,
         });
         assert.equal(matched.data.status, "matched");
         assert.ok(matched.data.duel.id);
+        const recoveredMatch = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/matchmaking/status?userId=${a.data.user.id}`
+        );
+        assert.equal(recoveredMatch.data.status, "matched");
+        assert.equal(recoveredMatch.data.duel.id, matched.data.duel.id);
 
         const custom = await jfetch(baseUrl, "POST", "/api/duels", {
             challengerId: a.data.user.id,
@@ -1187,10 +1201,49 @@ test("analytics kpi endpoint returns expected shape", async () => {
         assert.ok("duelsPerActiveUser" in kpi);
         assert.ok("losersReplayRate24h" in kpi);
         assert.ok("totalPlayedDuels" in kpi);
+        assert.ok("matchmakingConversion" in kpi);
+        assert.ok("viralActionUsers" in kpi);
         assert.ok("targets" in kpi);
         assert.equal(kpi.targets.rematchRate, 35);
         assert.equal(kpi.targets.duelsPerActiveUser, 3);
         assert.equal(kpi.targets.losersReplayRate24h, 30);
+        assert.equal(kpi.targets.matchmakingConversion, 65);
+    });
+});
+
+test("quick play funnel records matching conversion and rejects unknown events", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "FunnelA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "FunnelB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+
+        const trackedA = await jfetch(baseUrl, "POST", "/api/analytics/events", {
+            type: "quick_play_clicked",
+            userId: aId,
+            properties: { source: "home" },
+        });
+        const trackedB = await jfetch(baseUrl, "POST", "/api/analytics/events", {
+            type: "quick_play_clicked",
+            userId: bId,
+            properties: { source: "home" },
+        });
+        assert.equal(trackedA.status, 200);
+        assert.equal(trackedB.status, 200);
+
+        await jfetch(baseUrl, "POST", "/api/matchmaking/join", { userId: aId, stake: 2 });
+        await jfetch(baseUrl, "POST", "/api/matchmaking/join", { userId: bId, stake: 2 });
+
+        const kpiResponse = await jfetch(baseUrl, "GET", "/api/analytics/kpi");
+        assert.equal(kpiResponse.data.kpi.quickPlayUsers, 2);
+        assert.equal(kpiResponse.data.kpi.matchmakingMatchedUsers, 2);
+        assert.equal(kpiResponse.data.kpi.matchmakingConversion, 100);
+
+        const rejected = await jfetch(baseUrl, "POST", "/api/analytics/events", {
+            type: "made_up_event",
+            userId: aId,
+        });
+        assert.equal(rejected.status, 400);
     });
 });
 

@@ -66,10 +66,26 @@ function App() {
         document.documentElement.dataset.trail = progression?.cosmetics.trail || 'pulse';
     }, [progression?.cosmetics.arena, progression?.cosmetics.trail]);
 
+    useEffect(() => {
+        if (!arenaOpen) return;
+        const params = new URLSearchParams(window.location.search);
+        params.set('tab', activeTab);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }, [activeTab, arenaOpen]);
+
     function enterArena(tab: Tab) {
         setActiveTab(tab);
         setArenaOpen(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function leaveArena() {
+        setArenaOpen(false);
+        const params = new URLSearchParams(window.location.search);
+        params.delete('tab');
+        params.delete('invite');
+        const query = params.toString();
+        window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
     }
 
     const sectionLabels: Partial<Record<Tab, string>> = {
@@ -100,7 +116,7 @@ function App() {
                 ) : (
                     <>
                         <div className={styles.matchHeader}>
-                            <button type="button" onClick={() => setArenaOpen(false)} aria-label={isFr ? 'Retour a l arene' : 'Back to arena'}>
+                            <button type="button" onClick={leaveArena} aria-label={isFr ? 'Retour a l arene' : 'Back to arena'}>
                                 ←
                             </button>
                             <div>

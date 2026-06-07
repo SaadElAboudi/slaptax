@@ -87,6 +87,11 @@ FR/EN:
 
 ## Roadmap (haut niveau / high level)
 
+The active product roadmap is maintained in
+[`ROADMAP_VIRAL.md`](./ROADMAP_VIRAL.md). Its north-star metric is the share of
+new players who rematch or invite someone within five minutes of their first
+match.
+
 ### V0 (M1-M3)
 - Validate core concept with 5-8 mini-games.
 - Direct challenge mode without real-money flows.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../api/client';
+import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES } from '../../gameplay/catalog';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import styles from './ArenaHome.module.css';
@@ -27,7 +28,17 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
+    const [matchmakingStatus, setMatchmakingStatus] = useState<'idle' | 'waiting' | 'matched'>('idle');
+    const [quickPlayBusy, setQuickPlayBusy] = useState(false);
+    const [quickPlayError, setQuickPlayError] = useState('');
+    const [realtimeTick, setRealtimeTick] = useState(0);
     const selectedGame = COMPETITIVE_GAMES[selectedIndex];
+
+    useRealtime(userId, (event) => {
+        if (event.type === 'state.changed' || event.type === 'connected') {
+            setRealtimeTick((value) => value + 1);
+        }
+    });
 
     const localStreak = useMemo(() => {
         let value = 0;
@@ -48,17 +59,39 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
         Promise.all([
             api.getActiveLiveDuel(userId),
             api.getActiveLiveTournament(userId),
-        ]).then(([duel, tournament]) => {
+            api.getMatchmakingStatus(userId),
+        ]).then(([duel, tournament, matchmaking]) => {
             if (cancelled) return;
             setActiveDuel(Boolean(duel.match));
             setActiveTournament(Boolean(tournament.tournament));
+            setMatchmakingStatus(matchmaking.status);
         }).catch(() => {
             // The home remains fully usable while the live service reconnects.
         });
         return () => {
             cancelled = true;
         };
-    }, [userId]);
+    }, [userId, realtimeTick]);
+
+    async function quickPlay() {
+        if (!userId) return;
+        setQuickPlayError('');
+        if (matchmakingStatus !== 'idle') {
+            onEnter('defy');
+            return;
+        }
+        setQuickPlayBusy(true);
+        void api.trackProductEvent('quick_play_clicked', userId, { source: 'home' }).catch(() => undefined);
+        try {
+            const result = await api.joinMatchmaking(userId, 2);
+            setMatchmakingStatus(result.status);
+            onEnter('defy');
+        } catch (cause) {
+            setQuickPlayError(cause instanceof Error ? cause.message : (isFr ? 'Matchmaking indisponible' : 'Matchmaking unavailable'));
+        } finally {
+            setQuickPlayBusy(false);
+        }
+    }
 
     function openTraining() {
         try {
@@ -113,6 +146,32 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                     </div>
                 </div>
             )}
+
+            <div className={`${styles.quickPlay} ${matchmakingStatus === 'waiting' ? styles.quickPlaySearching : ''}`}>
+                <div className={styles.quickPlaySignal} aria-hidden>
+                    <i />
+                    <i />
+                    <i />
+                </div>
+                <div>
+                    <span>{matchmakingStatus === 'waiting' ? (isFr ? 'RECHERCHE EN COURS' : 'SEARCHING') : 'MATCHMAKING LIVE'}</span>
+                    <strong>{isFr ? 'Jouer maintenant' : 'Play now'}</strong>
+                    <p>
+                        {matchmakingStatus === 'waiting'
+                            ? (isFr ? 'Ta place est conservée. Entre dans le salon pour suivre la recherche.' : 'Your place is saved. Enter the room to follow the search.')
+                            : (isFr ? 'Un rival humain, une série BO3, aucune configuration.' : 'One human rival, one BO3 series, zero setup.')}
+                    </p>
+                </div>
+                <button type="button" onClick={() => void quickPlay()} disabled={quickPlayBusy}>
+                    {quickPlayBusy
+                        ? (isFr ? 'Connexion...' : 'Connecting...')
+                        : matchmakingStatus === 'idle'
+                            ? (isFr ? 'Trouver un rival' : 'Find a rival')
+                            : (isFr ? 'Entrer dans le salon' : 'Enter the room')}
+                    <b aria-hidden>→</b>
+                </button>
+                {quickPlayError && <small>{quickPlayError}</small>}
+            </div>
 
             <header className={styles.intro}>
                 <span>{isFr ? 'CHOISIS TON TERRAIN' : 'CHOOSE YOUR ARENA'}</span>

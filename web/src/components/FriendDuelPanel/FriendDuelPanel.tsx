@@ -102,7 +102,23 @@ export function FriendDuelPanel() {
             .catch(() => {
                 // No match to recover.
             });
-    }, [userId, duelId]);
+    }, [userId, duelId, realtimeTick]);
+
+    useEffect(() => {
+        if (!userId || duelId) return;
+        void api.getMatchmakingStatus(userId)
+            .then((data) => {
+                if (data.status === 'matched' && data.duel) {
+                    setDuelId(data.duel.id);
+                    setMatchmaking(false);
+                    return;
+                }
+                setMatchmaking(data.status === 'waiting');
+            })
+            .catch(() => {
+                // Matchmaking state will recover on the next realtime event.
+            });
+    }, [userId, duelId, realtimeTick]);
 
     useEffect(() => {
         const inviteId = new URLSearchParams(window.location.search).get('invite');
@@ -183,6 +199,7 @@ export function FriendDuelPanel() {
             try {
                 await navigator.clipboard.writeText(link);
                 setLinkCopied(true);
+                void api.trackProductEvent('invite_link_copied', userId, { source: 'invite_created' }).catch(() => undefined);
             } catch {
                 setLinkCopied(false);
             }
@@ -239,6 +256,7 @@ export function FriendDuelPanel() {
         try {
             await navigator.clipboard.writeText(inviteLink);
             setLinkCopied(true);
+            if (userId) void api.trackProductEvent('invite_link_copied', userId, { source: 'invite_panel' }).catch(() => undefined);
         } catch {
             setLinkCopied(false);
         }
@@ -349,6 +367,7 @@ export function FriendDuelPanel() {
         } else {
             await navigator.clipboard.writeText(`${text} ${window.location.origin}`);
         }
+        if (userId) void api.trackProductEvent('result_shared', userId, { duelId: match.duelId }).catch(() => undefined);
     }
 
     if (match?.status === 'playing') {
@@ -445,6 +464,18 @@ export function FriendDuelPanel() {
                     </div>
                     <button className={styles.primary} type="button" onClick={toggleReady} disabled={busy}>
                         {ready ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
+                    </button>
+                </div>
+            ) : matchmaking ? (
+                <div className={styles.queueRoom}>
+                    <span className={styles.queuePulse} aria-hidden />
+                    <div>
+                        <small>{isFr ? 'MATCHMAKING LIVE' : 'LIVE MATCHMAKING'}</small>
+                        <strong>{isFr ? 'Recherche d’un rival humain' : 'Finding a human rival'}</strong>
+                        <p>{isFr ? 'Ta place est conservée même si tu quittes cet écran.' : 'Your place is saved even if you leave this screen.'}</p>
+                    </div>
+                    <button className={styles.secondary} type="button" onClick={toggleMatchmaking} disabled={busy}>
+                        {busy ? (isFr ? 'Annulation...' : 'Cancelling...') : (isFr ? 'Quitter la file' : 'Leave queue')}
                     </button>
                 </div>
             ) : (
