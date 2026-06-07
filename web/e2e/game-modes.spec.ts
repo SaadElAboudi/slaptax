@@ -162,3 +162,63 @@ for (const game of GAMES) {
         await enterGame(page, game.label, game.testId);
     });
 }
+
+test('two browsers play the same shared Bounce rally', async ({ browser, request }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Two-browser synchronization is covered once on desktop.');
+
+    const challenger = await join(request, 'shared-a');
+    const opponent = await join(request, 'shared-b');
+    const created = await post(request, '/api/duels', {
+        challengerId: challenger.userId,
+        opponentId: opponent.userId,
+        stake: 2,
+        draft: {
+            challenger: { ban: 'cupshuffle', pick: 'bounce' },
+            opponent: { ban: 'duelnumeric', pick: 'symbolrush' },
+        },
+    });
+    await post(request, `/api/duels/${created.duel.id}/ready`, { userId: challenger.userId, ready: true });
+    await post(request, `/api/duels/${created.duel.id}/ready`, { userId: opponent.userId, ready: true });
+    await post(request, `/api/duels/${created.duel.id}/start`, { userId: challenger.userId });
+
+    const challengerContext = await browser.newContext({ viewport: { width: 1180, height: 820 } });
+    const opponentContext = await browser.newContext({ viewport: { width: 1180, height: 820 } });
+    const challengerPage = await challengerContext.newPage();
+    const opponentPage = await opponentContext.newPage();
+    await identify(challengerPage, challenger);
+    await identify(opponentPage, opponent);
+    await Promise.all([
+        challengerPage.goto('/?tab=defy'),
+        opponentPage.goto('/?tab=defy'),
+    ]);
+    await Promise.all([
+        enterGame(challengerPage, 'Bounce Panic', 'bounce-canvas'),
+        enterGame(opponentPage, 'Bounce Panic', 'bounce-canvas'),
+    ]);
+
+    await Promise.all([
+        expect(challengerPage.getByText('LIVE RALLY')).toBeVisible({ timeout: 10_000 }),
+        expect(opponentPage.getByText('LIVE RALLY')).toBeVisible({ timeout: 10_000 }),
+    ]);
+
+    const challengerCanvas = challengerPage.getByTestId('bounce-canvas');
+    const opponentCanvas = opponentPage.getByTestId('bounce-canvas');
+    const challengerBox = await challengerCanvas.boundingBox();
+    const opponentBox = await opponentCanvas.boundingBox();
+    expect(challengerBox).not.toBeNull();
+    expect(opponentBox).not.toBeNull();
+    await challengerPage.mouse.move(challengerBox!.x + challengerBox!.width * .25, challengerBox!.y + challengerBox!.height * .9);
+    await opponentPage.mouse.move(opponentBox!.x + opponentBox!.width * .75, opponentBox!.y + opponentBox!.height * .9);
+
+    const before = await challengerCanvas.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
+    await challengerPage.waitForTimeout(400);
+    const after = await challengerCanvas.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
+    expect(after).not.toBe(before);
+
+    await Promise.all([
+        challengerPage.screenshot({ path: testInfo.outputPath('shared-bounce-challenger.png'), fullPage: true }),
+        opponentPage.screenshot({ path: testInfo.outputPath('shared-bounce-opponent.png'), fullPage: true }),
+    ]);
+    await challengerContext.close();
+    await opponentContext.close();
+});

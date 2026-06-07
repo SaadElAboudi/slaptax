@@ -109,6 +109,140 @@ test("realtime clients receive state changes without polling", async () => {
     });
 });
 
+test("shared Bounce streams one authoritative ball to both duel players", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BounceA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BounceB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+            draft: {
+                challenger: { ban: "cupshuffle", pick: "bounce" },
+                opponent: { ban: "duelnumeric", pick: "symbolrush" },
+            },
+        });
+        const duelId = created.data.duel.id;
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        const started = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+        assert.equal(started.data.match.games[0], "bounce");
+
+        const socketUrl = baseUrl.replace(/^http/, "ws");
+        const socketA = new WebSocket(`${socketUrl}/api/realtime?userId=${aId}`);
+        const socketB = new WebSocket(`${socketUrl}/api/realtime?userId=${bId}`);
+        const statesA = [];
+        const statesB = [];
+        socketA.on("message", (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "bounce.state") statesA.push(event);
+        });
+        socketB.on("message", (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "bounce.state") statesB.push(event);
+        });
+
+        await Promise.all([
+            new Promise((resolve, reject) => {
+                socketA.once("open", resolve);
+                socketA.once("error", reject);
+            }),
+            new Promise((resolve, reject) => {
+                socketB.once("open", resolve);
+                socketB.once("error", reject);
+            }),
+        ]);
+        socketA.send(JSON.stringify({ type: "bounce.join", duelId, round: 1 }));
+        socketB.send(JSON.stringify({ type: "bounce.join", duelId, round: 1 }));
+
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Shared Bounce did not start")), 4000);
+            const check = () => {
+                if (
+                    statesA.some((state) => state.phase === "playing")
+                    && statesB.some((state) => state.phase === "playing")
+                ) {
+                    clearTimeout(timeout);
+                    resolve();
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+
+        socketA.send(JSON.stringify({ type: "bounce.paddle", x: 0.22 }));
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Shared paddle update was not broadcast")), 1500);
+            const check = () => {
+                const state = [...statesB].reverse().find((entry) => Math.abs(entry.paddles[aId] - 0.22) < 0.001);
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve();
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+
+        const latestA = [...statesA].reverse().find((state) => state.phase === "playing");
+        const latestB = [...statesB].reverse().find((state) => state.phase === "playing");
+        assert.ok(latestA);
+        assert.ok(latestB);
+        assert.ok(Math.abs(latestA.ball.x - latestB.ball.x) < 0.03);
+        assert.ok(Math.abs(latestA.ball.y - latestB.ball.y) < 0.03);
+
+        socketA.send(JSON.stringify({ type: "bounce.paddle", x: 0.07 }));
+        socketB.send(JSON.stringify({ type: "bounce.paddle", x: 0.07 }));
+        const finishedState = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Shared Bounce did not resolve a winner")), 5000);
+            const check = () => {
+                const state = [...statesA].reverse().find((entry) => entry.phase === "done");
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve(state);
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+        assert.equal(finishedState.winnerId, bId);
+
+        const bMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
+        const [aResult, bResult] = await Promise.all([
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: aId,
+                round: 1,
+                score: 0,
+                metric: finishedState.duration,
+                attemptToken: started.data.match.attemptToken,
+            }),
+            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: bId,
+                round: 1,
+                score: 1000,
+                metric: finishedState.duration,
+                attemptToken: bMatch.data.match.attemptToken,
+            }),
+        ]);
+        const advanced = [aResult, bResult].find((result) => result.data.match.currentRound === 2);
+        assert.ok(advanced);
+        assert.deepEqual(advanced.data.match.score, { challenger: 0, opponent: 1 });
+        assert.equal(advanced.data.match.rounds[0].winnerId, bId);
+
+        socketA.close();
+        socketB.close();
+        await Promise.all([
+            new Promise((resolve) => socketA.once("close", resolve)),
+            new Promise((resolve) => socketB.once("close", resolve)),
+        ]);
+    });
+});
+
 test("production server serves the React app and SPA routes", async () => {
     await withWebServer(async (baseUrl) => {
         const home = await fetch(`${baseUrl}/`);

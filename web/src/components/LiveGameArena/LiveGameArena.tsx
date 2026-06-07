@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { getRealtimeUrl } from '../../api/realtime';
 import styles from './LiveGameArena.module.css';
+
+interface DuelSession {
+    duelId: string;
+    userId: string;
+    challengerId: string;
+}
 
 interface LiveGameArenaProps {
     mode: 'training' | 'duel' | 'tournament';
@@ -9,6 +16,7 @@ interface LiveGameArenaProps {
     round: number;
     opponentName: string;
     isFr: boolean;
+    duelSession?: DuelSession;
     onComplete: (result: { score: number; metric: number }) => void;
 }
 
@@ -20,7 +28,7 @@ interface RoundProps {
 
 const SYMBOLS = ['◆', '●', '▲', '■', '✦'];
 
-export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr, onComplete }: LiveGameArenaProps) {
+export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr, duelSession, onComplete }: LiveGameArenaProps) {
     const [phase, setPhase] = useState<'briefing' | 'countdown' | 'playing' | 'complete'>('briefing');
     const [countdown, setCountdown] = useState(3);
     const [result, setResult] = useState<{ score: number; detail: string } | null>(null);
@@ -94,7 +102,11 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'playing' && (
                 <div className={styles.stage}>
-                    {gameId === 'bounce' && <BounceRound round={round} isFr={isFr} finish={finish} />}
+                    {gameId === 'bounce' && mode === 'duel' && duelSession ? (
+                        <SharedBounceRound round={round} isFr={isFr} finish={finish} session={duelSession} />
+                    ) : gameId === 'bounce' ? (
+                        <BounceRound round={round} isFr={isFr} finish={finish} />
+                    ) : null}
                     {gameId === 'symbolrush' && <SymbolRound round={round} isFr={isFr} finish={finish} />}
                     {gameId === 'bombpass' && <BombRound round={round} isFr={isFr} finish={finish} />}
                     {gameId === 'cupshuffle' && <CupRound round={round} isFr={isFr} finish={finish} />}
@@ -111,6 +123,210 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                 </div>
             )}
         </section>
+    );
+}
+
+interface SharedBounceState {
+    phase: 'waiting' | 'countdown' | 'playing' | 'done';
+    resumeAt: number;
+    rally: number;
+    ball: { x: number; y: number; vx: number; vy: number };
+    paddles: Record<string, number>;
+    paddleWidth: number;
+    challengerId: string;
+    opponentId: string;
+    winnerId: string | null;
+    duration: number;
+}
+
+function SharedBounceRound({ round, isFr, finish, session }: RoundProps & { session: DuelSession }) {
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const socketRef = useRef<WebSocket | null>(null);
+    const stateRef = useRef<SharedBounceState | null>(null);
+    const frameRef = useRef(0);
+    const completedRef = useRef(false);
+    const [phase, setPhase] = useState<SharedBounceState['phase']>('waiting');
+    const [rally, setRally] = useState(0);
+    const [countdown, setCountdown] = useState(0);
+    const isChallenger = session.userId === session.challengerId;
+
+    useEffect(() => {
+        let stopped = false;
+        let reconnectTimer = 0;
+        let attempt = 0;
+
+        function connect() {
+            if (stopped) return;
+            const socket = new WebSocket(getRealtimeUrl(session.userId));
+            socketRef.current = socket;
+            socket.addEventListener('open', () => {
+                attempt = 0;
+                socket.send(JSON.stringify({
+                    type: 'bounce.join',
+                    duelId: session.duelId,
+                    round,
+                }));
+            });
+            socket.addEventListener('message', (message) => {
+                let event: (SharedBounceState & { type: string; duelId: string; round: number }) | null = null;
+                try {
+                    event = JSON.parse(String(message.data));
+                } catch {
+                    return;
+                }
+                if (event?.type !== 'bounce.state' || event.duelId !== session.duelId || event.round !== round) return;
+                stateRef.current = event;
+                setPhase(event.phase);
+                setRally(event.rally);
+                if (event.phase === 'done' && event.winnerId && !completedRef.current) {
+                    completedRef.current = true;
+                    const won = event.winnerId === session.userId;
+                    finish(won ? 1000 : 0, won
+                        ? `${event.rally} ${isFr ? 'échanges · victoire' : 'returns · victory'}`
+                        : `${event.rally} ${isFr ? 'échanges · balle perdue' : 'returns · ball lost'}`);
+                }
+            });
+            socket.addEventListener('close', () => {
+                if (stopped) return;
+                attempt += 1;
+                reconnectTimer = window.setTimeout(connect, Math.min(8000, 400 * (2 ** attempt)));
+            });
+        }
+
+        connect();
+        return () => {
+            stopped = true;
+            window.clearTimeout(reconnectTimer);
+            socketRef.current?.close();
+        };
+    }, [finish, isFr, round, session.duelId, session.userId]);
+
+    useEffect(() => {
+        if (phase !== 'countdown') {
+            setCountdown(0);
+            return;
+        }
+        const update = () => {
+            const remaining = Math.max(0, Math.ceil(((stateRef.current?.resumeAt || 0) - Date.now()) / 1000));
+            setCountdown(remaining);
+        };
+        update();
+        const timer = window.setInterval(update, 100);
+        return () => window.clearInterval(timer);
+    }, [phase]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        const drawingCanvas = canvas;
+        const drawingContext = context;
+
+        function resize() {
+            const rect = drawingCanvas.getBoundingClientRect();
+            const ratio = Math.min(2, window.devicePixelRatio || 1);
+            drawingCanvas.width = Math.max(1, Math.round(rect.width * ratio));
+            drawingCanvas.height = Math.max(1, Math.round(rect.height * ratio));
+            drawingContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+        }
+
+        function draw() {
+            const width = drawingCanvas.clientWidth;
+            const height = drawingCanvas.clientHeight;
+            const state = stateRef.current;
+            drawingContext.clearRect(0, 0, width, height);
+            drawingContext.fillStyle = '#070b10';
+            drawingContext.fillRect(0, 0, width, height);
+            drawingContext.strokeStyle = 'rgba(255,255,255,.08)';
+            drawingContext.setLineDash([10, 12]);
+            drawingContext.beginPath();
+            drawingContext.moveTo(0, height / 2);
+            drawingContext.lineTo(width, height / 2);
+            drawingContext.stroke();
+            drawingContext.setLineDash([]);
+
+            if (state) {
+                const selfId = session.userId;
+                const rivalId = selfId === state.challengerId ? state.opponentId : state.challengerId;
+                const mirror = !isChallenger;
+                const localX = (value: number) => (mirror ? 1 - value : value);
+                const localY = (value: number) => (mirror ? 1 - value : value);
+                const paddleWidth = state.paddleWidth * width;
+
+                drawingContext.fillStyle = '#ef476f';
+                drawingContext.fillRect(localX(state.paddles[rivalId] || .5) * width - paddleWidth / 2, 18, paddleWidth, 9);
+                drawingContext.fillStyle = '#ffd400';
+                drawingContext.fillRect(localX(state.paddles[selfId] || .5) * width - paddleWidth / 2, height - 27, paddleWidth, 10);
+
+                const ballX = localX(state.ball.x) * width;
+                const ballY = localY(state.ball.y) * height;
+                const glow = drawingContext.createRadialGradient(ballX, ballY, 2, ballX, ballY, 28);
+                glow.addColorStop(0, 'rgba(255,240,125,.9)');
+                glow.addColorStop(1, 'rgba(255,212,0,0)');
+                drawingContext.fillStyle = glow;
+                drawingContext.beginPath();
+                drawingContext.arc(ballX, ballY, 28, 0, Math.PI * 2);
+                drawingContext.fill();
+                drawingContext.fillStyle = '#ffd400';
+                drawingContext.beginPath();
+                drawingContext.arc(ballX, ballY, 9, 0, Math.PI * 2);
+                drawingContext.fill();
+            }
+            frameRef.current = requestAnimationFrame(draw);
+        }
+
+        resize();
+        const observer = new ResizeObserver(resize);
+        observer.observe(drawingCanvas);
+        frameRef.current = requestAnimationFrame(draw);
+        return () => {
+            observer.disconnect();
+            cancelAnimationFrame(frameRef.current);
+        };
+    }, [isChallenger, session.userId]);
+
+    function move(clientX: number) {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        const socket = socketRef.current;
+        if (!rect || !socket || socket.readyState !== WebSocket.OPEN) return;
+        const localX = Math.max(.07, Math.min(.93, (clientX - rect.left) / rect.width));
+        socket.send(JSON.stringify({
+            type: 'bounce.paddle',
+            x: isChallenger ? localX : 1 - localX,
+        }));
+    }
+
+    const status = phase === 'waiting'
+        ? (isFr ? 'En attente du rival...' : 'Waiting for rival...')
+        : phase === 'countdown'
+            ? `${isFr ? 'Reprise' : 'Starting'} ${countdown || 'GO'}`
+            : phase === 'playing'
+                ? (isFr ? 'ECHANGE LIVE' : 'LIVE RALLY')
+                : (isFr ? 'MANCHE TERMINEE' : 'ROUND COMPLETE');
+
+    return (
+        <div className={styles.game}>
+            <div className={styles.liveHud}>
+                <span>{status}</span>
+                <span>RALLY <strong data-testid="shared-bounce-rally">{rally}</strong></span>
+            </div>
+            <canvas
+                ref={canvasRef}
+                className={styles.bounceCanvas}
+                data-testid="bounce-canvas"
+                tabIndex={0}
+                onPointerMove={(event) => {
+                    if (event.pointerType === 'mouse' || event.currentTarget.hasPointerCapture(event.pointerId)) move(event.clientX);
+                }}
+                onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    move(event.clientX);
+                }}
+                onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
+            />
+            <p>{isFr ? 'Une balle, deux joueurs, aucun score simulé.' : 'One ball, two players, no simulated score.'}</p>
+        </div>
     );
 }
 

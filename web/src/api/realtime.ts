@@ -6,7 +6,7 @@ interface RealtimeEvent {
     at: number;
 }
 
-function getRealtimeUrl(userId: string) {
+export function getRealtimeUrl(userId: string) {
     let configuredBase = '';
     try {
         configuredBase = localStorage.getItem('slaptax_api_base') || '';

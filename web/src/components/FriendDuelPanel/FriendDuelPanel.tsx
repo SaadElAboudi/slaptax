@@ -320,6 +320,11 @@ export function FriendDuelPanel() {
                 round={match.currentRound}
                 opponentName={match.opponentName}
                 isFr={isFr}
+                duelSession={{
+                    duelId: match.duelId,
+                    userId: userId as string,
+                    challengerId: match.challengerId,
+                }}
                 onComplete={submitRound}
             />
         );
