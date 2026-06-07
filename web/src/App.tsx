@@ -13,7 +13,7 @@ import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
 import { useRealtime } from './api/realtime';
 
 function App() {
-    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId } = useGameStore();
+    const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
     const isFr = language === 'fr';
     const [arenaOpen, setArenaOpen] = useState(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
@@ -60,6 +60,11 @@ function App() {
             document.removeEventListener('visibilitychange', onVisibility);
         };
     }, [bootstrap, refreshLiveState]);
+
+    useEffect(() => {
+        document.documentElement.dataset.arena = progression?.cosmetics.arena || 'foundry';
+        document.documentElement.dataset.trail = progression?.cosmetics.trail || 'pulse';
+    }, [progression?.cosmetics.arena, progression?.cosmetics.trail]);
 
     function enterArena(tab: Tab) {
         setActiveTab(tab);

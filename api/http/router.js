@@ -304,6 +304,13 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "POST" && url.pathname === "/api/progression/cosmetics") {
+            const body = await parseBody(req);
+            const result = service.setCosmetics(body.userId, body.cosmetics);
+            json(res, result.code || 200, result);
+            return;
+        }
+
         const acceptChallengeMatch = url.pathname.match(/^\/api\/challenges\/([^/]+)\/accept$/);
         if (req.method === "POST" && acceptChallengeMatch) {
             const body = await parseBody(req);

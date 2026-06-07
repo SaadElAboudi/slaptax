@@ -33,6 +33,16 @@ export interface PlayerProgression {
         tasks: Array<{ id: string; label: string; target: number; progress: number; rewardXp: number }>;
     };
     season: { id: string; points: number };
+    cosmetics: {
+        avatar: string;
+        arena: string;
+        trail: string;
+        unlocked: {
+            avatars: string[];
+            arenas: string[];
+            trails: string[];
+        };
+    };
 }
 
 export interface HistoryEntry {
@@ -628,4 +638,10 @@ export const api = {
 
     startMultiplayerTournament: (tournamentId: string, userId: string) =>
         req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/start`, { userId }),
+
+    setCosmetics: (userId: string, cosmetics: Partial<PlayerProgression['cosmetics']>) =>
+        req<{ ok: boolean; cosmetics: PlayerProgression['cosmetics'] }>('POST', '/api/progression/cosmetics', {
+            userId,
+            cosmetics,
+        }),
 };

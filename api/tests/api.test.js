@@ -256,6 +256,26 @@ test("matchmaking pairs compatible players and BO format is configurable", async
     });
 });
 
+test("cosmetics unlock by level and locked selections are rejected", async () => {
+    await withServer(async (baseUrl) => {
+        const player = await jfetch(baseUrl, "POST", "/api/users", { playerName: "Cosmetic" });
+        const userId = player.data.user.id;
+        const state = await jfetch(baseUrl, "GET", `/api/state?userId=${userId}`);
+        assert.deepEqual(state.data.progression.cosmetics.unlocked.avatars, ["spark"]);
+        const locked = await jfetch(baseUrl, "POST", "/api/progression/cosmetics", {
+            userId,
+            cosmetics: { avatar: "phantom" },
+        });
+        assert.equal(locked.status, 403);
+        const selected = await jfetch(baseUrl, "POST", "/api/progression/cosmetics", {
+            userId,
+            cosmetics: { avatar: "spark", arena: "foundry", trail: "pulse" },
+        });
+        assert.equal(selected.status, 200);
+        assert.equal(selected.data.cosmetics.avatar, "spark");
+    });
+});
+
 test("Symbol Sprint shares one sequence, hides answers, and accepts spectators", async () => {
     await withServer(async (baseUrl) => {
         const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SymbolA" });

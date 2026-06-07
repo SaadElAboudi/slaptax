@@ -45,6 +45,25 @@ const DAILY_CHALLENGE_TASKS = [
     { id: "duel_complete", label: "Complete 1 Best-of-3", target: 1, rewardXp: 100 },
 ];
 
+const COSMETIC_CATALOG = {
+    avatars: [
+        { id: "spark", level: 1 },
+        { id: "visor", level: 3 },
+        { id: "crown", level: 7 },
+        { id: "phantom", level: 12 },
+    ],
+    arenas: [
+        { id: "foundry", level: 1 },
+        { id: "neon", level: 5 },
+        { id: "storm", level: 10 },
+    ],
+    trails: [
+        { id: "pulse", level: 1 },
+        { id: "ember", level: 4 },
+        { id: "glitch", level: 8 },
+    ],
+};
+
 function clampInt(value, min, max) {
     const n = Number(value);
     if (!Number.isFinite(n)) return min;
@@ -184,6 +203,27 @@ function ensureUserProgression(user) {
     }
     if (!Array.isArray(user.progression.badges)) user.progression.badges = [];
     user.progression.badges = [...new Set(user.progression.badges.map(String))].slice(0, 100);
+    if (!user.progression.cosmetics || typeof user.progression.cosmetics !== "object") {
+        user.progression.cosmetics = {};
+    }
+    const unlocked = Object.fromEntries(
+        Object.entries(COSMETIC_CATALOG).map(([category, items]) => [
+            category,
+            items.filter((item) => item.level <= user.progression.level).map((item) => item.id),
+        ])
+    );
+    user.progression.cosmetics = {
+        avatar: unlocked.avatars.includes(user.progression.cosmetics.avatar)
+            ? user.progression.cosmetics.avatar
+            : unlocked.avatars[0],
+        arena: unlocked.arenas.includes(user.progression.cosmetics.arena)
+            ? user.progression.cosmetics.arena
+            : unlocked.arenas[0],
+        trail: unlocked.trails.includes(user.progression.cosmetics.trail)
+            ? user.progression.cosmetics.trail
+            : unlocked.trails[0],
+        unlocked,
+    };
 
     return user.progression;
 }
@@ -783,6 +823,28 @@ function createService(store) {
                 season: progression.season,
                 serverClock: new Date().toISOString(),
             };
+        },
+
+        setCosmetics(userId, cosmetics) {
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((entry) => entry.id === userId);
+            if (!user) return { error: "User not found", code: 404 };
+            const progression = ensureUserProgression(user);
+            const requested = cosmetics && typeof cosmetics === "object" ? cosmetics : {};
+            for (const [field, category] of [["avatar", "avatars"], ["arena", "arenas"], ["trail", "trails"]]) {
+                if (requested[field] && !progression.cosmetics.unlocked[category].includes(requested[field])) {
+                    return { error: `${field} is not unlocked`, code: 403 };
+                }
+            }
+            progression.cosmetics = {
+                ...progression.cosmetics,
+                avatar: requested.avatar || progression.cosmetics.avatar,
+                arena: requested.arena || progression.cosmetics.arena,
+                trail: requested.trail || progression.cosmetics.trail,
+            };
+            store.write(db);
+            return { ok: true, cosmetics: progression.cosmetics };
         },
 
         listMultiplayerTournaments(userId) {

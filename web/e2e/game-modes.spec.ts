@@ -68,7 +68,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
         for (const symbol of sequence) {
             await target.getByRole('button', { name: symbol, exact: true }).click();
         }
-        await expect(page.getByText('PERFORMANCE LOCKED')).toBeVisible();
+        await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
     if (game.id === 'bombpass') {
@@ -89,7 +89,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
                 await expect(page.getByTestId('bomb-passes')).toHaveText(String(pass + 1));
             }
         }
-        await expect(page.getByText('PERFORMANCE LOCKED')).toBeVisible();
+        await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
     if (game.id === 'cupshuffle') {
@@ -98,7 +98,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
         await expect(target.getByRole('button').first()).toBeEnabled({ timeout: 9_000 });
         expect(await target.getByRole('button').count()).toBe(3);
         await tokenCup?.click();
-        await expect(page.getByText('PERFORMANCE LOCKED')).toBeVisible();
+        await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
     if (game.id === 'duelnumeric') {
@@ -109,7 +109,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
             const answer = operator === '×' ? Number(left) * Number(right) : Number(left) + Number(right);
             await target.getByRole('button', { name: String(answer), exact: true }).click();
         }
-        await expect(page.getByText('PERFORMANCE LOCKED')).toBeVisible();
+        await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
     await page.screenshot({

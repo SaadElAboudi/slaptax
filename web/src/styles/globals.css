@@ -25,6 +25,25 @@
     --shadow-panel: 0 20px 60px rgba(0, 0, 0, 0.38);
     --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.42), 0 4px 12px rgba(255, 212, 0, 0.08);
     --transition: 180ms ease;
+    --arena-accent: #ffd400;
+    --arena-secondary: #ef476f;
+    --arena-haze: rgba(255, 212, 0, 0.045);
+}
+
+:root[data-arena="neon"] {
+    --accent: #57e3ff;
+    --accent2: #ff4f9a;
+    --arena-accent: #57e3ff;
+    --arena-secondary: #ff4f9a;
+    --arena-haze: rgba(87, 227, 255, 0.07);
+}
+
+:root[data-arena="storm"] {
+    --accent: #d8ff3e;
+    --accent2: #7c83ff;
+    --arena-accent: #d8ff3e;
+    --arena-secondary: #7c83ff;
+    --arena-haze: rgba(124, 131, 255, 0.08);
 }
 
 /* ─── Reset ─────────────────────────────────────────────── */
@@ -70,7 +89,29 @@ body::before {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(255, 212, 0, 0.045), transparent 28%);
+    background:
+        linear-gradient(180deg, var(--arena-haze), transparent 28%),
+        linear-gradient(115deg, transparent 60%, color-mix(in srgb, var(--arena-secondary) 5%, transparent));
+}
+
+:root[data-trail="ember"] body::after,
+:root[data-trail="glitch"] body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+}
+
+:root[data-trail="ember"] body::after {
+    border: 1px solid rgba(255, 122, 0, .14);
+    box-shadow: inset 0 0 70px rgba(255, 90, 50, .045);
+}
+
+:root[data-trail="glitch"] body::after {
+    opacity: .16;
+    background: repeating-linear-gradient(180deg, transparent 0 5px, rgba(87,227,255,.08) 6px);
+    mix-blend-mode: screen;
 }
 
 button:focus-visible,

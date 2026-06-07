@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 import { getRealtimeUrl } from '../../api/realtime';
 import { useSfx } from '../../hooks/useSfx';
+import { startAdaptiveMusic, stopAdaptiveMusic } from '../../hooks/useAdaptiveAudio';
+import { useGameStore } from '../../hooks/useGameStore';
 import styles from './LiveGameArena.module.css';
 
 interface DuelSession {
@@ -38,6 +40,8 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const finishedRef = useRef(false);
     const onCompleteRef = useRef(onComplete);
     const { activateAudio, playReady, playWin, playLoss } = useSfx();
+    const playerName = useGameStore((state) => state.playerName);
+    const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
     onCompleteRef.current = onComplete;
 
     function begin() {
@@ -57,6 +61,15 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         const timer = window.setTimeout(() => setCountdown((value) => value - 1), 620);
         return () => window.clearTimeout(timer);
     }, [phase, countdown]);
+
+    useEffect(() => {
+        if (phase !== 'playing') {
+            stopAdaptiveMusic();
+            return;
+        }
+        startAdaptiveMusic(gameId, Math.min(1, .25 + round * .18));
+        return stopAdaptiveMusic;
+    }, [gameId, phase, round]);
 
     const finish = useCallback((rawScore: number, detail: string, authoritative = false) => {
         if (finishedRef.current) return;
@@ -82,7 +95,9 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.modeBadge}>{isFr ? 'SOLO · SANS ENJEU' : 'SOLO · NO STAKES'}</div>
                 ) : (
                     <div className={styles.versus}>
-                        <strong>YOU</strong><span>VS</span><strong>{opponentName}</strong>
+                        <div><i data-avatar={avatar} /><strong>{playerName}</strong></div>
+                        <span>VS</span>
+                        <div><i data-avatar="rival" /><strong>{opponentName}</strong></div>
                     </div>
                 )}
             </header>
@@ -122,8 +137,13 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
             )}
 
             {phase === 'complete' && result && (
-                <div className={styles.complete}>
-                    <span>{isFr ? 'PERFORMANCE VERROUILLEE' : 'PERFORMANCE LOCKED'}</span>
+                <div className={`${styles.complete} ${result.score >= 500 ? styles.completeWin : styles.completeLoss}`}>
+                    <div className={styles.impactLines} aria-hidden><i /><i /><i /><i /></div>
+                    <span>
+                        {result.score >= 500
+                            ? (isFr ? 'MANCHE DOMINEE' : 'ROUND DOMINATED')
+                            : (isFr ? 'IMPACT ENREGISTRE' : 'IMPACT RECORDED')}
+                    </span>
                     <strong>{result.score}</strong>
                     <p>{result.detail}</p>
                     <div className={styles.syncBar}><i /></div>

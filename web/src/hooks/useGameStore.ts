@@ -29,6 +29,7 @@ interface GameStore {
     setUserId: (id: string | null) => void;
     setWallet: (amount: number) => void;
     setStake: (amount: number) => Promise<void>;
+    setCosmetics: (cosmetics: Partial<PlayerProgression['cosmetics']>) => Promise<void>;
 
     // Navigation
     activeTab: Tab;
@@ -140,6 +141,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const state = await api.setStake(amount, get().userId);
             set({ wallet: state.wallet });
         } catch { /* offline — keep local */ }
+    },
+    setCosmetics: async (cosmetics) => {
+        const userId = get().userId;
+        if (!userId) return;
+        const result = await api.setCosmetics(userId, cosmetics);
+        set((state) => ({
+            progression: state.progression
+                ? { ...state.progression, cosmetics: result.cosmetics }
+                : state.progression,
+        }));
     },
 
     // Navigation
