@@ -398,7 +398,7 @@ function createRequestHandler(service) {
         const rematchMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/rematch$/);
         if (req.method === "POST" && rematchMatch) {
             const body = await parseBody(req);
-            const result = service.rematch(rematchMatch[1], body.userId, body.action);
+            const result = service.rematch(rematchMatch[1], body.userId, body.action, body.options);
             json(res, result.code || 200, result);
             return;
         }
@@ -414,6 +414,13 @@ function createRequestHandler(service) {
         const rivalryMatch = url.pathname.match(/^\/api\/rivalries\/([^/]+)\/vs\/([^/]+)$/);
         if (req.method === "GET" && rivalryMatch) {
             const result = service.getRivalry(rivalryMatch[1], rivalryMatch[2]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/rivalries/favorite") {
+            const body = await parseBody(req);
+            const result = service.setFavoriteRival(body.userId, body.rivalId);
             json(res, result.code || 200, result);
             return;
         }

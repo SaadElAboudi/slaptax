@@ -49,11 +49,11 @@ Success criteria:
 Status: in progress
 
 - One-tap rematch with live accept/decline state. Shipped.
-- `Change game` and `Double stake` options after a duel.
-- Head-to-head card with wins and recent results. Shipped.
+- `Change game` and `Double stake` options after a duel. Shipped.
+- Head-to-head card with wins, streak, best game and recent results. Shipped.
 - Lightweight preset reactions before and after rounds.
-- Last-rival shortcut from the home screen. Shipped.
-- Daily rival and favorite rival shortcuts.
+- Last-rival and favorite-rival shortcuts from the home screen. Shipped.
+- Daily rival shortcut.
 
 Success criteria:
 

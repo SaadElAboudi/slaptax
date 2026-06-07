@@ -23,6 +23,7 @@ interface GameStore {
     wallet: number;
     stake: number;
     skillPool: SkillPool;
+    favoriteRivalId: string | null;
     progression: PlayerProgression | null;
     setProfile: (name: string) => void;
     joinSession: (name?: string) => Promise<void>;
@@ -82,6 +83,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 stake: state.stake,
                 playerName: state.playerName || get().playerName,
                 skillPool: (state.skillPool as SkillPool) || 'Rookie',
+                favoriteRivalId: state.favoriteRivalId || null,
                 progression: state.progression || null,
             });
         } catch {
@@ -106,6 +108,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     wallet: 25,
     stake: 5,
     skillPool: 'Rookie',
+    favoriteRivalId: null,
     progression: null,
     setProfile: (name) => {
         try { localStorage.setItem('slaptax_player_name', name); } catch { /* ignore */ }

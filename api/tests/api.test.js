@@ -801,11 +801,14 @@ test("rematch requires the rival's acceptance and swaps sides", async () => {
         const requested = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`, {
             userId: a.data.user.id,
             action: "request",
+            options: { stake: 10, preferredGame: "symbolrush" },
         });
         assert.equal(requested.status, 200);
         assert.equal(requested.data.status, "pending");
         assert.equal(requested.data.duel, undefined);
         assert.equal(requested.data.rematch.requestedBy, a.data.user.id);
+        assert.equal(requested.data.rematch.stake, 10);
+        assert.equal(requested.data.rematch.preferredGame, "symbolrush");
 
         const selfAccept = await jfetch(baseUrl, "POST", `/api/duels/${created.data.duel.id}/rematch`, {
             userId: a.data.user.id,
@@ -822,7 +825,9 @@ test("rematch requires the rival's acceptance and swaps sides", async () => {
         // Sides are swapped: original opponentId becomes new challengerId
         assert.equal(rematch.data.duel.challengerId, b.data.user.id);
         assert.equal(rematch.data.duel.opponentId, a.data.user.id);
+        assert.equal(rematch.data.duel.stake, 10);
         assert.ok(rematch.data.duel.draft);
+        assert.equal(rematch.data.duel.draft.challenger.pick, "symbolrush");
         const rematchRoom = await jfetch(
             baseUrl,
             "GET",
@@ -877,9 +882,20 @@ test("rivalry is tracked after P2P duel", async () => {
         assert.equal(rivalry.status, 200);
         assert.equal(rivalry.data.exists, true);
         assert.equal(rivalry.data.last5.length, 1);
+        assert.equal(rivalry.data.currentStreak.count, 1);
+        assert.ok(rivalry.data.currentStreak.userId);
+        assert.ok(rivalry.data.bestGame[a.data.user.id] || rivalry.data.bestGame[b.data.user.id]);
         const totalWins = (rivalry.data.wins[a.data.user.id] || 0) +
             (rivalry.data.wins[b.data.user.id] || 0);
         assert.equal(totalWins, 1);
+
+        const favorite = await jfetch(baseUrl, "POST", "/api/rivalries/favorite", {
+            userId: a.data.user.id,
+            rivalId: b.data.user.id,
+        });
+        assert.equal(favorite.data.favoriteRivalId, b.data.user.id);
+        const state = await jfetch(baseUrl, "GET", `/api/state?userId=${a.data.user.id}`);
+        assert.equal(state.data.favoriteRivalId, b.data.user.id);
     });
 });
 

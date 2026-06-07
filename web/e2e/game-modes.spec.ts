@@ -293,7 +293,7 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
     const created = await post(request, '/api/duels', {
         challengerId: challenger.userId,
         opponentId: opponent.userId,
-        stake: 2,
+        stake: 5,
         draft: duelDraft('duelnumeric'),
     });
     const duelId = created.duel.id as string;
@@ -339,10 +339,18 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
     ]);
     await expect(challengerPage.getByText('HEAD TO HEAD')).toBeVisible();
     await expect(opponentPage.getByText('HEAD TO HEAD')).toBeVisible();
+    await challengerPage.getByRole('button', { name: 'Add favorite rival' }).click();
+    await expect.poll(async () => {
+        const state = await get(request, `/api/state?userId=${challenger.userId}`);
+        return state.favoriteRivalId;
+    }).toBe(opponent.userId);
 
-    await challengerPage.getByRole('button', { name: 'Request rematch' }).click();
+    await challengerPage.getByLabel('Stake').selectOption('10');
+    await challengerPage.getByLabel('Rotation').selectOption('symbolrush');
+    await challengerPage.getByRole('button', { name: 'Propose rematch' }).click();
     await expect(challengerPage.getByText(`Waiting for ${opponent.playerName}`)).toBeVisible();
     await expect(opponentPage.getByText(`${challenger.playerName} wants a rematch`)).toBeVisible();
+    await expect(opponentPage.getByText('SLAP$ 10 · Symbol Sprint')).toBeVisible();
     await opponentPage.getByRole('button', { name: 'Accept', exact: true }).click();
 
     await expect(challengerPage.getByText('RIVALRY ROOM')).toBeVisible();

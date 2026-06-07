@@ -31,6 +31,7 @@ export function FriendDuelPanel() {
     const wallet = useGameStore((state) => state.wallet);
     const language = useGameStore((state) => state.language);
     const difficulty = useGameStore((state) => state.difficultyMode);
+    const favoriteRivalId = useGameStore((state) => state.favoriteRivalId);
     const refreshLiveState = useGameStore((state) => state.refreshLiveState);
     const isFr = language === 'fr';
     const stakeCap = getRiskStakeCap(difficulty);
@@ -50,6 +51,8 @@ export function FriendDuelPanel() {
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
     const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
+    const [rematchStake, setRematchStake] = useState(2);
+    const [rematchGame, setRematchGame] = useState<CompetitiveGameId | ''>('');
     const [busy, setBusy] = useState(false);
     const [matchmaking, setMatchmaking] = useState(false);
     const [error, setError] = useState('');
@@ -195,6 +198,12 @@ export function FriendDuelPanel() {
             .then(setRivalry)
             .catch(() => setRivalry(null));
     }, [userId, match?.status, match?.challengerId, match?.opponentId, realtimeTick]);
+
+    useEffect(() => {
+        if (match?.status !== 'done') return;
+        setRematchStake(match.stake);
+        setRematchGame('');
+    }, [match?.duelId, match?.status, match?.stake]);
 
     async function createInviteLink() {
         if (!userId) return;
@@ -352,7 +361,14 @@ export function FriendDuelPanel() {
         setBusy(true);
         setError('');
         try {
-            const data = await api.respondToRematch(duelId, userId, action);
+            const data = await api.respondToRematch(
+                duelId,
+                userId,
+                action,
+                action === 'request'
+                    ? { stake: rematchStake, preferredGame: rematchGame || null }
+                    : undefined
+            );
             if (data.status === 'accepted' && data.duel) {
                 setDuelId(data.duel.id);
                 setMatch(null);
@@ -385,6 +401,19 @@ export function FriendDuelPanel() {
             await navigator.clipboard.writeText(`${text} ${window.location.origin}`);
         }
         if (userId) void api.trackProductEvent('result_shared', userId, { duelId: match.duelId }).catch(() => undefined);
+    }
+
+    async function toggleFavoriteRival(rivalId: string) {
+        if (!userId) return;
+        setBusy(true);
+        try {
+            await api.setFavoriteRival(userId, favoriteRivalId === rivalId ? null : rivalId);
+            await refreshLiveState();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Favorite rival unavailable');
+        } finally {
+            setBusy(false);
+        }
     }
 
     if (match?.status === 'playing') {
@@ -426,6 +455,9 @@ export function FriendDuelPanel() {
         const rivalWins = rivalry?.wins?.[rivalId] || 0;
         const requestedByMe = match.rematch?.status === 'pending' && match.rematch.requestedBy === userId;
         const requestedByRival = match.rematch?.status === 'pending' && match.rematch.requestedBy === rivalId;
+        const streakIsMine = rivalry?.currentStreak.userId === userId;
+        const bestGame = rivalry?.bestGame[userId || ''];
+        const doubledStake = STAKES.find((value) => value === match.stake * 2);
         return (
             <section className={`${styles.final} ${won ? styles.finalWin : styles.finalLoss}`}>
                 <span>{won ? (isFr ? 'VICTOIRE' : 'VICTORY') : (isFr ? 'DEFAITE' : 'DEFEAT')}</span>
@@ -435,15 +467,36 @@ export function FriendDuelPanel() {
                         <small>{isFr ? 'FACE-A-FACE' : 'HEAD TO HEAD'}</small>
                         <strong>{myRivalryWins} <span>–</span> {rivalWins}</strong>
                         <p>{isFr ? `Toi contre ${match.opponentName}` : `You against ${match.opponentName}`}</p>
+                        <em>
+                            {rivalry?.currentStreak.count
+                                ? `${streakIsMine ? (isFr ? 'Ta série' : 'Your streak') : (isFr ? 'Série adverse' : 'Rival streak')} ${rivalry.currentStreak.count}×`
+                                : (isFr ? 'Série à construire' : 'Build the streak')}
+                            {bestGame ? ` · ${gameLabel(bestGame, isFr)}` : ''}
+                        </em>
                     </div>
-                    <div className={styles.rivalryForm} aria-label={isFr ? 'Cinq derniers duels' : 'Last five duels'}>
-                        {(rivalry?.last5 || []).map((entry) => (
-                            <i
-                                key={`${entry.date}-${entry.winnerId}`}
-                                className={entry.winnerId === userId ? styles.rivalryWin : styles.rivalryLoss}
-                                title={entry.winnerId === userId ? (isFr ? 'Victoire' : 'Win') : (isFr ? 'Défaite' : 'Loss')}
-                            />
-                        ))}
+                    <div className={styles.rivalryAside}>
+                        <button
+                            type="button"
+                            className={favoriteRivalId === rivalId ? styles.favoriteActive : styles.favoriteButton}
+                            onClick={() => void toggleFavoriteRival(rivalId)}
+                            aria-label={favoriteRivalId === rivalId
+                                ? (isFr ? 'Retirer des rivaux favoris' : 'Remove favorite rival')
+                                : (isFr ? 'Ajouter aux rivaux favoris' : 'Add favorite rival')}
+                            title={favoriteRivalId === rivalId
+                                ? (isFr ? 'Rival favori' : 'Favorite rival')
+                                : (isFr ? 'Marquer comme favori' : 'Mark as favorite')}
+                        >
+                            ★
+                        </button>
+                        <div className={styles.rivalryForm} aria-label={isFr ? 'Cinq derniers duels' : 'Last five duels'}>
+                            {(rivalry?.last5 || []).map((entry) => (
+                                <i
+                                    key={`${entry.date}-${entry.winnerId}`}
+                                    className={entry.winnerId === userId ? styles.rivalryWin : styles.rivalryLoss}
+                                    title={entry.winnerId === userId ? (isFr ? 'Victoire' : 'Win') : (isFr ? 'Défaite' : 'Loss')}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
                 <div className={styles.roundRecap}>
@@ -464,6 +517,13 @@ export function FriendDuelPanel() {
                 {requestedByRival ? (
                     <div className={styles.rematchPrompt}>
                         <strong>{isFr ? `${match.opponentName} veut une revanche` : `${match.opponentName} wants a rematch`}</strong>
+                        <p>
+                            SLAP$ {match.rematch?.stake}
+                            {' · '}
+                            {match.rematch?.preferredGame
+                                ? gameLabel(match.rematch.preferredGame, isFr)
+                                : (isFr ? 'Même rotation' : 'Same rotation')}
+                        </p>
                         <div>
                             <button type="button" onClick={() => void handleRematch('accept')} disabled={busy}>
                                 {isFr ? 'Accepter' : 'Accept'}
@@ -476,14 +536,43 @@ export function FriendDuelPanel() {
                 ) : requestedByMe ? (
                     <div className={styles.rematchWaiting}>
                         <span className={styles.liveDot} />
-                        <strong>{isFr ? `En attente de ${match.opponentName}` : `Waiting for ${match.opponentName}`}</strong>
+                        <div>
+                            <strong>{isFr ? `En attente de ${match.opponentName}` : `Waiting for ${match.opponentName}`}</strong>
+                            <small>
+                                SLAP$ {match.rematch?.stake} · {match.rematch?.preferredGame
+                                    ? gameLabel(match.rematch.preferredGame, isFr)
+                                    : (isFr ? 'Même rotation' : 'Same rotation')}
+                            </small>
+                        </div>
                     </div>
                 ) : (
-                    <button type="button" onClick={() => void handleRematch('request')} disabled={busy}>
-                        {match.rematch?.status === 'declined'
-                            ? (isFr ? 'Redemander une revanche' : 'Ask again')
-                            : (isFr ? 'Demander une revanche' : 'Request rematch')}
-                    </button>
+                    <div className={styles.rematchBuilder}>
+                        <div className={styles.rematchOptions}>
+                            <label>
+                                <span>{isFr ? 'Mise' : 'Stake'}</span>
+                                <select value={rematchStake} onChange={(event) => setRematchStake(Number(event.target.value))}>
+                                    <option value={match.stake}>{isFr ? 'Même mise' : 'Same stake'} · SLAP$ {match.stake}</option>
+                                    {doubledStake && doubledStake <= Number(wallet) && (
+                                        <option value={doubledStake}>{isFr ? 'Doubler' : 'Double'} · SLAP$ {doubledStake}</option>
+                                    )}
+                                </select>
+                            </label>
+                            <label>
+                                <span>{isFr ? 'Rotation' : 'Rotation'}</span>
+                                <select value={rematchGame} onChange={(event) => setRematchGame(event.target.value as CompetitiveGameId | '')}>
+                                    <option value="">{isFr ? 'Même rotation' : 'Same rotation'}</option>
+                                    {COMPETITIVE_GAMES.map((game) => (
+                                        <option key={game.id} value={game.id}>{isFr ? game.labelFr : game.labelEn}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                        <button type="button" onClick={() => void handleRematch('request')} disabled={busy}>
+                            {match.rematch?.status === 'declined'
+                                ? (isFr ? 'Redemander une revanche' : 'Ask again')
+                                : (isFr ? 'Proposer la revanche' : 'Propose rematch')}
+                        </button>
+                    </div>
                 )}
                 {error && <p className={styles.error}>{error}</p>}
             </section>

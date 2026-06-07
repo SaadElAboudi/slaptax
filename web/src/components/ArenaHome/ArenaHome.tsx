@@ -24,6 +24,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const wallet = useGameStore((state) => state.wallet);
     const history = useGameStore((state) => state.history);
     const progression = useGameStore((state) => state.progression);
+    const favoriteRivalId = useGameStore((state) => state.favoriteRivalId);
     const isFr = language === 'fr';
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [activeDuel, setActiveDuel] = useState(false);
@@ -35,7 +36,8 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const [rivalBusy, setRivalBusy] = useState(false);
     const [realtimeTick, setRealtimeTick] = useState(0);
     const selectedGame = COMPETITIVE_GAMES[selectedIndex];
-    const recentRival = history.find((entry) => entry.opponentId && entry.opponentName);
+    const recentRival = history.find((entry) => entry.opponentId === favoriteRivalId && entry.opponentName)
+        || history.find((entry) => entry.opponentId && entry.opponentName);
 
     useRealtime(userId, (event) => {
         if (event.type === 'state.changed' || event.type === 'connected') {
@@ -207,8 +209,12 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                     {recentRival && (
                         <button type="button" className={styles.recentRival} onClick={() => void challengeRecentRival()} disabled={rivalBusy}>
                             <div>
-                                <small>{isFr ? 'DERNIER RIVAL' : 'LAST RIVAL'}</small>
-                                <strong>{recentRival.opponentName}</strong>
+                                <small>
+                                    {favoriteRivalId === recentRival.opponentId
+                                        ? (isFr ? 'RIVAL FAVORI' : 'FAVORITE RIVAL')
+                                        : (isFr ? 'DERNIER RIVAL' : 'LAST RIVAL')}
+                                </small>
+                                <strong>{favoriteRivalId === recentRival.opponentId ? '★ ' : ''}{recentRival.opponentName}</strong>
                             </div>
                             <span>{rivalBusy ? (isFr ? 'Envoi...' : 'Sending...') : (isFr ? 'Défier à nouveau' : 'Challenge again')}</span>
                         </button>

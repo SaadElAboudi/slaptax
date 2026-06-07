@@ -15,6 +15,7 @@ export interface GameState {
     stake: number;
     skillPool: string;
     apiBase: string;
+    favoriteRivalId?: string | null;
     progression?: PlayerProgression;
 }
 
@@ -280,6 +281,8 @@ export interface LiveDuelMatch {
         requestedBy: string;
         requestedAt: string;
         respondedAt: string | null;
+        stake: number;
+        preferredGame: CompetitiveGameId | null;
     } | null;
     attemptToken: string | null;
     roundStartedAt: string | null;
@@ -383,7 +386,9 @@ export interface RivalryResponse {
     exists: boolean;
     users?: Array<string | { id: string; playerName: string }>;
     wins: Record<string, number>;
-    last5: Array<{ winnerId: string; date: string }>;
+    last5: Array<{ winnerId: string; date: string; gameId?: CompetitiveGameId }>;
+    currentStreak: { userId: string | null; count: number };
+    bestGame: Record<string, CompetitiveGameId | null>;
 }
 
 export interface RematchResponse {
@@ -588,8 +593,12 @@ export const api = {
             attemptToken,
         }),
 
-    respondToRematch: (duelId: string, userId: string, action: 'request' | 'accept' | 'decline') =>
-        req<RematchResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`, { userId, action }),
+    respondToRematch: (
+        duelId: string,
+        userId: string,
+        action: 'request' | 'accept' | 'decline',
+        options?: { stake?: number; preferredGame?: CompetitiveGameId | null }
+    ) => req<RematchResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`, { userId, action, options }),
 
     reactToDuel: (duelId: string, userId: string, reaction: string) =>
         req<{ ok: boolean; reactions: LiveDuelMatch['reactions'] }>('POST', `/api/duels/${encodeURIComponent(duelId)}/reactions`, {
@@ -633,6 +642,9 @@ export const api = {
 
     getRivalry: (userAId: string, userBId: string) =>
         req<RivalryResponse>('GET', `/api/rivalries/${encodeURIComponent(userAId)}/vs/${encodeURIComponent(userBId)}`),
+
+    setFavoriteRival: (userId: string, rivalId: string | null) =>
+        req<{ ok: boolean; favoriteRivalId: string | null }>('POST', '/api/rivalries/favorite', { userId, rivalId }),
 
     trackProductEvent: (type: 'quick_play_clicked' | 'invite_link_copied' | 'result_shared', userId: string, properties?: Record<string, unknown>) =>
         req<{ ok: boolean }>('POST', '/api/analytics/events', { type, userId, properties }),

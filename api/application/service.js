@@ -320,6 +320,16 @@ function normalizeDraftPlan(draft) {
     return { challenger, opponent };
 }
 
+function buildPreferredDraft(preferredGame) {
+    const preferred = normalizeDraftGameId(preferredGame);
+    if (!preferred) return null;
+    const others = DRAFT_GAMES.map((game) => game.id).filter((id) => id !== preferred);
+    return {
+        challenger: { ban: others[0], pick: preferred },
+        opponent: { ban: others[1], pick: others[2] || preferred },
+    };
+}
+
 function pushHistory(user, entry) {
     user.history.unshift({
         ...entry,
@@ -563,6 +573,8 @@ function publicDuelMatch(duel, userId, db) {
                 requestedBy: duel.rematch.requestedBy,
                 requestedAt: duel.rematch.requestedAt,
                 respondedAt: duel.rematch.respondedAt || null,
+                stake: duel.rematch.stake || duel.stake,
+                preferredGame: duel.rematch.preferredGame || null,
             }
             : null,
         attemptToken: duel.status === "playing"
@@ -636,7 +648,11 @@ function settleLiveDuel(db, duel, winnerId) {
         };
     }
     db.rivalries[pairKey].wins[winnerId] = (db.rivalries[pairKey].wins[winnerId] || 0) + 1;
-    db.rivalries[pairKey].last5.unshift({ winnerId, date: duel.playedAt });
+    db.rivalries[pairKey].last5.unshift({
+        winnerId,
+        date: duel.playedAt,
+        gameId: duel.rounds.at(-1)?.gameId || duel.games?.[duel.currentRound - 1] || "bounce",
+    });
     db.rivalries[pairKey].last5 = db.rivalries[pairKey].last5.slice(0, 5);
 
     const finalGame = duel.rounds.at(-1)?.gameId || duel.games?.[duel.currentRound - 1] || "bounce";
@@ -687,6 +703,7 @@ function statePayload(db, userId, clientId) {
         playerName: activeUser.playerName,
         wallet: activeUser.wallet,
         stake: activeUser.stake,
+        favoriteRivalId: activeUser.favoriteRivalId || null,
         history: activeUser.history,
         stats: getStats(activeUser.history),
         skillPool: activeSkill.label,
@@ -1873,7 +1890,11 @@ function createService(store) {
                 };
             }
             db.rivalries[pairKey].wins[winnerId] = (db.rivalries[pairKey].wins[winnerId] || 0) + 1;
-            db.rivalries[pairKey].last5.unshift({ winnerId, date });
+            db.rivalries[pairKey].last5.unshift({
+                winnerId,
+                date,
+                gameId: played.rounds.at(-1)?.gameId || played.games.at(-1) || "bounce",
+            });
             db.rivalries[pairKey].last5 = db.rivalries[pairKey].last5.slice(0, 5);
 
             store.write(db);
@@ -2132,7 +2153,7 @@ function createService(store) {
             return { ok: true, match: publicDuelMatch(duel, winnerId, db) };
         },
 
-        rematch(duelId, userId, action = "request") {
+        rematch(duelId, userId, action = "request", options = {}) {
             const db = store.read();
             ensureCollections(db);
             const original = db.duels.find((d) => d.id === duelId);
@@ -2160,12 +2181,33 @@ function createService(store) {
                         match: publicDuelMatch(original, userId, db),
                     };
                 }
+                const proposedStake = Number(options.stake || original.stake);
+                if (!ALLOWED_STAKES.includes(proposedStake)) {
+                    return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
+                }
+                const preferredGame = options.preferredGame
+                    ? normalizeDraftGameId(options.preferredGame)
+                    : "";
+                if (options.preferredGame && !preferredGame) {
+                    return { error: "Unsupported preferred game", code: 400 };
+                }
+                const challenger = db.users.find((entry) => entry.id === original.challengerId);
+                const opponent = db.users.find((entry) => entry.id === original.opponentId);
+                if (challenger.wallet < proposedStake || opponent.wallet < proposedStake) {
+                    return { error: "A player has insufficient wallet balance for this rematch", code: 400 };
+                }
                 original.rematch = {
                     status: "pending",
                     requestedBy: userId,
                     requestedAt: new Date().toISOString(),
+                    stake: proposedStake,
+                    preferredGame: preferredGame || null,
                 };
-                recordProductEvent(db, "rematch_requested", userId, { originalDuelId: duelId });
+                recordProductEvent(db, "rematch_requested", userId, {
+                    originalDuelId: duelId,
+                    stake: proposedStake,
+                    preferredGame: preferredGame || null,
+                });
                 store.write(db);
                 return {
                     ok: true,
@@ -2198,8 +2240,10 @@ function createService(store) {
             const created = this.createDuel(
                 original.opponentId,
                 original.challengerId,
-                original.stake,
-                original.draft,
+                original.rematch.stake || original.stake,
+                original.rematch.preferredGame
+                    ? buildPreferredDraft(original.rematch.preferredGame)
+                    : original.draft,
                 original.bestOf || 3
             );
             if (!created.ok) return created;
@@ -2262,8 +2306,37 @@ function createService(store) {
 
         getRivalry(userAId, userBId) {
             const db = store.read();
+            ensureCollections(db);
             const pairKey = [userAId, userBId].sort().join("_");
             const rivalry = db.rivalries && db.rivalries[pairKey];
+            const pairDuels = db.duels.filter(
+                (duel) => duel.status === "done"
+                    && [duel.challengerId, duel.opponentId].sort().join("_") === pairKey
+            );
+            const gameWins = { [userAId]: {}, [userBId]: {} };
+            pairDuels.forEach((duel) => {
+                (duel.rounds || []).forEach((round) => {
+                    const roundWinnerId = round.winnerId
+                        || (round.winner === "CHALLENGER" ? duel.challengerId : round.winner === "OPPONENT" ? duel.opponentId : "");
+                    if (!gameWins[roundWinnerId]) return;
+                    gameWins[roundWinnerId][round.gameId] = (gameWins[roundWinnerId][round.gameId] || 0) + 1;
+                });
+            });
+            const bestGame = Object.fromEntries(
+                [userAId, userBId].map((id) => {
+                    const entries = Object.entries(gameWins[id] || {}).sort((a, b) => b[1] - a[1]);
+                    return [id, entries[0]?.[0] || null];
+                })
+            );
+            const recent = rivalry?.last5 || [];
+            const streakWinnerId = recent[0]?.winnerId || null;
+            const streakCount = streakWinnerId
+                ? recent.findIndex((entry) => entry.winnerId !== streakWinnerId)
+                : 0;
+            const currentStreak = {
+                userId: streakWinnerId,
+                count: streakWinnerId ? (streakCount === -1 ? recent.length : streakCount) : 0,
+            };
             if (!rivalry) {
                 return {
                     ok: true,
@@ -2271,6 +2344,8 @@ function createService(store) {
                     users: [userAId, userBId],
                     wins: { [userAId]: 0, [userBId]: 0 },
                     last5: [],
+                    currentStreak,
+                    bestGame,
                 };
             }
             const userA = db.users.find((u) => u.id === userAId);
@@ -2285,7 +2360,26 @@ function createService(store) {
                 ],
                 wins: rivalry.wins,
                 last5: rivalry.last5,
+                currentStreak,
+                bestGame,
             };
+        },
+
+        setFavoriteRival(userId, rivalId) {
+            const db = store.read();
+            ensureCollections(db);
+            const user = db.users.find((entry) => entry.id === userId);
+            if (!user) return { error: "User not found", code: 404 };
+            const normalizedRivalId = String(rivalId || "").trim();
+            if (normalizedRivalId) {
+                if (normalizedRivalId === userId) return { error: "Cannot favorite yourself", code: 400 };
+                if (!db.users.some((entry) => entry.id === normalizedRivalId)) {
+                    return { error: "Rival not found", code: 404 };
+                }
+            }
+            user.favoriteRivalId = normalizedRivalId || null;
+            store.write(db);
+            return { ok: true, favoriteRivalId: user.favoriteRivalId };
         },
 
         // ── Sprint 3: KPI analytics ──────────────────────────────────────────
