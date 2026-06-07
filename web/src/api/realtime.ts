@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 
 interface RealtimeEvent {
-    type: 'connected' | 'state.changed';
+    type: 'connected' | 'state.changed' | 'presence.changed';
     scope?: string;
+    userId?: string;
+    online?: boolean;
     at: number;
 }
 

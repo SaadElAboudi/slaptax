@@ -109,7 +109,7 @@ test("realtime clients receive state changes without polling", async () => {
     });
 });
 
-test("shared Bounce streams one authoritative ball to both duel players", async () => {
+test("shared Bounce streams one authoritative arena and resolves without client scores", async () => {
     await withServer(async (baseUrl) => {
         const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BounceA" });
         const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BounceB" });
@@ -137,11 +137,11 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
         const statesB = [];
         socketA.on("message", (data) => {
             const event = JSON.parse(String(data));
-            if (event.type === "bounce.state") statesA.push(event);
+            if (event.type === "arena.state") statesA.push(event);
         });
         socketB.on("message", (data) => {
             const event = JSON.parse(String(data));
-            if (event.type === "bounce.state") statesB.push(event);
+            if (event.type === "arena.state") statesB.push(event);
         });
 
         await Promise.all([
@@ -154,8 +154,8 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
                 socketB.once("error", reject);
             }),
         ]);
-        socketA.send(JSON.stringify({ type: "bounce.join", duelId, round: 1 }));
-        socketB.send(JSON.stringify({ type: "bounce.join", duelId, round: 1 }));
+        socketA.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        socketB.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error("Shared Bounce did not start")), 4000);
@@ -173,7 +173,7 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
             check();
         });
 
-        socketA.send(JSON.stringify({ type: "bounce.paddle", x: 0.22 }));
+        socketA.send(JSON.stringify({ type: "arena.action", action: "move", x: 0.22 }));
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error("Shared paddle update was not broadcast")), 1500);
             const check = () => {
@@ -192,11 +192,11 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
         const latestB = [...statesB].reverse().find((state) => state.phase === "playing");
         assert.ok(latestA);
         assert.ok(latestB);
-        assert.ok(Math.abs(latestA.ball.x - latestB.ball.x) < 0.03);
-        assert.ok(Math.abs(latestA.ball.y - latestB.ball.y) < 0.03);
+        assert.ok(Math.abs(latestA.balls[0].x - latestB.balls[0].x) < 0.03);
+        assert.ok(Math.abs(latestA.balls[0].y - latestB.balls[0].y) < 0.03);
 
-        socketA.send(JSON.stringify({ type: "bounce.paddle", x: 0.07 }));
-        socketB.send(JSON.stringify({ type: "bounce.paddle", x: 0.07 }));
+        socketA.send(JSON.stringify({ type: "arena.action", action: "move", x: 0.07 }));
+        socketB.send(JSON.stringify({ type: "arena.action", action: "move", x: 0.07 }));
         const finishedState = await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error("Shared Bounce did not resolve a winner")), 5000);
             const check = () => {
@@ -212,27 +212,14 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
         });
         assert.equal(finishedState.winnerId, bId);
 
-        const bMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
-        const [aResult, bResult] = await Promise.all([
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: aId,
-                round: 1,
-                score: 0,
-                metric: finishedState.duration,
-                attemptToken: started.data.match.attemptToken,
-            }),
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: bId,
-                round: 1,
-                score: 1000,
-                metric: finishedState.duration,
-                attemptToken: bMatch.data.match.attemptToken,
-            }),
-        ]);
-        const advanced = [aResult, bResult].find((result) => result.data.match.currentRound === 2);
-        assert.ok(advanced);
+        const advanced = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
+        assert.equal(advanced.data.match.currentRound, 2);
         assert.deepEqual(advanced.data.match.score, { challenger: 0, opponent: 1 });
         assert.equal(advanced.data.match.rounds[0].winnerId, bId);
+        assert.equal(advanced.data.match.rounds[0].authoritative, true);
+        const progressed = await jfetch(baseUrl, "GET", `/api/state?userId=${bId}`);
+        assert.ok(progressed.data.progression.xp > 0);
+        assert.equal(progressed.data.progression.mastery.bounce.plays, 1);
 
         socketA.close();
         socketB.close();
@@ -240,6 +227,262 @@ test("shared Bounce streams one authoritative ball to both duel players", async 
             new Promise((resolve) => socketA.once("close", resolve)),
             new Promise((resolve) => socketB.once("close", resolve)),
         ]);
+    });
+});
+
+test("matchmaking pairs compatible players and BO format is configurable", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "QueueA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "QueueB" });
+        const waiting = await jfetch(baseUrl, "POST", "/api/matchmaking/join", {
+            userId: a.data.user.id,
+            stake: 2,
+        });
+        assert.equal(waiting.data.status, "waiting");
+        const matched = await jfetch(baseUrl, "POST", "/api/matchmaking/join", {
+            userId: b.data.user.id,
+            stake: 2,
+        });
+        assert.equal(matched.data.status, "matched");
+        assert.ok(matched.data.duel.id);
+
+        const custom = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: a.data.user.id,
+            opponentId: b.data.user.id,
+            stake: 2,
+            bestOf: 5,
+        });
+        assert.equal(custom.data.duel.bestOf, 5);
+    });
+});
+
+test("Symbol Sprint shares one sequence, hides answers, and accepts spectators", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SymbolA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SymbolB" });
+        const watcher = await jfetch(baseUrl, "POST", "/api/users", { playerName: "Watcher" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+            draft: {
+                challenger: { ban: "bounce", pick: "symbolrush" },
+                opponent: { ban: "cupshuffle", pick: "symbolrush" },
+            },
+        });
+        const duelId = created.data.duel.id;
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+
+        const socketUrl = baseUrl.replace(/^http/, "ws");
+        const sockets = [aId, bId, watcher.data.user.id].map(
+            (userId) => new WebSocket(`${socketUrl}/api/realtime?userId=${userId}`)
+        );
+        const states = [[], [], []];
+        sockets.forEach((socket, index) => socket.on("message", (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "arena.state") states[index].push(event);
+        }));
+        await Promise.all(sockets.map((socket) => new Promise((resolve, reject) => {
+            socket.once("open", resolve);
+            socket.once("error", reject);
+        })));
+        sockets[0].send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        sockets[1].send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        sockets[2].send(JSON.stringify({ type: "arena.watch", duelId, round: 1 }));
+
+        const revealed = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Symbol arena did not reveal")), 5000);
+            const check = () => {
+                const state = [...states[0]].reverse().find(
+                    (entry) => entry.phase === "playing" && entry.sequence?.length
+                );
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve(state);
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+        assert.equal(revealed.gameId, "symbolrush");
+        assert.equal(revealed.spectatorCount, 1);
+        assert.equal(revealed.sequence.length, revealed.sequenceLength);
+        await new Promise((resolve) => setTimeout(resolve, Math.max(0, revealed.revealEndsAt - Date.now() + 80)));
+        for (const symbol of revealed.sequence) {
+            sockets[0].send(JSON.stringify({ type: "arena.action", action: "answer", symbol }));
+            await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        const done = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Symbol arena did not finish")), 2000);
+            const check = () => {
+                const state = [...states[2]].reverse().find((entry) => entry.phase === "done");
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve(state);
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+        assert.equal(done.winnerId, aId);
+        sockets.forEach((socket) => socket.close());
+        await Promise.all(sockets.map((socket) => new Promise((resolve) => socket.once("close", resolve))));
+    });
+});
+
+test("Bomb Pass alternates a server-owned bomb and explodes on its holder", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BombA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "BombB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+            draft: {
+                challenger: { ban: "bounce", pick: "bombpass" },
+                opponent: { ban: "symbolrush", pick: "bombpass" },
+            },
+        });
+        const duelId = created.data.duel.id;
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+        const socketUrl = baseUrl.replace(/^http/, "ws");
+        const socketA = new WebSocket(`${socketUrl}/api/realtime?userId=${aId}`);
+        const socketB = new WebSocket(`${socketUrl}/api/realtime?userId=${bId}`);
+        const states = [];
+        socketA.on("message", (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "arena.state") states.push(event);
+        });
+        await Promise.all([socketA, socketB].map((socket) => new Promise((resolve, reject) => {
+            socket.once("open", resolve);
+            socket.once("error", reject);
+        })));
+        socketA.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        socketB.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        const playing = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Bomb arena did not start")), 5000);
+            const check = () => {
+                const state = [...states].reverse().find((entry) => entry.phase === "playing");
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve(state);
+                    return;
+                }
+                setTimeout(check, 20);
+            };
+            check();
+        });
+        assert.equal(playing.holderId, aId);
+        const done = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Bomb did not explode")), 10_000);
+            const check = () => {
+                const state = [...states].reverse().find((entry) => entry.phase === "done");
+                if (state) {
+                    clearTimeout(timeout);
+                    resolve(state);
+                    return;
+                }
+                setTimeout(check, 25);
+            };
+            check();
+        });
+        assert.equal(done.finishReason, "bomb-exploded");
+        assert.equal(done.winnerId, bId);
+        socketA.close();
+        socketB.close();
+        await Promise.all([socketA, socketB].map((socket) => new Promise((resolve) => socket.once("close", resolve))));
+    });
+});
+
+test("multiplayer tournament creates human duels and advances a persistent bracket", async () => {
+    await withServer(async (baseUrl) => {
+        const players = await Promise.all(
+            ["BracketA", "BracketB", "BracketC", "BracketD"].map((playerName) =>
+                jfetch(baseUrl, "POST", "/api/users", { playerName })
+            )
+        );
+        const ids = players.map((entry) => entry.data.user.id);
+        const created = await jfetch(baseUrl, "POST", "/api/arena-tournaments", {
+            hostId: ids[0],
+            size: 4,
+            visibility: "public",
+            name: "Human Cup",
+        });
+        const tournamentId = created.data.tournament.id;
+        for (const userId of ids.slice(1)) {
+            const joined = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${tournamentId}/join`, { userId });
+            assert.equal(joined.status, 200);
+        }
+        const started = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${tournamentId}/start`, {
+            userId: ids[0],
+        });
+        assert.equal(started.status, 200);
+        assert.equal(started.data.tournament.bracket[0].matches.length, 2);
+
+        async function resolveMatch(match) {
+            const aId = match.playerAId;
+            const bId = match.playerBId;
+            await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/ready`, { userId: aId, ready: true });
+            await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/ready`, { userId: bId, ready: true });
+            const aStart = await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/start`, { userId: aId });
+            const bStart = await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${bId}`);
+            for (const round of [1, 2]) {
+                const currentA = round === 1
+                    ? aStart
+                    : await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${aId}`);
+                const currentB = round === 1
+                    ? bStart
+                    : await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${bId}`);
+                await Promise.all([
+                    jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/rounds`, {
+                        userId: aId,
+                        round,
+                        score: 1000,
+                        metric: 900,
+                        attemptToken: currentA.data.match.attemptToken,
+                    }),
+                    jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/rounds`, {
+                        userId: bId,
+                        round,
+                        score: 0,
+                        metric: 1200,
+                        attemptToken: currentB.data.match.attemptToken,
+                    }),
+                ]);
+            }
+            return aId;
+        }
+
+        const semifinalWinners = [];
+        for (const match of started.data.tournament.bracket[0].matches) {
+            semifinalWinners.push(await resolveMatch(match));
+        }
+        const afterSemis = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/arena-tournaments/${tournamentId}?userId=${ids[0]}`
+        );
+        assert.equal(afterSemis.data.tournament.bracket.length, 2);
+        const final = afterSemis.data.tournament.bracket[1].matches[0];
+        assert.deepEqual(new Set([final.playerAId, final.playerBId]), new Set(semifinalWinners));
+        const championId = await resolveMatch(final);
+        const completed = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/arena-tournaments/${tournamentId}?userId=${ids[0]}`
+        );
+        assert.equal(completed.data.tournament.status, "done");
+        assert.equal(completed.data.tournament.championId, championId);
     });
 });
 

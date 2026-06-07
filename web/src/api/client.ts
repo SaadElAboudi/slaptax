@@ -15,6 +15,24 @@ export interface GameState {
     stake: number;
     skillPool: string;
     apiBase: string;
+    progression?: PlayerProgression;
+}
+
+export interface PlayerProgression {
+    xp: number;
+    level: number;
+    rankedPoints: number;
+    rank: string;
+    winStreak: number;
+    bestStreak: number;
+    badges: string[];
+    mastery: Record<string, { xp: number; wins: number; plays: number }>;
+    daily: {
+        dayKey: string;
+        claimed: boolean;
+        tasks: Array<{ id: string; label: string; target: number; progress: number; rewardXp: number }>;
+    };
+    season: { id: string; points: number };
 }
 
 export interface HistoryEntry {
@@ -45,6 +63,9 @@ export interface UserListEntry {
         losses: number;
         winRate: number;
     };
+    online?: boolean;
+    lastSeenAt?: string | null;
+    rank?: string;
 }
 
 export interface UsersResponse {
@@ -244,6 +265,7 @@ export interface LiveDuelMatch {
     attemptToken: string | null;
     roundStartedAt: string | null;
     submittedBy: Record<string, string[]>;
+    reactions: Array<{ userId: string; reaction: string; at: string }>;
 }
 
 export interface LiveTournament {
@@ -277,6 +299,47 @@ export interface LiveTournamentResponse {
     ok: boolean;
     tournament: LiveTournament | null;
     wallet?: number;
+}
+
+export interface MultiplayerTournamentMatch {
+    id: string;
+    duelId: string;
+    playerAId: string;
+    playerBId: string;
+    playerAName: string;
+    playerBName: string;
+    winnerId: string | null;
+    winnerName: string | null;
+    status: 'pending' | 'done';
+    deadlineAt: string;
+}
+
+export interface MultiplayerTournament {
+    id: string;
+    kind: 'multiplayer';
+    name: string;
+    hostId: string;
+    size: 4 | 8 | 16;
+    visibility: 'public' | 'private';
+    status: 'waiting' | 'playing' | 'done';
+    entrants: Array<{ id: string; name: string; online: boolean; bot: boolean }>;
+    bracket: Array<{ round: number; matches: MultiplayerTournamentMatch[] }>;
+    currentRound: number;
+    championId: string | null;
+}
+
+export interface MultiplayerTournamentResponse {
+    ok: boolean;
+    tournament: MultiplayerTournament;
+    activeDuelId?: string | null;
+    spectatorMatch?: {
+        duelId: string;
+        challengerId: string;
+        opponentName: string;
+        games: CompetitiveGameId[];
+        currentRound: number;
+        status: 'playing';
+    } | null;
 }
 
 export interface OpenInvite {
@@ -452,6 +515,12 @@ export const api = {
     createDuel: (challengerId: string, opponentId: string, stake: number, draft?: unknown) =>
         req<CreateDuelResponse>('POST', '/api/duels', { challengerId, opponentId, stake, draft }),
 
+    joinMatchmaking: (userId: string, stake: number) =>
+        req<{ ok: boolean; status: 'waiting' | 'matched'; duel?: P2PDuel }>('POST', '/api/matchmaking/join', { userId, stake }),
+
+    cancelMatchmaking: (userId: string) =>
+        req<{ ok: boolean }>('POST', '/api/matchmaking/cancel', { userId }),
+
     playP2PDuel: (duelId: string) =>
         req<PlayP2PResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/play`),
 
@@ -482,21 +551,29 @@ export const api = {
     rematchP2P: (duelId: string) =>
         req<CreateDuelResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/rematch`),
 
-    createChallenge: (challengerId: string, opponentId: string, stake: number, draftOrMessage?: unknown, message?: string) =>
+    reactToDuel: (duelId: string, userId: string, reaction: string) =>
+        req<{ ok: boolean; reactions: LiveDuelMatch['reactions'] }>('POST', `/api/duels/${encodeURIComponent(duelId)}/reactions`, {
+            userId,
+            reaction,
+        }),
+
+    createChallenge: (challengerId: string, opponentId: string, stake: number, draftOrMessage?: unknown, message?: string, bestOf = 3) =>
         req<CreateChallengeResponse>('POST', '/api/challenges', {
             challengerId,
             opponentId,
             stake,
             draft: message === undefined ? undefined : draftOrMessage,
             message: message === undefined ? draftOrMessage : message,
+            bestOf,
         }),
 
-    createOpenInvite: (challengerId: string, stake: number, draft: unknown, message?: string) =>
+    createOpenInvite: (challengerId: string, stake: number, draft: unknown, message?: string, bestOf = 3) =>
         req<{ ok: boolean; challenge: Challenge }>('POST', '/api/invites', {
             challengerId,
             stake,
             draft,
             message,
+            bestOf,
         }),
 
     getOpenInvite: (inviteId: string) =>
@@ -536,4 +613,19 @@ export const api = {
 
     abandonLiveTournament: (tournamentId: string, userId: string) =>
         req<LiveTournamentResponse>('POST', `/api/tournaments/${encodeURIComponent(tournamentId)}/abandon`, { userId }),
+
+    listMultiplayerTournaments: (userId: string) =>
+        req<{ ok: boolean; tournaments: MultiplayerTournament[] }>('GET', `/api/arena-tournaments?userId=${encodeURIComponent(userId)}`),
+
+    createMultiplayerTournament: (hostId: string, size: number, visibility: 'public' | 'private', name: string) =>
+        req<MultiplayerTournamentResponse>('POST', '/api/arena-tournaments', { hostId, size, visibility, name }),
+
+    getMultiplayerTournament: (tournamentId: string, userId: string) =>
+        req<MultiplayerTournamentResponse>('GET', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}?userId=${encodeURIComponent(userId)}`),
+
+    joinMultiplayerTournament: (tournamentId: string, userId: string) =>
+        req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/join`, { userId }),
+
+    startMultiplayerTournament: (tournamentId: string, userId: string) =>
+        req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/start`, { userId }),
 };

@@ -1,9 +1,9 @@
 const { WebSocketServer, WebSocket } = require("ws");
-const { createSharedBounceManager } = require("./games/sharedBounce");
+const { createSharedArenaManager } = require("./games/sharedArena");
 
-function createRealtimeHub(server, store) {
+function createRealtimeHub(server, store, service) {
     const wss = new WebSocketServer({ noServer: true });
-    const sharedBounce = createSharedBounceManager(store);
+    const sharedArena = createSharedArenaManager(store, service, broadcast);
 
     server.on("upgrade", (request, socket, head) => {
         const url = new URL(request.url, "http://localhost");
@@ -23,7 +23,7 @@ function createRealtimeHub(server, store) {
         client.on("pong", () => {
             client.isAlive = true;
         });
-        sharedBounce.attach(client);
+        sharedArena.attach(client);
         client.send(JSON.stringify({ type: "connected", at: Date.now() }));
     });
 
@@ -48,12 +48,12 @@ function createRealtimeHub(server, store) {
 
     function close() {
         clearInterval(heartbeat);
-        sharedBounce.close();
+        sharedArena.close();
         for (const client of wss.clients) client.close(1001, "Server shutting down");
         wss.close();
     }
 
-    return { broadcast, close, wss, sharedBounce };
+    return { broadcast, close, wss, sharedArena };
 }
 
 module.exports = { createRealtimeHub };

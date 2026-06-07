@@ -27,6 +27,40 @@
     white-space: nowrap;
 }
 
+.progressionRail {
+    min-height: 46px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 8px;
+}
+
+.progressionRail > div {
+    min-width: 0;
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border: 1px solid var(--line-soft);
+    background: #090c10;
+}
+
+.progressionRail span {
+    color: var(--muted);
+    font: 700 .58rem 'Space Mono', monospace;
+}
+
+.progressionRail strong {
+    color: var(--accent);
+    font-size: .76rem;
+}
+
+.progressionRail i {
+    display: block;
+    height: 5px;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(255, 212, 0, .28);
+}
+
 .statusRail span,
 .intro > span,
 .resume span,
@@ -290,6 +324,14 @@
     .resume {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .progressionRail {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .progressionRail > div:first-child {
+        grid-column: 1 / -1;
     }
 
     .resume > div:last-child {

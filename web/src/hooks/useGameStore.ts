@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api, type HistoryEntry, type LeaderboardEntry } from '../api/client';
+import { api, type HistoryEntry, type LeaderboardEntry, type PlayerProgression } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +23,7 @@ interface GameStore {
     wallet: number;
     stake: number;
     skillPool: SkillPool;
+    progression: PlayerProgression | null;
     setProfile: (name: string) => void;
     joinSession: (name?: string) => Promise<void>;
     setUserId: (id: string | null) => void;
@@ -80,6 +81,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 stake: state.stake,
                 playerName: state.playerName || get().playerName,
                 skillPool: (state.skillPool as SkillPool) || 'Rookie',
+                progression: state.progression || null,
             });
         } catch {
             /* API offline, keep local */
@@ -103,6 +105,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     wallet: 25,
     stake: 5,
     skillPool: 'Rookie',
+    progression: null,
     setProfile: (name) => {
         try { localStorage.setItem('slaptax_player_name', name); } catch { /* ignore */ }
         set({ playerName: name });

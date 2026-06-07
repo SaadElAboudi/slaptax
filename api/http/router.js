@@ -117,6 +117,50 @@ function createRequestHandler(service) {
             return;
         }
 
+        if (req.method === "GET" && url.pathname === "/api/arena-tournaments") {
+            const result = service.listMultiplayerTournaments(url.searchParams.get("userId") || "");
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/arena-tournaments") {
+            const body = await parseBody(req);
+            const result = service.createMultiplayerTournament(
+                body.hostId,
+                body.size,
+                body.visibility,
+                body.name
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const arenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)$/);
+        if (req.method === "GET" && arenaTournamentMatch) {
+            const result = service.getMultiplayerTournament(
+                arenaTournamentMatch[1],
+                url.searchParams.get("userId") || ""
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const joinArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/join$/);
+        if (req.method === "POST" && joinArenaTournamentMatch) {
+            const body = await parseBody(req);
+            const result = service.joinMultiplayerTournament(joinArenaTournamentMatch[1], body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const startArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/start$/);
+        if (req.method === "POST" && startArenaTournamentMatch) {
+            const body = await parseBody(req);
+            const result = service.startMultiplayerTournament(startArenaTournamentMatch[1], body.userId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
         if (req.method === "GET" && url.pathname === "/api/tournaments/active") {
             const result = service.getActiveLiveTournament(url.searchParams.get("userId") || "");
             json(res, result.code || 200, result);
@@ -164,7 +208,27 @@ function createRequestHandler(service) {
 
         if (req.method === "POST" && url.pathname === "/api/duels") {
             const body = await parseBody(req);
-            const result = service.createDuel(body.challengerId, body.opponentId, body.stake, body.draft);
+            const result = service.createDuel(
+                body.challengerId,
+                body.opponentId,
+                body.stake,
+                body.draft,
+                body.bestOf
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/matchmaking/join") {
+            const body = await parseBody(req);
+            const result = service.joinMatchmaking(body.userId, body.stake);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/api/matchmaking/cancel") {
+            const body = await parseBody(req);
+            const result = service.cancelMatchmaking(body.userId);
             json(res, result.code || 200, result);
             return;
         }
@@ -176,7 +240,8 @@ function createRequestHandler(service) {
                 body.opponentId,
                 body.stake,
                 body.draft,
-                body.message
+                body.message,
+                body.bestOf
             );
             json(res, result.code || 200, result);
             return;
@@ -188,7 +253,8 @@ function createRequestHandler(service) {
                 body.challengerId,
                 body.stake,
                 body.draft || null,
-                body.message || ""
+                body.message || "",
+                body.bestOf
             );
             json(res, result.code || 200, result);
             return;
@@ -319,6 +385,14 @@ function createRequestHandler(service) {
         const rematchMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/rematch$/);
         if (req.method === "POST" && rematchMatch) {
             const result = service.rematch(rematchMatch[1]);
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const reactionMatch = url.pathname.match(/^\/api\/duels\/([^/]+)\/reactions$/);
+        if (req.method === "POST" && reactionMatch) {
+            const body = await parseBody(req);
+            const result = service.reactToDuel(reactionMatch[1], body.userId, body.reaction);
             json(res, result.code || 200, result);
             return;
         }

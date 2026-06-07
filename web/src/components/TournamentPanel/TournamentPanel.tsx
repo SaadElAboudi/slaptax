@@ -1,174 +1,291 @@
-import { useEffect, useState } from 'react';
-import { api, type LiveTournament } from '../../api/client';
-import { COMPETITIVE_GAMES, type CompetitiveGameId } from '../../gameplay/catalog';
-import { getRiskStakeCap } from '../../gameplay/difficulty';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    api,
+    type DuelRoomState,
+    type LiveDuelMatch,
+    type MultiplayerTournament,
+    type MultiplayerTournamentResponse,
+} from '../../api/client';
+import { useRealtime } from '../../api/realtime';
+import { gameLabel } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TournamentPanel.module.css';
 
-const SIZES = [8, 16, 32];
-const STAKES = [2, 5, 10, 20];
-
-function stageLabel(round: number, total: number, isFr: boolean) {
-    if (round === total) return isFr ? 'Finale' : 'Final';
-    if (round === total - 1) return isFr ? 'Demi-finale' : 'Semifinal';
-    if (round === total - 2) return isFr ? 'Quart de finale' : 'Quarterfinal';
-    return isFr ? `Tour ${round}` : `Round ${round}`;
-}
+const SIZES = [4, 8, 16] as const;
 
 export function TournamentPanel() {
     const userId = useGameStore((state) => state.userId);
-    const wallet = useGameStore((state) => state.wallet);
     const language = useGameStore((state) => state.language);
-    const difficulty = useGameStore((state) => state.difficultyMode);
     const refreshLiveState = useGameStore((state) => state.refreshLiveState);
     const isFr = language === 'fr';
-    const stakeCap = getRiskStakeCap(difficulty);
-
-    const [size, setSize] = useState(8);
-    const [stake, setStake] = useState(5);
-    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>('bounce');
-    const [tournament, setTournament] = useState<LiveTournament | null>(null);
+    const [size, setSize] = useState<4 | 8 | 16>(4);
+    const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+    const [name, setName] = useState('Arena Cup');
+    const [tournaments, setTournaments] = useState<MultiplayerTournament[]>([]);
+    const [tournament, setTournament] = useState<MultiplayerTournament | null>(null);
+    const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
+    const [match, setMatch] = useState<LiveDuelMatch | null>(null);
+    const [room, setRoom] = useState<DuelRoomState | null>(null);
+    const [spectatorMatch, setSpectatorMatch] = useState<MultiplayerTournamentResponse['spectatorMatch']>(null);
+    const [spectating, setSpectating] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
-    const [intermission, setIntermission] = useState<LiveTournament['rounds'][number] | null>(null);
-    const [confirmLeave, setConfirmLeave] = useState(false);
-    const affordable = STAKES.filter((value) => value <= Math.min(Number(wallet), stakeCap));
+    const [tick, setTick] = useState(0);
+
+    useRealtime(userId, (event) => {
+        if (event.type === 'state.changed' || event.type === 'presence.changed' || event.type === 'connected') {
+            setTick((value) => value + 1);
+        }
+    });
+
+    const loadList = useCallback(async () => {
+        if (!userId) return;
+        const data = await api.listMultiplayerTournaments(userId);
+        setTournaments(data.tournaments);
+        const active = data.tournaments.find(
+            (entry) => entry.entrants.some((entrant) => entrant.id === userId) && entry.status !== 'done'
+        );
+        if (active && !tournament) setTournament(active);
+    }, [tournament, userId]);
+
+    const loadTournament = useCallback(async () => {
+        if (!userId || !tournament) return;
+        const data = await api.getMultiplayerTournament(tournament.id, userId);
+        setTournament(data.tournament);
+        setActiveDuelId(data.activeDuelId || null);
+        setSpectatorMatch(data.spectatorMatch || null);
+    }, [tournament?.id, userId]);
 
     useEffect(() => {
-        if (!userId || tournament) return;
-        void api.getActiveLiveTournament(userId)
-            .then((data) => {
-                if (data.tournament) setTournament(data.tournament);
-            })
-            .catch(() => {
-                // No resumable tournament yet.
-            });
-    }, [userId, tournament]);
+        void loadList().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Tournament lobby unavailable'));
+    }, [loadList, tick]);
 
-    async function startTournament() {
+    useEffect(() => {
+        void loadTournament().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Bracket unavailable'));
+    }, [loadTournament, tick]);
+
+    useEffect(() => {
+        if (!activeDuelId || !userId) {
+            setMatch(null);
+            setRoom(null);
+            return;
+        }
+        void api.getLiveDuel(activeDuelId, userId)
+            .then(async (data) => {
+                setMatch(data.match);
+                if (data.match.status === 'pending') {
+                    setRoom((await api.getDuelRoom(activeDuelId, userId)).room);
+                }
+            })
+            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Match unavailable'));
+    }, [activeDuelId, tick, userId]);
+
+    async function createTournament() {
         if (!userId) return;
         setBusy(true);
         setError('');
         try {
-            const fallbackBan = COMPETITIVE_GAMES.find((game) => game.id !== preferredGame)?.id || 'duelnumeric';
-            const data = await api.createLiveTournament(size, stake, { ban: fallbackBan, pick: preferredGame }, userId);
-            if (data.tournament) setTournament(data.tournament);
-            await refreshLiveState();
+            const data = await api.createMultiplayerTournament(userId, size, visibility, name);
+            setTournament(data.tournament);
+            await loadList();
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : 'Tournament unavailable');
+            setError(cause instanceof Error ? cause.message : 'Creation failed');
         } finally {
             setBusy(false);
         }
     }
 
-    async function submitRound(result: { score: number; metric: number }) {
+    async function joinTournament(entry: MultiplayerTournament) {
+        if (!userId) return;
+        setBusy(true);
+        try {
+            await api.joinMultiplayerTournament(entry.id, userId);
+            const data = await api.getMultiplayerTournament(entry.id, userId);
+            setTournament(data.tournament);
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Unable to join');
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function startTournament() {
         if (!userId || !tournament) return;
         setBusy(true);
         try {
-            if (!tournament.attemptToken) throw new Error(isFr ? 'Tentative expirée. Reconnexion...' : 'Attempt expired. Reconnecting...');
-            const data = await api.submitLiveTournamentRound(tournament.id, userId, result.score, result.metric, tournament.attemptToken);
-            if (data.tournament) {
-                setTournament(data.tournament);
-                setIntermission(data.tournament.rounds[data.tournament.rounds.length - 1] || null);
+            await api.startMultiplayerTournament(tournament.id, userId);
+            await loadTournament();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Unable to start');
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function toggleReady() {
+        if (!activeDuelId || !userId) return;
+        setBusy(true);
+        try {
+            const data = await api.setDuelReady(activeDuelId, userId, !room?.readyBy[userId]);
+            setRoom(data.room);
+            const bothReady = data.room.readyBy[data.room.challengerId] && data.room.readyBy[data.room.opponentId];
+            if (bothReady) {
+                const started = await api.startLiveDuel(activeDuelId, userId);
+                setMatch(started.match);
             }
-            await refreshLiveState();
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : 'Round submission failed');
+            setError(cause instanceof Error ? cause.message : 'Ready failed');
         } finally {
             setBusy(false);
         }
     }
 
-    async function abandonTournament() {
-        if (!userId || !tournament) return;
-        setBusy(true);
+    async function completeRound(result: { score: number; metric: number; authoritative?: boolean }) {
+        if (!activeDuelId || !userId || !match) return;
         try {
-            const data = await api.abandonLiveTournament(tournament.id, userId);
-            if (data.tournament) setTournament(data.tournament);
-            setIntermission(null);
+            if (!result.authoritative && match.attemptToken) {
+                await api.submitLiveDuelRound(
+                    activeDuelId,
+                    userId,
+                    match.currentRound,
+                    result.score,
+                    result.metric,
+                    match.attemptToken
+                );
+            }
+            const duel = await api.getLiveDuel(activeDuelId, userId);
+            setMatch(duel.match);
+            await loadTournament();
             await refreshLiveState();
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : 'Unable to leave tournament');
-        } finally {
-            setBusy(false);
+            setError(cause instanceof Error ? cause.message : 'Round sync failed');
         }
     }
 
-    if (intermission && tournament) {
-        return (
-            <section className={`${styles.intermission} ${intermission.won ? styles.roundWin : styles.roundLoss}`}>
-                <span>{intermission.won ? (isFr ? 'QUALIFIE' : 'QUALIFIED') : (isFr ? 'ELIMINE' : 'ELIMINATED')}</span>
-                <h2>{intermission.scoreFor} - {intermission.scoreAgainst}</h2>
-                <p>{intermission.label} · {intermission.opponentName}</p>
-                <div className={styles.intermissionPath}>
-                    {tournament.rounds.map((entry) => <i key={entry.round} className={entry.won ? styles.pathWin : styles.pathLoss} />)}
-                    {Array.from({ length: tournament.roundsTotal - tournament.rounds.length }, (_, index) => <i key={`pending-${index}`} />)}
-                </div>
-                <button type="button" onClick={() => setIntermission(null)}>
-                    {tournament.status === 'done' ? (isFr ? 'Voir le bilan' : 'See results') : (isFr ? 'Continuer le run' : 'Continue run')}
-                </button>
-            </section>
-        );
-    }
+    const myMatch = useMemo(() => {
+        if (!tournament || !userId) return null;
+        return tournament.bracket
+            .flatMap((round) => round.matches)
+            .find((entry) => entry.playerAId === userId || entry.playerBId === userId) || null;
+    }, [tournament, userId]);
 
-    if (tournament?.status === 'playing') {
+    if (spectating && spectatorMatch && userId) {
         return (
             <div className={styles.liveRun}>
-                <div className={styles.runRail}>
-                    {Array.from({ length: tournament.roundsTotal }, (_, index) => {
-                        const round = index + 1;
-                        const played = tournament.rounds.find((entry) => entry.round === round);
-                        return (
-                            <div key={round} className={`${styles.runStep} ${played?.won ? styles.cleared : ''} ${round === tournament.currentRound ? styles.current : ''}`}>
-                                <span>{stageLabel(round, tournament.roundsTotal, isFr)}</span>
-                                <strong>{played ? `${played.scoreFor}-${played.scoreAgainst}` : round === tournament.currentRound ? 'LIVE' : 'LOCKED'}</strong>
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className={styles.leaveActions}>
-                    {confirmLeave && <span>{isFr ? 'La mise sera perdue.' : 'Your stake will be lost.'}</span>}
-                    <button
-                        type="button"
-                        className={confirmLeave ? styles.confirmLeave : styles.leaveRun}
-                        onClick={() => confirmLeave ? void abandonTournament() : setConfirmLeave(true)}
-                        disabled={busy}
-                    >
-                        {confirmLeave ? (isFr ? 'Confirmer l abandon' : 'Confirm leave') : (isFr ? 'Quitter le tournoi' : 'Leave tournament')}
-                    </button>
-                    {confirmLeave && <button type="button" className={styles.cancelLeave} onClick={() => setConfirmLeave(false)}>{isFr ? 'Annuler' : 'Cancel'}</button>}
-                </div>
+                <button className={styles.stopWatching} type="button" onClick={() => setSpectating(false)}>
+                    {isFr ? 'Quitter le mode spectateur' : 'Leave spectator mode'}
+                </button>
                 <LiveGameArena
-                    key={`${tournament.id}-${tournament.currentRound}`}
+                    key={`spectator-${spectatorMatch.duelId}-${spectatorMatch.currentRound}`}
                     mode="tournament"
-                    gameId={tournament.games[tournament.currentRound - 1]}
-                    series={tournament.games}
-                    round={tournament.currentRound}
-                    opponentName={`${isFr ? 'Seed' : 'Seed'} ${Math.max(1, Math.floor(tournament.size / (2 ** tournament.currentRound)))}`}
+                    gameId={spectatorMatch.games[spectatorMatch.currentRound - 1]}
+                    series={spectatorMatch.games}
+                    round={spectatorMatch.currentRound}
+                    opponentName={spectatorMatch.opponentName}
                     isFr={isFr}
-                    onComplete={submitRound}
+                    duelSession={{
+                        duelId: spectatorMatch.duelId,
+                        userId,
+                        challengerId: spectatorMatch.challengerId,
+                        spectator: true,
+                    }}
+                    onComplete={() => setSpectating(false)}
                 />
             </div>
         );
     }
 
-    if (tournament?.status === 'done') {
+    if (match?.status === 'playing' && userId) {
         return (
-            <section className={`${styles.result} ${tournament.champion ? styles.champion : styles.eliminated}`}>
-                <span>{tournament.champion ? (isFr ? 'CHAMPION' : 'CHAMPION') : (isFr ? 'ELIMINE' : 'ELIMINATED')}</span>
-                <h2>{tournament.champion ? (isFr ? 'Bracket conquis' : 'Bracket conquered') : (isFr ? 'Le run s arrete ici' : 'The run ends here')}</h2>
-                <div className={styles.resultRounds}>
-                    {tournament.rounds.map((round) => (
-                        <div key={round.round}>
-                            <span>{stageLabel(round.round, tournament.roundsTotal, isFr)}</span>
-                            <strong>{round.scoreFor} - {round.scoreAgainst}</strong>
-                            <small>{round.label}</small>
+            <div className={styles.liveRun}>
+                <Bracket tournament={tournament} userId={userId} isFr={isFr} />
+                <LiveGameArena
+                    key={`${match.duelId}-${match.currentRound}`}
+                    mode="tournament"
+                    gameId={match.games[match.currentRound - 1]}
+                    series={match.games}
+                    round={match.currentRound}
+                    opponentName={match.opponentName}
+                    isFr={isFr}
+                    duelSession={{
+                        duelId: match.duelId,
+                        userId,
+                        challengerId: match.challengerId,
+                    }}
+                    onComplete={completeRound}
+                />
+            </div>
+        );
+    }
+
+    if (tournament) {
+        const joined = Boolean(userId && tournament.entrants.some((entry) => entry.id === userId));
+        const isHost = tournament.hostId === userId;
+        const ready = Boolean(room && userId && room.readyBy[userId]);
+        const rivalId = room?.challengerId === userId ? room.opponentId : room?.challengerId;
+        const rivalReady = Boolean(room && rivalId && room.readyBy[rivalId]);
+        const eliminated = tournament.status === 'playing' && joined && !activeDuelId && myMatch?.status === 'done' && myMatch.winnerId !== userId;
+
+        return (
+            <section className={styles.panel}>
+                <header className={styles.hero}>
+                    <div>
+                        <span>{tournament.visibility === 'public' ? 'PUBLIC CUP' : 'PRIVATE CUP'}</span>
+                        <h2>{tournament.name}</h2>
+                        <p>{tournament.entrants.length}/{tournament.size} {isFr ? 'joueurs humains' : 'human players'}</p>
+                    </div>
+                    <button type="button" onClick={() => setTournament(null)}>{isFr ? 'Retour' : 'Back'}</button>
+                </header>
+
+                {tournament.status === 'waiting' && (
+                    <div className={styles.waitingRoom}>
+                        <div className={styles.roster}>
+                            {Array.from({ length: tournament.size }, (_, index) => {
+                                const entrant = tournament.entrants[index];
+                                return (
+                                    <div key={entrant?.id || index} className={entrant ? styles.filledSeed : ''}>
+                                        <span>{index + 1}</span>
+                                        <strong>{entrant?.name || (isFr ? 'Place libre' : 'Open slot')}</strong>
+                                        <i>{entrant ? (entrant.online ? 'ONLINE' : 'OFFLINE') : 'OPEN'}</i>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ))}
-                </div>
-                <strong>{tournament.net && tournament.net > 0 ? '+' : ''}SLAP$ {Number(tournament.net || 0).toFixed(2)}</strong>
-                <button type="button" onClick={() => setTournament(null)}>{isFr ? 'Nouveau tournoi' : 'New tournament'}</button>
+                        {!joined && <button type="button" onClick={() => joinTournament(tournament)} disabled={busy}>{isFr ? 'Rejoindre' : 'Join tournament'}</button>}
+                        {isHost && (
+                            <button type="button" onClick={startTournament} disabled={busy || tournament.entrants.length !== tournament.size}>
+                                {tournament.entrants.length === tournament.size
+                                    ? (isFr ? 'Lancer le bracket' : 'Start bracket')
+                                    : `${isFr ? 'En attente' : 'Waiting'} ${tournament.entrants.length}/${tournament.size}`}
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {tournament.status !== 'waiting' && <Bracket tournament={tournament} userId={userId || ''} isFr={isFr} />}
+
+                {match?.status === 'pending' && (
+                    <div className={styles.readyMatch}>
+                        <span>{isFr ? 'TON PROCHAIN MATCH' : 'YOUR NEXT MATCH'}</span>
+                        <strong>{ready ? 'READY' : 'YOU'} VS {rivalReady ? 'READY' : match.opponentName}</strong>
+                        <button type="button" onClick={toggleReady} disabled={busy}>{ready ? (isFr ? 'Annuler' : 'Cancel ready') : 'READY'}</button>
+                    </div>
+                )}
+
+                {eliminated && (
+                    <div className={styles.notice}>
+                        <span>{isFr ? 'Éliminé. Le bracket reste visible en direct.' : 'Eliminated. The live bracket remains available.'}</span>
+                        {spectatorMatch && <button type="button" onClick={() => setSpectating(true)}>{isFr ? 'Regarder le match' : 'Watch live match'}</button>}
+                    </div>
+                )}
+                {tournament.status === 'done' && (
+                    <div className={styles.champion}>
+                        <span>CHAMPION</span>
+                        <strong>{tournament.entrants.find((entry) => entry.id === tournament.championId)?.name || 'Player'}</strong>
+                    </div>
+                )}
+                {error && <p className={styles.error}>{error}</p>}
             </section>
         );
     }
@@ -177,58 +294,51 @@ export function TournamentPanel() {
         <section className={styles.panel}>
             <header className={styles.hero}>
                 <div>
-                    <span>LAST PLAYER STANDING</span>
-                    <h2>{isFr ? 'Tournoi live' : 'Live Tournament'}</h2>
-                    <p>{isFr ? 'Chaque qualification se gagne dans un vrai jeu. Une defaite et le run est termine.' : 'Every qualification is earned in a real game. One loss ends the run.'}</p>
+                    <span>HUMAN BRACKET</span>
+                    <h2>{isFr ? 'Tournois live' : 'Live tournaments'}</h2>
+                    <p>{isFr ? 'Chaque case du bracket est un vrai duel BO3.' : 'Every bracket slot is a real BO3 duel.'}</p>
                 </div>
-                <strong>SLAP$ {Number(wallet).toFixed(2)}</strong>
             </header>
-
-            <div className={styles.presets}>
-                {SIZES.map((value) => (
-                    <button type="button" key={value} className={size === value ? styles.active : ''} onClick={() => setSize(value)}>
-                        <strong>{value}</strong><span>{isFr ? 'participants' : 'entrants'}</span>
+            <div className={styles.createRoom}>
+                <input value={name} onChange={(event) => setName(event.target.value)} maxLength={40} />
+                <div className={styles.presets}>
+                    {SIZES.map((value) => <button type="button" key={value} className={size === value ? styles.active : ''} onClick={() => setSize(value)}>{value}</button>)}
+                </div>
+                <div className={styles.presets}>
+                    {(['public', 'private'] as const).map((value) => <button type="button" key={value} className={visibility === value ? styles.active : ''} onClick={() => setVisibility(value)}>{value.toUpperCase()}</button>)}
+                </div>
+                <button type="button" onClick={createTournament} disabled={busy}>{isFr ? 'Créer le tournoi' : 'Create tournament'}</button>
+            </div>
+            <div className={styles.tournamentList}>
+                {tournaments.filter((entry) => entry.status !== 'done').map((entry) => (
+                    <button type="button" key={entry.id} onClick={() => setTournament(entry)}>
+                        <span>{entry.visibility.toUpperCase()}</span>
+                        <strong>{entry.name}</strong>
+                        <i>{entry.entrants.length}/{entry.size}</i>
                     </button>
                 ))}
-            </div>
-
-            <div className={styles.path}>
-                {Array.from({ length: Math.log2(size) }, (_, index) => (
-                    <div key={index}><span>0{index + 1}</span><strong>{stageLabel(index + 1, Math.log2(size), isFr)}</strong></div>
-                ))}
-            </div>
-
-            <div className={styles.draftLabel}>
-                <strong>{isFr ? 'Ton épreuve favorite' : 'Your preferred event'}</strong>
-                <span>{isFr ? 'Elle sera prioritaire dans la rotation.' : 'It will be prioritized in your rotation.'}</span>
-            </div>
-            <div className={styles.draft}>
-                {COMPETITIVE_GAMES.map((game) => (
-                    <button
-                        type="button"
-                        key={game.id}
-                        className={preferredGame === game.id ? styles.pick : ''}
-                        onClick={() => setPreferredGame(game.id)}
-                    >
-                        <strong>{isFr ? game.labelFr : game.labelEn}</strong>
-                        <span>{preferredGame === game.id ? (isFr ? 'FAVORI' : 'PREFERRED') : (isFr ? game.skillFr : game.skillEn)}</span>
-                    </button>
-                ))}
-            </div>
-
-            <div className={styles.footer}>
-                <label>{isFr ? 'Mise d entree' : 'Entry stake'}
-                    <select value={stake} onChange={(event) => setStake(Number(event.target.value))}>
-                        {affordable.map((value) => <option key={value} value={value}>SLAP$ {value}</option>)}
-                    </select>
-                </label>
-                <div><span>{isFr ? 'Matchs a gagner' : 'Wins required'}</span><strong>{Math.log2(size)}</strong></div>
-                <div><span>{isFr ? 'Prix potentiel' : 'Potential prize'}</span><strong>SLAP$ {(size * stake * .72).toFixed(2)}</strong></div>
-                <button type="button" onClick={startTournament} disabled={busy || !userId || affordable.length === 0}>
-                    {busy ? (isFr ? 'Création...' : 'Creating...') : (isFr ? 'Entrer dans le bracket' : 'Enter bracket')}
-                </button>
             </div>
             {error && <p className={styles.error}>{error}</p>}
         </section>
+    );
+}
+
+function Bracket({ tournament, userId, isFr }: { tournament: MultiplayerTournament | null; userId: string; isFr: boolean }) {
+    if (!tournament) return null;
+    return (
+        <div className={styles.bracket}>
+            {tournament.bracket.map((round) => (
+                <section key={round.round}>
+                    <span>{round.matches.length === 1 ? (isFr ? 'FINALE' : 'FINAL') : `ROUND ${round.round}`}</span>
+                    {round.matches.map((match) => (
+                        <div key={match.id} className={match.playerAId === userId || match.playerBId === userId ? styles.myBracketMatch : ''}>
+                            <p className={match.winnerId === match.playerAId ? styles.winner : ''}>{match.playerAName}</p>
+                            <strong>{match.status === 'done' ? '✓' : gameLabel('bounce', isFr)}</strong>
+                            <p className={match.winnerId === match.playerBId ? styles.winner : ''}>{match.playerBName}</p>
+                        </div>
+                    ))}
+                </section>
+            ))}
+        </div>
     );
 }

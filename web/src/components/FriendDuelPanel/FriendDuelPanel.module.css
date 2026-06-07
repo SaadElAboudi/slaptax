@@ -15,7 +15,7 @@
 .setup,.readyRoom,.inbox { margin-inline: 24px; }
 .setup { display: grid; gap: 16px; }
 .setupIntro { display: grid; gap: 3px; }.setupIntro strong { font-size: .78rem; }.setupIntro span { color: var(--muted); font-size: .68rem; }
-.fields { display: grid; grid-template-columns: 180px 1fr; gap: 12px; }
+.fields { display: grid; grid-template-columns: 160px 1fr 120px; gap: 12px; }
 .fields label { display: grid; gap: 6px; color: var(--muted); font-size: .75rem; }
 .fields select,.setup input { min-height: 44px; border: 1px solid var(--line-soft); border-radius: 6px; background: #090c10; color: var(--text); padding: 0 12px; }
 .gameDraft { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
@@ -23,7 +23,8 @@
 .gameDraft button span { color: var(--muted); font-size: .65rem; }
 .gameDraft .picked { border-color: var(--accent); box-shadow: inset 0 -3px var(--accent); }
 .primary { min-height: 48px; border: 0; border-radius: 6px; background: var(--accent); color: #0a0d12; font-weight: 800; cursor: pointer; }
-.setupActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.setupActions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.reactions,.reactionFeed { display:flex; justify-content:center; flex-wrap:wrap; gap:7px; }.reactions button,.reactionFeed span { min-height:32px; padding:6px 10px; border:1px solid var(--line-strong); border-radius:4px; color:var(--text); background:#0d131b; font:700 .62rem 'Space Mono',monospace; }.reactions button { cursor:pointer; }.reactionFeed span { min-height:auto; color:var(--accent); }
 .secondary { min-height: 48px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 700; cursor: pointer; }
 .shareLink,.inviteBanner { padding: 12px; display: grid; gap: 7px; border: 1px solid rgba(54,211,153,.45); background: rgba(54,211,153,.06); }
 .shareLink { grid-template-columns: 1fr auto; }.shareLink span { grid-column: 1/-1; }.shareLink button { min-width: 74px; border: 1px solid var(--success); border-radius: 4px; background: transparent; color: var(--success); font-weight: 800; cursor: pointer; }

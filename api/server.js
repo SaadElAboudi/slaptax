@@ -86,7 +86,7 @@ function createServer(options = {}) {
         }
     });
     server.store = store;
-    server.realtime = createRealtimeHub(server, store);
+    server.realtime = createRealtimeHub(server, store, service);
     server.on("close", () => {
         server.realtime.close();
     });

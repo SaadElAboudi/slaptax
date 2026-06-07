@@ -41,6 +41,7 @@ export function FriendDuelPanel() {
     const [stake, setStake] = useState(5);
     const [message, setMessage] = useState('');
     const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>('bounce');
+    const [bestOf, setBestOf] = useState(3);
     const [duelId, setDuelId] = useState<string | null>(null);
     const [pendingChallengeId, setPendingChallengeId] = useState<string | null>(null);
     const [inviteLink, setInviteLink] = useState('');
@@ -49,13 +50,14 @@ export function FriendDuelPanel() {
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
     const [busy, setBusy] = useState(false);
+    const [matchmaking, setMatchmaking] = useState(false);
     const [error, setError] = useState('');
     const [intermission, setIntermission] = useState<LiveDuelMatch['rounds'][number] | null>(null);
     const [realtimeTick, setRealtimeTick] = useState(0);
     const seenRoundsRef = useRef<number | null>(null);
 
     useRealtime(userId, (event) => {
-        if (event.type === 'state.changed' || event.type === 'connected') {
+        if (event.type === 'state.changed' || event.type === 'presence.changed' || event.type === 'connected') {
             setRealtimeTick((value) => value + 1);
         }
     });
@@ -174,7 +176,7 @@ export function FriendDuelPanel() {
         setBusy(true);
         setError('');
         try {
-            const created = await api.createOpenInvite(userId, stake, createDraft(preferredGame), message);
+            const created = await api.createOpenInvite(userId, stake, createDraft(preferredGame), message, bestOf);
             const link = `${window.location.origin}${window.location.pathname}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
             setInviteLink(link);
             setPendingChallengeId(created.challenge.id);
@@ -198,12 +200,35 @@ export function FriendDuelPanel() {
         setBusy(true);
         setError('');
         try {
-            const created = await api.createChallenge(userId, opponentId, stake, createDraft(preferredGame), message);
+            const created = await api.createChallenge(userId, opponentId, stake, createDraft(preferredGame), message, bestOf);
             setPendingChallengeId(created.challenge.id);
             setMessage('');
             await loadLobby();
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : 'Challenge failed');
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function toggleMatchmaking() {
+        if (!userId) return;
+        setBusy(true);
+        try {
+            if (matchmaking) {
+                await api.cancelMatchmaking(userId);
+                setMatchmaking(false);
+                return;
+            }
+            const data = await api.joinMatchmaking(userId, stake);
+            if (data.status === 'matched' && data.duel) {
+                setDuelId(data.duel.id);
+                setMatchmaking(false);
+            } else {
+                setMatchmaking(true);
+            }
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Matchmaking unavailable');
         } finally {
             setBusy(false);
         }
@@ -248,10 +273,20 @@ export function FriendDuelPanel() {
         }
     }
 
-    async function submitRound(result: { score: number; metric: number }) {
+    async function submitRound(result: { score: number; metric: number; authoritative?: boolean }) {
         if (!duelId || !userId || !match) return;
         setBusy(true);
         try {
+            if (result.authoritative) {
+                const data = await api.getLiveDuel(duelId, userId);
+                if (data.match.rounds.length > match.rounds.length) {
+                    seenRoundsRef.current = data.match.rounds.length;
+                    setIntermission(data.match.rounds[data.match.rounds.length - 1] || null);
+                }
+                setMatch(data.match);
+                await refreshLiveState();
+                return;
+            }
             if (!match.attemptToken) throw new Error(isFr ? 'Tentative expirée. Reconnexion...' : 'Attempt expired. Reconnecting...');
             const data = await api.submitLiveDuelRound(duelId, userId, match.currentRound, result.score, result.metric, match.attemptToken);
             if (data.match.rounds.length > match.rounds.length) {
@@ -295,6 +330,24 @@ export function FriendDuelPanel() {
             setRoom(null);
         } finally {
             setBusy(false);
+        }
+    }
+
+    async function react(reaction: string) {
+        if (!duelId || !userId) return;
+        const data = await api.reactToDuel(duelId, userId, reaction);
+        setMatch((current) => current ? { ...current, reactions: data.reactions } : current);
+    }
+
+    async function shareResult() {
+        if (!match) return;
+        const text = match.winnerId === userId
+            ? `SLAP$TAX ${match.score[myRole]}-${match.score[rivalRole]} victory`
+            : `SLAP$TAX duel ${match.score[myRole]}-${match.score[rivalRole]}`;
+        if (navigator.share) {
+            await navigator.share({ title: 'SLAP$TAX', text, url: window.location.origin });
+        } else {
+            await navigator.clipboard.writeText(`${text} ${window.location.origin}`);
         }
     }
 
@@ -344,7 +397,14 @@ export function FriendDuelPanel() {
                         </div>
                     ))}
                 </div>
-                <button type="button" onClick={rematch} disabled={busy}>{isFr ? 'Revanche' : 'Rematch'}</button>
+                <div className={styles.reactions}>
+                    {['GG', 'WOW', 'CLOSE'].map((reaction) => <button type="button" key={reaction} onClick={() => void react(reaction)}>{reaction}</button>)}
+                    <button type="button" onClick={() => void shareResult()}>{isFr ? 'Partager' : 'Share'}</button>
+                </div>
+                <div className={styles.reactionFeed}>
+                    {match.reactions?.slice(-4).map((entry, index) => <span key={`${entry.at}-${index}`}>{entry.reaction}</span>)}
+                </div>
+                <button type="button" onClick={rematch} disabled={busy}>{isFr ? 'Revanche immédiate' : 'Instant rematch'}</button>
             </section>
         );
     }
@@ -402,7 +462,16 @@ export function FriendDuelPanel() {
                         <label>{isFr ? 'Invitation directe' : 'Direct invite'}
                             <select value={opponentId} onChange={(event) => setOpponentId(event.target.value)} disabled={opponents.length === 0}>
                                 {opponents.length === 0 && <option value="">{isFr ? 'Aucun joueur disponible' : 'No player available'}</option>}
-                                {opponents.map((user) => <option key={user.id} value={user.id}>{user.playerName}</option>)}
+                                {opponents.map((user) => (
+                                    <option key={user.id} value={user.id}>
+                                        {user.online ? '● ' : '○ '}{user.playerName} · {user.rank || 'Rookie'}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>{isFr ? 'Format' : 'Format'}
+                            <select value={bestOf} onChange={(event) => setBestOf(Number(event.target.value))}>
+                                {[1, 3, 5, 7].map((value) => <option key={value} value={value}>BO{value}</option>)}
                             </select>
                         </label>
                     </div>
@@ -430,6 +499,9 @@ export function FriendDuelPanel() {
                         </button>
                         <button className={styles.secondary} type="button" onClick={sendDirectChallenge} disabled={busy || !opponentId}>
                             {isFr ? 'Defier ce joueur' : 'Challenge this player'}
+                        </button>
+                        <button className={styles.secondary} type="button" onClick={toggleMatchmaking} disabled={busy}>
+                            {matchmaking ? (isFr ? 'Quitter la file' : 'Leave queue') : (isFr ? 'Match rapide' : 'Quick match')}
                         </button>
                     </div>
                     {inviteLink && (

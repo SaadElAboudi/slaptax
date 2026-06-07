@@ -22,13 +22,14 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const userId = useGameStore((state) => state.userId);
     const wallet = useGameStore((state) => state.wallet);
     const history = useGameStore((state) => state.history);
+    const progression = useGameStore((state) => state.progression);
     const isFr = language === 'fr';
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
     const selectedGame = COMPETITIVE_GAMES[selectedIndex];
 
-    const streak = useMemo(() => {
+    const localStreak = useMemo(() => {
         let value = 0;
         for (const entry of history) {
             const won = entry.won === true || entry.result === 'WIN';
@@ -37,6 +38,9 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
         }
         return value;
     }, [history]);
+    const streak = progression?.winStreak ?? localStreak;
+    const dailyDone = progression?.daily.tasks.filter((task) => task.progress >= task.target).length || 0;
+    const dailyTotal = progression?.daily.tasks.length || 3;
 
     useEffect(() => {
         if (!userId) return;
@@ -73,12 +77,27 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                     <strong>{playerName}</strong>
                 </div>
                 <div>
-                    <span>{isFr ? 'SERIE' : 'STREAK'}</span>
-                    <strong>{streak}×</strong>
+                    <span>{progression?.rank || (isFr ? 'RANG' : 'RANK')} · LVL {progression?.level || 1}</span>
+                    <strong>{isFr ? 'Série' : 'Streak'} {streak}×</strong>
                 </div>
                 <div>
                     <span>BANK</span>
                     <strong>SLAP$ {Number(wallet ?? 0).toFixed(0)}</strong>
+                </div>
+            </div>
+
+            <div className={styles.progressionRail}>
+                <div>
+                    <span>XP {progression?.xp || 0}</span>
+                    <i style={{ width: `${Math.min(100, ((progression?.xp || 0) % 1200) / 12)}%` }} />
+                </div>
+                <div>
+                    <span>{isFr ? 'MISSIONS DU JOUR' : 'DAILY MISSIONS'}</span>
+                    <strong>{dailyDone}/{dailyTotal}</strong>
+                </div>
+                <div>
+                    <span>{isFr ? 'MEILLEURE SERIE' : 'BEST STREAK'}</span>
+                    <strong>{progression?.bestStreak || streak}×</strong>
                 </div>
             </div>
 

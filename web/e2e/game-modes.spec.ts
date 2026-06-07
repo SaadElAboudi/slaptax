@@ -14,6 +14,12 @@ async function post(request: APIRequestContext, path: string, body: unknown) {
     return response.json();
 }
 
+async function get(request: APIRequestContext, path: string) {
+    const response = await request.get(path);
+    expect(response.ok(), `${path}: ${await response.text()}`).toBeTruthy();
+    return response.json();
+}
+
 async function join(request: APIRequestContext, suffix: string) {
     const clientId = `qa-${suffix}-${Date.now()}-${Math.random()}`;
     const playerName = `QA-${suffix}`.slice(0, 20);
@@ -147,17 +153,57 @@ for (const game of GAMES) {
         await enterGame(page, game.label, game.testId);
     });
 
-    test(`tournament launches real round: ${game.label}`, async ({ page, request }) => {
-        const player = await join(request, `tournament-${game.id}`);
-        const banned = GAMES.find((entry) => entry.id !== game.id)?.id;
-        await post(request, '/api/tournaments/live', {
-            userId: player.userId,
-            size: 8,
-            stake: 2,
-            draft: { ban: banned, pick: game.id },
-        });
+}
 
-        await identify(page, player);
+for (const game of GAMES.slice(0, 3)) {
+    test(`human tournament launches shared round: ${game.label}`, async ({ page, request }) => {
+        const players = await Promise.all(
+            Array.from({ length: 4 }, (_, index) => join(request, `cup-${game.id}-${index}`))
+        );
+        const created = await post(request, '/api/arena-tournaments', {
+            hostId: players[0].userId,
+            size: 4,
+            visibility: 'public',
+            name: `${game.label} Cup`,
+        });
+        for (const player of players.slice(1)) {
+            await post(request, `/api/arena-tournaments/${created.tournament.id}/join`, { userId: player.userId });
+        }
+        await post(request, `/api/arena-tournaments/${created.tournament.id}/start`, { userId: players[0].userId });
+        const bracket = await get(request, `/api/arena-tournaments/${created.tournament.id}?userId=${players[0].userId}`);
+        const active = bracket.tournament.bracket[0].matches.find(
+            (match: { playerAId: string; playerBId: string }) =>
+                match.playerAId === players[0].userId || match.playerBId === players[0].userId
+        );
+        const opponentId = active.playerAId === players[0].userId ? active.playerBId : active.playerAId;
+        await post(request, `/api/duels/${active.duelId}/ready`, { userId: players[0].userId, ready: true });
+        await post(request, `/api/duels/${active.duelId}/ready`, { userId: opponentId, ready: true });
+        await post(request, `/api/duels/${active.duelId}/start`, { userId: players[0].userId });
+
+        async function resolveRound(round: number, firstPlayerWins: boolean) {
+            const first = await get(request, `/api/duels/${active.duelId}/match?userId=${players[0].userId}`);
+            const second = await get(request, `/api/duels/${active.duelId}/match?userId=${opponentId}`);
+            await Promise.all([
+                post(request, `/api/duels/${active.duelId}/rounds`, {
+                    userId: players[0].userId,
+                    round,
+                    score: firstPlayerWins ? 1000 : 0,
+                    metric: 900,
+                    attemptToken: first.match.attemptToken,
+                }),
+                post(request, `/api/duels/${active.duelId}/rounds`, {
+                    userId: opponentId,
+                    round,
+                    score: firstPlayerWins ? 0 : 1000,
+                    metric: 1100,
+                    attemptToken: second.match.attemptToken,
+                }),
+            ]);
+        }
+        if (game.id === 'symbolrush' || game.id === 'bombpass') await resolveRound(1, true);
+        if (game.id === 'bombpass') await resolveRound(2, false);
+
+        await identify(page, players[0]);
         await page.goto('/?tab=tournament');
         await enterGame(page, game.label, game.testId);
     });
