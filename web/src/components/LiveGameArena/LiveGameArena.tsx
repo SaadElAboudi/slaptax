@@ -523,6 +523,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
         const drawingCanvas = canvas;
         const context = ctx;
         const started = performance.now();
+        const openingGraceMs = 3200;
         const state = {
             x: 0,
             y: 0,
@@ -549,7 +550,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                 state.y = height * .5;
                 const launchSpeed = 245 + Math.min(90, round * 18);
                 state.vx = launchSpeed * .62;
-                state.vy = launchSpeed * .78;
+                state.vy = -launchSpeed * .78;
             } else {
                 state.x *= width / state.width;
                 state.y *= height / state.height;
@@ -623,6 +624,13 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                     setRally(state.rally);
                     setSpeed(nextSpeed / 300);
                     navigator.vibrate?.(12);
+                } else if (now - started < openingGraceMs) {
+                    // Give touch players one readable opening exchange before a miss can end the round.
+                    const recoverySpeed = Math.max(255, Math.hypot(state.vx, state.vy));
+                    const recoveryDirection = Math.sign(paddleX - state.x || state.vx || 1);
+                    state.y = paddleY - ballRadius;
+                    state.vx = recoveryDirection * recoverySpeed * .42;
+                    state.vy = -recoverySpeed * .9;
                 } else if (state.y > state.height + ballRadius * 2) {
                     stopped = true;
                     const survival = (now - started) / 1000;

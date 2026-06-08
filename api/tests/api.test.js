@@ -457,6 +457,13 @@ test("multiplayer tournament creates human duels and advances a persistent brack
             const joined = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${tournamentId}/join`, { userId });
             assert.equal(joined.status, 200);
         }
+        for (const userId of ids) {
+            const ready = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${tournamentId}/ready`, {
+                userId,
+                ready: true,
+            });
+            assert.equal(ready.status, 200);
+        }
         const started = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${tournamentId}/start`, {
             userId: ids[0],
         });
@@ -517,6 +524,70 @@ test("multiplayer tournament creates human duels and advances a persistent brack
         );
         assert.equal(completed.data.tournament.status, "done");
         assert.equal(completed.data.tournament.championId, championId);
+    });
+});
+
+test("private tournament room requires its invite token and every player ready", async () => {
+    await withServer(async (baseUrl) => {
+        const players = await Promise.all(
+            ["RoomHost", "RoomB", "RoomC", "RoomD", "Outsider"].map((playerName) =>
+                jfetch(baseUrl, "POST", "/api/users", { playerName })
+            )
+        );
+        const ids = players.map((entry) => entry.data.user.id);
+        const created = await jfetch(baseUrl, "POST", "/api/arena-tournaments", {
+            hostId: ids[0],
+            size: 4,
+            visibility: "private",
+            name: "Private Room",
+        });
+        const room = created.data.tournament;
+        assert.ok(room.inviteToken);
+
+        const forbidden = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/arena-tournaments/${room.id}?userId=${ids[4]}`
+        );
+        assert.equal(forbidden.status, 403);
+        const invited = await jfetch(
+            baseUrl,
+            "GET",
+            `/api/arena-tournaments/${room.id}?userId=${ids[1]}&token=${room.inviteToken}`
+        );
+        assert.equal(invited.status, 200);
+        assert.equal(invited.data.tournament.inviteToken, undefined);
+
+        for (const userId of ids.slice(1, 4)) {
+            const joined = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${room.id}/join`, {
+                userId,
+                inviteToken: room.inviteToken,
+            });
+            assert.equal(joined.status, 200);
+        }
+        const configured = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${room.id}/configure`, {
+            userId: ids[0],
+            games: ["symbolrush", "cupshuffle", "duelnumeric"],
+        });
+        assert.deepEqual(configured.data.games, ["symbolrush", "cupshuffle", "duelnumeric"]);
+
+        const blockedStart = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${room.id}/start`, {
+            userId: ids[0],
+        });
+        assert.equal(blockedStart.status, 409);
+        for (const userId of ids.slice(0, 4)) {
+            await jfetch(baseUrl, "POST", `/api/arena-tournaments/${room.id}/ready`, {
+                userId,
+                ready: true,
+            });
+        }
+        const started = await jfetch(baseUrl, "POST", `/api/arena-tournaments/${room.id}/start`, {
+            userId: ids[0],
+        });
+        assert.equal(started.status, 200);
+        const firstDuelId = started.data.tournament.bracket[0].matches[0].duelId;
+        const firstDuel = await jfetch(baseUrl, "GET", `/api/duels/${firstDuelId}/match?userId=${started.data.tournament.bracket[0].matches[0].playerAId}`);
+        assert.deepEqual(firstDuel.data.match.games, ["symbolrush", "cupshuffle", "duelnumeric"]);
     });
 });
 

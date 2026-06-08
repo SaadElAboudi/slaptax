@@ -453,7 +453,9 @@ function createTournamentDuel(db, tournament, playerAId, playerBId, round, match
         status: "pending",
         bestOf: 3,
         draft: null,
-        games: tournamentGames(),
+        games: Array.isArray(tournament.games) && tournament.games.length
+            ? tournament.games
+            : tournamentGames(),
         tournamentId: tournament.id,
         tournamentRound: round,
         tournamentMatchIndex: matchIndex,
@@ -897,11 +899,15 @@ function createService(store) {
                 .filter((entry) => entry.visibility === "public" || entry.hostId === userId || entry.entrants.includes(userId))
                 .map((entry) => ({
                     ...entry,
+                    inviteToken: entry.hostId === userId || entry.entrants.includes(userId)
+                        ? entry.inviteToken
+                        : undefined,
                     entrants: entry.entrants.map((id) => ({
                         id,
                         name: usersById[id]?.playerName || "Player",
                         online: !!usersById[id]?.presence?.online,
                         bot: false,
+                        ready: !!entry.readyBy?.[id],
                     })),
                 }));
             return { ok: true, tournaments };
@@ -918,6 +924,7 @@ function createService(store) {
             }
             const tournament = {
                 id: crypto.randomUUID(),
+                inviteToken: crypto.randomBytes(18).toString("base64url"),
                 kind: "multiplayer",
                 name: String(name || "Arena Cup").trim().slice(0, 40) || "Arena Cup",
                 hostId,
@@ -925,6 +932,8 @@ function createService(store) {
                 visibility: visibility === "public" ? "public" : "private",
                 status: "waiting",
                 entrants: [hostId],
+                readyBy: { [hostId]: false },
+                games: tournamentGames(),
                 bracket: [],
                 currentRound: 0,
                 championId: null,
@@ -935,7 +944,7 @@ function createService(store) {
             return { ok: true, tournament };
         },
 
-        joinMultiplayerTournament(tournamentId, userId) {
+        joinMultiplayerTournament(tournamentId, userId, inviteToken = "") {
             const db = store.read();
             ensureCollections(db);
             const tournament = db.tournaments.find(
@@ -944,12 +953,57 @@ function createService(store) {
             if (!tournament) return { error: "Tournament not found", code: 404 };
             if (tournament.status !== "waiting") return { error: "Tournament already started", code: 409 };
             if (!db.users.some((user) => user.id === userId)) return { error: "User not found", code: 404 };
+            if (
+                tournament.visibility === "private"
+                && tournament.hostId !== userId
+                && !tournament.entrants.includes(userId)
+                && tournament.inviteToken !== inviteToken
+            ) {
+                return { error: "Invalid private room invitation", code: 403 };
+            }
             if (!tournament.entrants.includes(userId)) {
                 if (tournament.entrants.length >= tournament.size) return { error: "Tournament is full", code: 409 };
                 tournament.entrants.push(userId);
+                if (!tournament.readyBy || typeof tournament.readyBy !== "object") tournament.readyBy = {};
+                tournament.readyBy[userId] = false;
             }
             store.write(db);
             return { ok: true, tournament };
+        },
+
+        setMultiplayerTournamentReady(tournamentId, userId, ready) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = db.tournaments.find(
+                (entry) => entry.id === tournamentId && entry.kind === "multiplayer"
+            );
+            if (!tournament) return { error: "Tournament not found", code: 404 };
+            if (tournament.status !== "waiting") return { error: "Tournament already started", code: 409 };
+            if (!tournament.entrants.includes(userId)) return { error: "Join the room first", code: 403 };
+            if (!tournament.readyBy || typeof tournament.readyBy !== "object") tournament.readyBy = {};
+            tournament.readyBy[userId] = !!ready;
+            store.write(db);
+            return { ok: true, readyBy: tournament.readyBy };
+        },
+
+        configureMultiplayerTournament(tournamentId, userId, games) {
+            const db = store.read();
+            ensureCollections(db);
+            const tournament = db.tournaments.find(
+                (entry) => entry.id === tournamentId && entry.kind === "multiplayer"
+            );
+            if (!tournament) return { error: "Tournament not found", code: 404 };
+            if (tournament.hostId !== userId) return { error: "Only the host can configure the room", code: 403 };
+            if (tournament.status !== "waiting") return { error: "Tournament already started", code: 409 };
+            const normalizedGames = Array.isArray(games)
+                ? games.map(normalizeDraftGameId).filter(Boolean)
+                : [];
+            if (normalizedGames.length !== 3 || new Set(normalizedGames).size !== 3) {
+                return { error: "Choose exactly three different games", code: 400 };
+            }
+            tournament.games = normalizedGames;
+            store.write(db);
+            return { ok: true, games: tournament.games };
         },
 
         startMultiplayerTournament(tournamentId, userId) {
@@ -964,6 +1018,9 @@ function createService(store) {
             if (tournament.entrants.length !== tournament.size) {
                 return { error: `Waiting for ${tournament.size - tournament.entrants.length} players`, code: 409 };
             }
+            if (!tournament.entrants.every((entrantId) => tournament.readyBy?.[entrantId])) {
+                return { error: "Every player must be ready", code: 409 };
+            }
             const seeded = shuffled(tournament.entrants);
             tournament.status = "playing";
             tournament.startedAt = new Date().toISOString();
@@ -972,7 +1029,7 @@ function createService(store) {
             return { ok: true, tournament };
         },
 
-        getMultiplayerTournament(tournamentId, userId) {
+        getMultiplayerTournament(tournamentId, userId, inviteToken = "") {
             const db = store.read();
             ensureCollections(db);
             resolveExpiredTournamentMatches(db);
@@ -985,6 +1042,7 @@ function createService(store) {
                 tournament.visibility !== "public"
                 && tournament.hostId !== userId
                 && !tournament.entrants.includes(userId)
+                && tournament.inviteToken !== inviteToken
             ) {
                 return { error: "Tournament is private", code: 403 };
             }
@@ -1006,11 +1064,15 @@ function createService(store) {
                 ok: true,
                 tournament: {
                     ...tournament,
+                    inviteToken: tournament.hostId === userId || tournament.entrants.includes(userId)
+                        ? tournament.inviteToken
+                        : undefined,
                     entrants: tournament.entrants.map((id) => ({
                         id,
                         name: usersById[id]?.playerName || "Player",
                         online: !!usersById[id]?.presence?.online,
                         bot: false,
+                        ready: !!tournament.readyBy?.[id],
                     })),
                     bracket: tournament.bracket.map((round) => ({
                         ...round,

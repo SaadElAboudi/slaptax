@@ -7,7 +7,7 @@ import {
     type MultiplayerTournamentResponse,
 } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
-import { gameLabel } from '../../gameplay/catalog';
+import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TournamentPanel.module.css';
@@ -20,7 +20,7 @@ export function TournamentPanel() {
     const refreshLiveState = useGameStore((state) => state.refreshLiveState);
     const isFr = language === 'fr';
     const [size, setSize] = useState<4 | 8 | 16>(4);
-    const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+    const [visibility, setVisibility] = useState<'public' | 'private'>('private');
     const [name, setName] = useState('Arena Cup');
     const [tournaments, setTournaments] = useState<MultiplayerTournament[]>([]);
     const [tournament, setTournament] = useState<MultiplayerTournament | null>(null);
@@ -29,6 +29,9 @@ export function TournamentPanel() {
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [spectatorMatch, setSpectatorMatch] = useState<MultiplayerTournamentResponse['spectatorMatch']>(null);
     const [spectating, setSpectating] = useState(false);
+    const [roomReady, setRoomReady] = useState(false);
+    const [selectedGames, setSelectedGames] = useState<CompetitiveGameId[]>(['bounce', 'symbolrush', 'bombpass']);
+    const [inviteCopied, setInviteCopied] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [tick, setTick] = useState(0);
@@ -51,11 +54,31 @@ export function TournamentPanel() {
 
     const loadTournament = useCallback(async () => {
         if (!userId || !tournament) return;
-        const data = await api.getMultiplayerTournament(tournament.id, userId);
+        const params = new URLSearchParams(window.location.search);
+        const data = await api.getMultiplayerTournament(tournament.id, userId, params.get('token') || undefined);
         setTournament(data.tournament);
+        setRoomReady(Boolean(data.tournament.readyBy?.[userId]));
+        setSelectedGames(data.tournament.games || ['bounce', 'symbolrush', 'bombpass']);
         setActiveDuelId(data.activeDuelId || null);
         setSpectatorMatch(data.spectatorMatch || null);
     }, [tournament?.id, userId]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get('room');
+        const token = params.get('token') || undefined;
+        if (!roomId || !userId || tournament?.id === roomId) return;
+        void api.getMultiplayerTournament(roomId, userId, token)
+            .then(async (data) => {
+                const joined = data.tournament.entrants.some((entrant) => entrant.id === userId);
+                if (!joined && data.tournament.status === 'waiting') {
+                    await api.joinMultiplayerTournament(roomId, userId, token);
+                }
+                const refreshed = await api.getMultiplayerTournament(roomId, userId, token);
+                setTournament(refreshed.tournament);
+            })
+            .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Private room unavailable'));
+    }, [userId, tournament?.id]);
 
     useEffect(() => {
         void loadList().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Tournament lobby unavailable'));
@@ -64,6 +87,15 @@ export function TournamentPanel() {
     useEffect(() => {
         void loadTournament().catch((cause: unknown) => setError(cause instanceof Error ? cause.message : 'Bracket unavailable'));
     }, [loadTournament, tick]);
+
+    useEffect(() => {
+        if (!tournament) return;
+        const params = new URLSearchParams(window.location.search);
+        params.set('tab', 'tournament');
+        params.set('room', tournament.id);
+        if (tournament.inviteToken) params.set('token', tournament.inviteToken);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }, [tournament?.id, tournament?.inviteToken]);
 
     useEffect(() => {
         if (!activeDuelId || !userId) {
@@ -87,7 +119,9 @@ export function TournamentPanel() {
         setError('');
         try {
             const data = await api.createMultiplayerTournament(userId, size, visibility, name);
-            setTournament(data.tournament);
+            const room = await api.getMultiplayerTournament(data.tournament.id, userId);
+            setTournament(room.tournament);
+            setSelectedGames(room.tournament.games);
             await loadList();
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : 'Creation failed');
@@ -100,7 +134,7 @@ export function TournamentPanel() {
         if (!userId) return;
         setBusy(true);
         try {
-            await api.joinMultiplayerTournament(entry.id, userId);
+            await api.joinMultiplayerTournament(entry.id, userId, entry.inviteToken);
             const data = await api.getMultiplayerTournament(entry.id, userId);
             setTournament(data.tournament);
         } catch (cause) {
@@ -108,6 +142,56 @@ export function TournamentPanel() {
         } finally {
             setBusy(false);
         }
+    }
+
+    async function toggleRoomReady() {
+        if (!userId || !tournament) return;
+        setBusy(true);
+        try {
+            const next = !roomReady;
+            await api.setMultiplayerTournamentReady(tournament.id, userId, next);
+            setRoomReady(next);
+            await loadTournament();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Ready state unavailable');
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function toggleGame(gameId: CompetitiveGameId) {
+        if (!userId || !tournament || tournament.hostId !== userId) return;
+        if (selectedGames.includes(gameId)) return;
+        const next = [...selectedGames, gameId].slice(-3);
+        setSelectedGames(next);
+        try {
+            await api.configureMultiplayerTournament(tournament.id, userId, next);
+            await loadTournament();
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Rotation unavailable');
+        }
+    }
+
+    async function copyRoomLink() {
+        if (!tournament?.inviteToken) return;
+        const link = `${window.location.origin}${window.location.pathname}?tab=tournament&room=${encodeURIComponent(tournament.id)}&token=${encodeURIComponent(tournament.inviteToken)}`;
+        try {
+            await navigator.clipboard.writeText(link);
+            setInviteCopied(true);
+        } catch {
+            setInviteCopied(false);
+        }
+    }
+
+    function leaveRoom() {
+        setTournament(null);
+        setActiveDuelId(null);
+        setMatch(null);
+        setRoom(null);
+        const params = new URLSearchParams(window.location.search);
+        params.delete('room');
+        params.delete('token');
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
     }
 
     async function startTournament() {
@@ -226,6 +310,8 @@ export function TournamentPanel() {
         const rivalId = room?.challengerId === userId ? room.opponentId : room?.challengerId;
         const rivalReady = Boolean(room && rivalId && room.readyBy[rivalId]);
         const eliminated = tournament.status === 'playing' && joined && !activeDuelId && myMatch?.status === 'done' && myMatch.winnerId !== userId;
+        const everyoneReady = tournament.entrants.length === tournament.size
+            && tournament.entrants.every((entrant) => entrant.ready);
 
         return (
             <section className={styles.panel}>
@@ -235,11 +321,22 @@ export function TournamentPanel() {
                         <h2>{tournament.name}</h2>
                         <p>{tournament.entrants.length}/{tournament.size} {isFr ? 'joueurs humains' : 'human players'}</p>
                     </div>
-                    <button type="button" onClick={() => setTournament(null)}>{isFr ? 'Retour' : 'Back'}</button>
+                    <button type="button" onClick={leaveRoom}>{isFr ? 'Retour' : 'Back'}</button>
                 </header>
 
                 {tournament.status === 'waiting' && (
                     <div className={styles.waitingRoom}>
+                        <div className={styles.roomTools}>
+                            <div>
+                                <small>{isFr ? 'ROOM PERSISTANTE' : 'PERSISTENT ROOM'}</small>
+                                <strong>{tournament.id.slice(0, 8).toUpperCase()}</strong>
+                            </div>
+                            {tournament.inviteToken && (
+                                <button type="button" onClick={() => void copyRoomLink()}>
+                                    {inviteCopied ? (isFr ? 'Lien copié' : 'Link copied') : (isFr ? 'Inviter des amis' : 'Invite friends')}
+                                </button>
+                            )}
+                        </div>
                         <div className={styles.roster}>
                             {Array.from({ length: tournament.size }, (_, index) => {
                                 const entrant = tournament.entrants[index];
@@ -247,17 +344,38 @@ export function TournamentPanel() {
                                     <div key={entrant?.id || index} className={entrant ? styles.filledSeed : ''}>
                                         <span>{index + 1}</span>
                                         <strong>{entrant?.name || (isFr ? 'Place libre' : 'Open slot')}</strong>
-                                        <i>{entrant ? (entrant.online ? 'ONLINE' : 'OFFLINE') : 'OPEN'}</i>
+                                        <i>{entrant ? (entrant.ready ? 'READY' : entrant.online ? 'ONLINE' : 'OFFLINE') : 'OPEN'}</i>
                                     </div>
                                 );
                             })}
                         </div>
+                        <div className={styles.gameRotation}>
+                            <span>{isFr ? 'ROTATION DE LA ROOM' : 'ROOM ROTATION'}</span>
+                            <div>
+                                {COMPETITIVE_GAMES.map((game) => (
+                                    <button
+                                        type="button"
+                                        key={game.id}
+                                        className={selectedGames.includes(game.id) ? styles.active : ''}
+                                        onClick={() => void toggleGame(game.id)}
+                                        disabled={!isHost}
+                                    >
+                                        {isFr ? game.labelFr : game.labelEn}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         {!joined && <button type="button" onClick={() => joinTournament(tournament)} disabled={busy}>{isFr ? 'Rejoindre' : 'Join tournament'}</button>}
+                        {joined && (
+                            <button type="button" className={roomReady ? styles.cancelReady : ''} onClick={toggleRoomReady} disabled={busy}>
+                                {roomReady ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
+                            </button>
+                        )}
                         {isHost && (
-                            <button type="button" onClick={startTournament} disabled={busy || tournament.entrants.length !== tournament.size}>
-                                {tournament.entrants.length === tournament.size
+                            <button type="button" onClick={startTournament} disabled={busy || !everyoneReady}>
+                                {everyoneReady
                                     ? (isFr ? 'Lancer le bracket' : 'Start bracket')
-                                    : `${isFr ? 'En attente' : 'Waiting'} ${tournament.entrants.length}/${tournament.size}`}
+                                    : `${isFr ? 'Prêts' : 'Ready'} ${tournament.entrants.filter((entrant) => entrant.ready).length}/${tournament.size}`}
                             </button>
                         )}
                     </div>
@@ -283,6 +401,7 @@ export function TournamentPanel() {
                     <div className={styles.champion}>
                         <span>CHAMPION</span>
                         <strong>{tournament.entrants.find((entry) => entry.id === tournament.championId)?.name || 'Player'}</strong>
+                        <button type="button" onClick={leaveRoom}>{isFr ? 'Retour aux rooms' : 'Back to rooms'}</button>
                     </div>
                 )}
                 {error && <p className={styles.error}>{error}</p>}

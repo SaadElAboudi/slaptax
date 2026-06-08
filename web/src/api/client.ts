@@ -338,13 +338,16 @@ export interface MultiplayerTournamentMatch {
 
 export interface MultiplayerTournament {
     id: string;
+    inviteToken?: string;
     kind: 'multiplayer';
     name: string;
     hostId: string;
     size: 4 | 8 | 16;
     visibility: 'public' | 'private';
     status: 'waiting' | 'playing' | 'done';
-    entrants: Array<{ id: string; name: string; online: boolean; bot: boolean }>;
+    entrants: Array<{ id: string; name: string; online: boolean; bot: boolean; ready: boolean }>;
+    readyBy: Record<string, boolean>;
+    games: CompetitiveGameId[];
     bracket: Array<{ round: number; matches: MultiplayerTournamentMatch[] }>;
     currentRound: number;
     championId: string | null;
@@ -675,11 +678,20 @@ export const api = {
     createMultiplayerTournament: (hostId: string, size: number, visibility: 'public' | 'private', name: string) =>
         req<MultiplayerTournamentResponse>('POST', '/api/arena-tournaments', { hostId, size, visibility, name }),
 
-    getMultiplayerTournament: (tournamentId: string, userId: string) =>
-        req<MultiplayerTournamentResponse>('GET', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}?userId=${encodeURIComponent(userId)}`),
+    getMultiplayerTournament: (tournamentId: string, userId: string, inviteToken?: string) => {
+        const params = new URLSearchParams({ userId });
+        if (inviteToken) params.set('token', inviteToken);
+        return req<MultiplayerTournamentResponse>('GET', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}?${params.toString()}`);
+    },
 
-    joinMultiplayerTournament: (tournamentId: string, userId: string) =>
-        req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/join`, { userId }),
+    joinMultiplayerTournament: (tournamentId: string, userId: string, inviteToken?: string) =>
+        req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/join`, { userId, inviteToken }),
+
+    setMultiplayerTournamentReady: (tournamentId: string, userId: string, ready: boolean) =>
+        req<{ ok: boolean; readyBy: Record<string, boolean> }>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/ready`, { userId, ready }),
+
+    configureMultiplayerTournament: (tournamentId: string, userId: string, games: CompetitiveGameId[]) =>
+        req<{ ok: boolean; games: CompetitiveGameId[] }>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/configure`, { userId, games }),
 
     startMultiplayerTournament: (tournamentId: string, userId: string) =>
         req<MultiplayerTournamentResponse>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/start`, { userId }),

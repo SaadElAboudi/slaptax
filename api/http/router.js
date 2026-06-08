@@ -139,7 +139,8 @@ function createRequestHandler(service) {
         if (req.method === "GET" && arenaTournamentMatch) {
             const result = service.getMultiplayerTournament(
                 arenaTournamentMatch[1],
-                url.searchParams.get("userId") || ""
+                url.searchParams.get("userId") || "",
+                url.searchParams.get("token") || ""
             );
             json(res, result.code || 200, result);
             return;
@@ -148,7 +149,35 @@ function createRequestHandler(service) {
         const joinArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/join$/);
         if (req.method === "POST" && joinArenaTournamentMatch) {
             const body = await parseBody(req);
-            const result = service.joinMultiplayerTournament(joinArenaTournamentMatch[1], body.userId);
+            const result = service.joinMultiplayerTournament(
+                joinArenaTournamentMatch[1],
+                body.userId,
+                body.inviteToken
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const readyArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/ready$/);
+        if (req.method === "POST" && readyArenaTournamentMatch) {
+            const body = await parseBody(req);
+            const result = service.setMultiplayerTournamentReady(
+                readyArenaTournamentMatch[1],
+                body.userId,
+                body.ready
+            );
+            json(res, result.code || 200, result);
+            return;
+        }
+
+        const configureArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/configure$/);
+        if (req.method === "POST" && configureArenaTournamentMatch) {
+            const body = await parseBody(req);
+            const result = service.configureMultiplayerTournament(
+                configureArenaTournamentMatch[1],
+                body.userId,
+                body.games
+            );
             json(res, result.code || 200, result);
             return;
         }

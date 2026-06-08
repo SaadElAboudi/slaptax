@@ -84,6 +84,8 @@ function App() {
         const params = new URLSearchParams(window.location.search);
         params.delete('tab');
         params.delete('invite');
+        params.delete('room');
+        params.delete('token');
         const query = params.toString();
         window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
     }

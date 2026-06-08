@@ -8,6 +8,14 @@ const GAMES = [
     { id: 'duelnumeric', label: 'Duel Numeric', testId: 'numeric-answers' },
 ] as const;
 
+async function blockExternalFonts(page: Page) {
+    await page.route(/https:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com)\/.*/, (route) => route.abort());
+}
+
+test.beforeEach(async ({ page }) => {
+    await blockExternalFonts(page);
+});
+
 async function post(request: APIRequestContext, path: string, body: unknown) {
     const response = await request.post(path, { data: body });
     expect(response.ok(), `${path}: ${await response.text()}`).toBeTruthy();
@@ -185,6 +193,9 @@ for (const game of GAMES.slice(0, 3)) {
         for (const player of players.slice(1)) {
             await post(request, `/api/arena-tournaments/${created.tournament.id}/join`, { userId: player.userId });
         }
+        for (const player of players) {
+            await post(request, `/api/arena-tournaments/${created.tournament.id}/ready`, { userId: player.userId, ready: true });
+        }
         await post(request, `/api/arena-tournaments/${created.tournament.id}/start`, { userId: players[0].userId });
         const bracket = await get(request, `/api/arena-tournaments/${created.tournament.id}?userId=${players[0].userId}`);
         const active = bracket.tournament.bracket[0].matches.find(
@@ -247,6 +258,7 @@ test('two browsers play the same shared Bounce rally', async ({ browser, request
     const opponentContext = await browser.newContext({ viewport: { width: 1180, height: 820 } });
     const challengerPage = await challengerContext.newPage();
     const opponentPage = await opponentContext.newPage();
+    await Promise.all([blockExternalFonts(challengerPage), blockExternalFonts(opponentPage)]);
     await identify(challengerPage, challenger);
     await identify(opponentPage, opponent);
     await Promise.all([
@@ -305,6 +317,7 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
     const opponentContext = await browser.newContext();
     const challengerPage = await challengerContext.newPage();
     const opponentPage = await opponentContext.newPage();
+    await Promise.all([blockExternalFonts(challengerPage), blockExternalFonts(opponentPage)]);
     await identify(challengerPage, challenger);
     await identify(opponentPage, opponent);
     await Promise.all([
@@ -357,4 +370,58 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
     await expect(opponentPage.getByText('RIVALRY ROOM')).toBeVisible();
     await challengerContext.close();
     await opponentContext.close();
+});
+
+test('private room link joins a live four-player lobby', async ({ browser, request }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop-chromium', 'Multi-browser room presence is covered once on desktop.');
+
+    const players = await Promise.all(
+        ['room-host', 'room-guest', 'room-c', 'room-d'].map((name) => join(request, name))
+    );
+    const created = await post(request, '/api/arena-tournaments', {
+        hostId: players[0].userId,
+        size: 4,
+        visibility: 'private',
+        name: 'Friends Arena',
+    });
+    const roomId = created.tournament.id as string;
+    const token = created.tournament.inviteToken as string;
+    for (const player of players.slice(2)) {
+        await post(request, `/api/arena-tournaments/${roomId}/join`, {
+            userId: player.userId,
+            inviteToken: token,
+        });
+        await post(request, `/api/arena-tournaments/${roomId}/ready`, {
+            userId: player.userId,
+            ready: true,
+        });
+    }
+
+    const hostContext = await browser.newContext();
+    const guestContext = await browser.newContext();
+    const hostPage = await hostContext.newPage();
+    const guestPage = await guestContext.newPage();
+    await Promise.all([blockExternalFonts(hostPage), blockExternalFonts(guestPage)]);
+    await identify(hostPage, players[0]);
+    await identify(guestPage, players[1]);
+    const roomUrl = `/?tab=tournament&room=${roomId}&token=${token}`;
+    await Promise.all([hostPage.goto(roomUrl), guestPage.goto(roomUrl)]);
+
+    await expect(hostPage.getByRole('heading', { name: 'Friends Arena' })).toBeVisible();
+    await expect(guestPage.getByRole('heading', { name: 'Friends Arena' })).toBeVisible();
+    await expect(hostPage.getByText('4/4 human players')).toBeVisible();
+
+    await hostPage.getByRole('button', { name: 'Cup Shuffle' }).click();
+    await expect(guestPage.getByRole('button', { name: 'Cup Shuffle' })).toHaveClass(/active/);
+    await Promise.all([
+        hostPage.getByRole('button', { name: 'I am READY' }).click(),
+        guestPage.getByRole('button', { name: 'I am READY' }).click(),
+    ]);
+    await expect(hostPage.getByRole('button', { name: 'Start bracket' })).toBeEnabled();
+    await hostPage.getByRole('button', { name: 'Start bracket' }).click();
+    await expect(hostPage.getByText('ROUND 1')).toBeVisible();
+    await expect(guestPage.getByText('ROUND 1')).toBeVisible();
+
+    await hostContext.close();
+    await guestContext.close();
 });

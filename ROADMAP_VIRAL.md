@@ -62,9 +62,13 @@ Success criteria:
 
 ## Phase 3 - Viral Rooms
 
-- Shareable room links for 4, 8 or 16 players.
-- Host-controlled game rotation with sane defaults.
-- Join as guest before full account creation.
+Status: in progress
+
+- Shareable private room links for 4, 8 or 16 players. Shipped.
+- Host-controlled three-game rotation with sane defaults. Shipped.
+- Join from an invitation before configuring the room. Shipped.
+- Live presence and ready state before bracket launch. Shipped.
+- Persistent bracket room and spectator mode after elimination. Shipped.
 - Automatic hourly public tournaments.
 - Waiting-room activity and start notifications.
 - Clearly identified bots only when explicitly enabled by the host.
