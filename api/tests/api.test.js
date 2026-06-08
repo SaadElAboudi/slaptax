@@ -63,6 +63,22 @@ async function jfetch(baseUrl, method, pathName, body) {
     return { status: res.status, data };
 }
 
+function waitForMessage(messages, predicate, message, timeoutMs = 5000) {
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
+        const check = () => {
+            const match = [...messages].reverse().find(predicate);
+            if (match) {
+                clearTimeout(timeout);
+                resolve(match);
+                return;
+            }
+            setTimeout(check, 20);
+        };
+        check();
+    });
+}
+
 test("health endpoint is reachable", async () => {
     await withServer(async (baseUrl) => {
         const { status, data } = await jfetch(baseUrl, "GET", "/api/health");
@@ -220,6 +236,101 @@ test("shared Bounce streams one authoritative arena and resolves without client 
         const progressed = await jfetch(baseUrl, "GET", `/api/state?userId=${bId}`);
         assert.ok(progressed.data.progression.xp > 0);
         assert.equal(progressed.data.progression.mastery.bounce.plays, 1);
+
+        socketA.close();
+        socketB.close();
+        await Promise.all([
+            new Promise((resolve) => socketA.once("close", resolve)),
+            new Promise((resolve) => socketB.once("close", resolve)),
+        ]);
+    });
+});
+
+test("shared arena pauses for a disconnect, resumes the same round, and accepts a forfeit", async () => {
+    await withServer(async (baseUrl) => {
+        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ReconnectA" });
+        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "ReconnectB" });
+        const aId = a.data.user.id;
+        const bId = b.data.user.id;
+        const created = await jfetch(baseUrl, "POST", "/api/duels", {
+            challengerId: aId,
+            opponentId: bId,
+            stake: 2,
+            draft: {
+                challenger: { ban: "cupshuffle", pick: "bounce" },
+                opponent: { ban: "duelnumeric", pick: "symbolrush" },
+            },
+        });
+        const duelId = created.data.duel.id;
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
+        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
+
+        const socketUrl = baseUrl.replace(/^http/, "ws");
+        let socketA = new WebSocket(`${socketUrl}/api/realtime?userId=${aId}`);
+        const socketB = new WebSocket(`${socketUrl}/api/realtime?userId=${bId}`);
+        const statesA = [];
+        const statesB = [];
+        const collectA = (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "arena.state") statesA.push(event);
+        };
+        socketA.on("message", collectA);
+        socketB.on("message", (data) => {
+            const event = JSON.parse(String(data));
+            if (event.type === "arena.state") statesB.push(event);
+        });
+
+        await Promise.all([
+            new Promise((resolve, reject) => {
+                socketA.once("open", resolve);
+                socketA.once("error", reject);
+            }),
+            new Promise((resolve, reject) => {
+                socketB.once("open", resolve);
+                socketB.once("error", reject);
+            }),
+        ]);
+        socketA.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        socketB.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        const initial = await waitForMessage(
+            statesB,
+            (state) => state.phase === "playing",
+            "Shared arena did not start before disconnect"
+        );
+
+        socketA.close();
+        await new Promise((resolve) => socketA.once("close", resolve));
+        const paused = await waitForMessage(
+            statesB,
+            (state) => state.phase === "waiting" && state.disconnectedUserId === aId,
+            "Shared arena did not enter reconnect grace"
+        );
+        assert.ok(paused.disconnectDeadline > paused.at);
+
+        socketA = new WebSocket(`${socketUrl}/api/realtime?userId=${aId}`);
+        socketA.on("message", collectA);
+        await new Promise((resolve, reject) => {
+            socketA.once("open", resolve);
+            socketA.once("error", reject);
+        });
+        socketA.send(JSON.stringify({ type: "arena.join", duelId, round: 1 }));
+        const resumed = await waitForMessage(
+            statesB,
+            (state) => state.phase === "playing" && state.at > paused.at,
+            "Shared arena did not resume after reconnect"
+        );
+        assert.ok(resumed.duration >= initial.duration);
+        assert.equal(resumed.rally, initial.rally);
+
+        socketA.send(JSON.stringify({ type: "arena.forfeit" }));
+        const finished = await waitForMessage(
+            statesB,
+            (state) => state.phase === "done",
+            "Shared arena did not accept explicit forfeit"
+        );
+        assert.equal(finished.winnerId, bId);
+        assert.equal(finished.finishReason, "player-forfeit");
 
         socketA.close();
         socketB.close();

@@ -33,6 +33,9 @@ Status: foundation shipped
 - Make `PLAY NOW` the primary home action.
 - Enter matchmaking without draft, stake or format configuration.
 - Preserve and recover queue state across navigation and reconnection.
+- Run competitive countdowns from server time instead of each device clock. Shipped.
+- Pause active signature games during a disconnect, then resume the same state
+  within a visible grace window or resolve a server-side forfeit. Shipped.
 - Target a playable first round in less than ten seconds when another human is
   available.
 - Show an honest searching state and allow training while waiting.

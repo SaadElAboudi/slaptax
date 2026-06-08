@@ -42,11 +42,17 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const { activateAudio, playReady, playWin, playLoss } = useSfx();
     const playerName = useGameStore((state) => state.playerName);
     const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
+    const usesSharedArena = Boolean(duelSession && ['bounce', 'symbolrush', 'bombpass'].includes(gameId));
     onCompleteRef.current = onComplete;
 
     function begin() {
         void activateAudio();
         playReady(Math.min(1, round / 3));
+        if (usesSharedArena) {
+            startRef.current = performance.now();
+            setPhase('playing');
+            return;
+        }
         setCountdown(3);
         setPhase('countdown');
     }
@@ -124,7 +130,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'playing' && (
                 <div className={styles.stage}>
-                    {duelSession && ['bounce', 'symbolrush', 'bombpass'].includes(gameId) ? (
+                    {duelSession && usesSharedArena ? (
                         <SharedArenaRound round={round} gameId={gameId} isFr={isFr} finish={finish} session={duelSession} />
                     ) : gameId === 'bounce' ? (
                         <BounceRound round={round} isFr={isFr} finish={finish} />
@@ -155,6 +161,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
 interface SharedArenaState {
     type: 'arena.state';
+    at: number;
     duelId: string;
     round: number;
     gameId: CompetitiveGameId;
@@ -208,8 +215,11 @@ function SharedArenaRound({
     const stateRef = useRef<SharedArenaState | null>(null);
     const frameRef = useRef(0);
     const completedRef = useRef(false);
+    const serverOffsetRef = useRef(0);
     const [state, setState] = useState<SharedArenaState | null>(null);
     const [countdown, setCountdown] = useState(0);
+    const [disconnectSeconds, setDisconnectSeconds] = useState(0);
+    const [connection, setConnection] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting');
     const isChallenger = session.userId === session.challengerId;
     const rivalId = state
         ? (session.userId === state.challengerId ? state.opponentId : state.challengerId)
@@ -222,10 +232,12 @@ function SharedArenaRound({
 
         function connect() {
             if (stopped) return;
+            setConnection(attempt ? 'reconnecting' : 'connecting');
             const socket = new WebSocket(getRealtimeUrl(session.userId));
             socketRef.current = socket;
             socket.addEventListener('open', () => {
                 attempt = 0;
+                setConnection('connected');
                 socket.send(JSON.stringify({
                     type: session.spectator ? 'arena.watch' : 'arena.join',
                     duelId: session.duelId,
@@ -240,6 +252,7 @@ function SharedArenaRound({
                     return;
                 }
                 if (event?.type !== 'arena.state' || event.duelId !== session.duelId || event.round !== round) return;
+                if (typeof event.at === 'number') serverOffsetRef.current = event.at - Date.now();
                 stateRef.current = event;
                 setState(event);
                 if (event.phase === 'done' && event.winnerId && !completedRef.current) {
@@ -256,6 +269,7 @@ function SharedArenaRound({
             });
             socket.addEventListener('close', () => {
                 if (stopped) return;
+                setConnection('reconnecting');
                 attempt += 1;
                 reconnectTimer = window.setTimeout(connect, Math.min(8000, 400 * (2 ** attempt)));
             });
@@ -270,18 +284,21 @@ function SharedArenaRound({
     }, [finish, isFr, round, session.duelId, session.spectator, session.userId]);
 
     useEffect(() => {
-        if (state?.phase !== 'countdown') {
+        if (state?.phase !== 'countdown' && !state?.disconnectDeadline) {
             setCountdown(0);
+            setDisconnectSeconds(0);
             return;
         }
         const update = () => {
-            const remaining = Math.max(0, Math.ceil(((stateRef.current?.resumeAt || 0) - Date.now()) / 1000));
-            setCountdown(remaining);
+            const serverNow = Date.now() + serverOffsetRef.current;
+            const current = stateRef.current;
+            setCountdown(Math.max(0, Math.ceil(((current?.resumeAt || 0) - serverNow) / 1000)));
+            setDisconnectSeconds(Math.max(0, Math.ceil(((current?.disconnectDeadline || 0) - serverNow) / 1000)));
         };
         update();
         const timer = window.setInterval(update, 100);
         return () => window.clearInterval(timer);
-    }, [state?.phase]);
+    }, [state?.disconnectDeadline, state?.phase]);
 
     useEffect(() => {
         if (gameId !== 'bounce') return;
@@ -373,6 +390,13 @@ function SharedArenaRound({
         socket.send(JSON.stringify({ type: 'arena.action', ...action }));
     }
 
+    function forfeit() {
+        if (session.spectator || !window.confirm(isFr ? 'Abandonner cette manche ?' : 'Forfeit this round?')) return;
+        const socket = socketRef.current;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: 'arena.forfeit' }));
+    }
+
     function move(clientX: number) {
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
@@ -384,6 +408,14 @@ function SharedArenaRound({
     }
 
     const phase = state?.phase || 'waiting';
+    const disconnectedSelf = state?.disconnectedUserId === session.userId;
+    const interruption = connection !== 'connected'
+        ? (isFr ? 'Connexion perdue. Reprise en cours...' : 'Connection lost. Rejoining...')
+        : state?.disconnectDeadline
+            ? disconnectedSelf
+                ? (isFr ? `Reconnexion... forfait dans ${disconnectSeconds}s` : `Reconnecting... forfeit in ${disconnectSeconds}s`)
+                : (isFr ? `Rival déconnecté · reprise pendant ${disconnectSeconds}s` : `Rival disconnected · resuming for ${disconnectSeconds}s`)
+            : '';
     const status = phase === 'waiting'
         ? (isFr ? 'En attente du rival...' : 'Waiting for rival...')
         : phase === 'countdown'
@@ -399,6 +431,7 @@ function SharedArenaRound({
         const length = state?.sequenceLength || 1;
         return (
             <div className={styles.game}>
+                {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
                 <div className={styles.liveHud}>
                     <span>{status}</span>
                     <span>{state?.reversed ? 'REVERSE MEMORY' : 'COMMON SEQUENCE'}</span>
@@ -426,6 +459,7 @@ function SharedArenaRound({
                         </button>
                     ))}
                 </div>
+                {!session.spectator && <button type="button" className={styles.forfeitButton} onClick={forfeit}>{isFr ? 'Abandonner la manche' : 'Forfeit round'}</button>}
                 <p>{isFr ? 'Même séquence, progression rivale visible, réponses cachées.' : 'Same sequence, rival progress visible, answers hidden.'}</p>
             </div>
         );
@@ -437,6 +471,7 @@ function SharedArenaRound({
         const ability = state?.abilities?.[session.userId];
         return (
             <div className={styles.game}>
+                {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
                 <div className={styles.liveHud}>
                     <span>{holding ? (isFr ? 'TU AS LA BOMBE' : 'YOU HOLD THE BOMB') : (isFr ? 'CHEZ LE RIVAL' : 'RIVAL HOLDS IT')}</span>
                     <span>PASSES <strong data-testid="bomb-passes">{state?.passes || 0}</strong></span>
@@ -465,6 +500,7 @@ function SharedArenaRound({
                     <button type="button" disabled={session.spectator || !holding || !ability?.feint} onClick={() => send({ action: 'feint' })}>FEINT ×{ability?.feint || 0}</button>
                     <span>SHIELD ×{ability?.shield || 0}</span>
                 </div>
+                {!session.spectator && <button type="button" className={styles.forfeitButton} onClick={forfeit}>{isFr ? 'Abandonner la manche' : 'Forfeit round'}</button>}
                 <p>{isFr ? 'Passe dans la zone sûre. Feinte une fois, bouclier automatique une fois.' : 'Pass in the safe zone. One feint, one automatic shield.'}</p>
             </div>
         );
@@ -472,6 +508,7 @@ function SharedArenaRound({
 
     return (
         <div className={styles.game}>
+            {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
             <div className={styles.liveHud}>
                 <span>{status}</span>
                 <span>RALLY <strong data-testid="shared-bounce-rally">{state?.rally || 0}</strong></span>
@@ -503,6 +540,7 @@ function SharedArenaRound({
                 ))}
                 <span>PERFECT {state?.perfects?.[session.userId] || 0}</span>
             </div>
+            {!session.spectator && <button type="button" className={styles.forfeitButton} onClick={forfeit}>{isFr ? 'Abandonner la manche' : 'Forfeit round'}</button>}
             <p>{state?.suddenDeath ? 'SUDDEN DEATH' : (isFr ? 'Perfect returns = bonus offensifs.' : 'Perfect returns charge offensive powers.')}</p>
         </div>
     );
@@ -549,7 +587,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                 state.x = width * .5;
                 state.y = height * .5;
                 const launchSpeed = 245 + Math.min(90, round * 18);
-                state.vx = launchSpeed * .62;
+                state.vx = launchSpeed * .16;
                 state.vy = -launchSpeed * .78;
             } else {
                 state.x *= width / state.width;
@@ -584,6 +622,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             const obstacleWidth = Math.max(76, state.width * Math.max(.14, .25 - round * .018));
             const obstacleX = state.width / 2
                 + Math.sin(survival * (1.15 + round * .16)) * state.width * .27;
+            const obstacleActive = survival >= 8;
 
             if (state.x <= ballRadius || state.x >= state.width - ballRadius) {
                 state.x = Math.max(ballRadius, Math.min(state.width - ballRadius, state.x));
@@ -603,6 +642,8 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                 && previousY - ballRadius >= obstacleY + 9
                 && state.y - ballRadius <= obstacleY + 9;
             if (
+                obstacleActive
+                &&
                 (crossesObstacleDown || crossesObstacleUp)
                 && Math.abs(state.x - obstacleX) <= obstacleWidth / 2 + ballRadius
             ) {
@@ -631,6 +672,8 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                     state.y = paddleY - ballRadius;
                     state.vx = recoveryDirection * recoverySpeed * .42;
                     state.vy = -recoverySpeed * .9;
+                    state.rally += 1;
+                    setRally(state.rally);
                 } else if (state.y > state.height + ballRadius * 2) {
                     stopped = true;
                     const survival = (now - started) / 1000;
@@ -649,8 +692,10 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             context.beginPath(); context.moveTo(0, height / 2); context.lineTo(width, height / 2); context.stroke();
             context.setLineDash([]);
 
-            context.fillStyle = '#ef476f';
-            context.fillRect(obstacleX - obstacleWidth / 2, obstacleY, obstacleWidth, 9);
+            if (obstacleActive) {
+                context.fillStyle = '#ef476f';
+                context.fillRect(obstacleX - obstacleWidth / 2, obstacleY, obstacleWidth, 9);
+            }
             context.fillStyle = '#ffd400';
             context.fillRect(paddleX - paddleWidth / 2, paddleY, paddleWidth, 10);
             const glow = context.createRadialGradient(state.x, state.y, 2, state.x, state.y, 28);

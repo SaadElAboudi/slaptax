@@ -398,6 +398,15 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         broadcast(session);
     }
 
+    function forfeit(client) {
+        const session = sessions.get(client.arenaSessionKey);
+        if (!session || client.arenaRole !== "player" || session.phase === "done") return;
+        const winnerId = client.userId === session.challengerId
+            ? session.opponentId
+            : session.challengerId;
+        finish(session, winnerId, "player-forfeit");
+    }
+
     function startGame(session, now) {
         session.phase = "playing";
         session.startedAt ||= now;
@@ -553,6 +562,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         if (payload.type === "arena.join" || payload.type === "bounce.join") join(client, payload);
         if (payload.type === "arena.watch") join(client, payload, true);
         if (payload.type === "arena.action") action(client, payload);
+        if (payload.type === "arena.forfeit") forfeit(client);
         if (payload.type === "bounce.paddle") action(client, { ...payload, action: "move" });
     }
 
