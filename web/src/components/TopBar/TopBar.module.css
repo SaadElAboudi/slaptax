@@ -18,11 +18,11 @@
 .cosmeticRow { display:grid; gap:7px; }.cosmeticRow div { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }.cosmeticRow button { min-height:38px; overflow:hidden; border:1px solid var(--line-soft); border-radius:4px; padding:5px; color:var(--muted); background:#0d131b; font-size:.6rem; text-transform:uppercase; cursor:pointer; }.cosmeticRow button:disabled { color:#4d5662; }.cosmeticRow .selectedCosmetic { border-color:var(--accent); color:var(--accent); background:rgba(255,212,0,.08); }
 
 .brand {
-    font-family: 'Rubik Dirt', cursive;
-    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-family: 'Black Ops One', sans-serif;
+    font-size: clamp(1.15rem, 3vw, 1.65rem);
     color: var(--accent);
-    letter-spacing: -1px;
-    text-shadow: 3px 3px 0 var(--accent2);
+    letter-spacing: 0;
+    text-shadow: 2px 2px 0 color-mix(in srgb, var(--accent2) 80%, #000);
     user-select: none;
 }
 
@@ -112,7 +112,7 @@
     }
 
     .brand {
-        font-size: 1.05rem;
+        font-size: .94rem;
     }
 
     .right {
@@ -129,16 +129,18 @@
     }
 
     .walletChip {
-        padding: 5px 8px;
+        padding: 5px 7px;
         font-size: 0.66rem;
     }
 
     .playerNameInput {
-        width: 76px;
+        display: none;
     }
 
     .langBtn {
-        padding: 4px 8px;
+        padding: 4px 7px;
         font-size: 0.64rem;
     }
+    .avatarButton { width:32px; height:32px; }
+    .audioButton { display:none; }
 }

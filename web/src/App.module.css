@@ -20,7 +20,7 @@
 }
 
 .homeMode {
-    max-width: 960px;
+    max-width: 1080px;
 }
 
 .arenaMode {
@@ -140,7 +140,7 @@
 @media (max-width: 767px) {
     .container {
         padding-inline: 0;
-        padding-bottom: 24px;
+        padding-bottom: 88px;
     }
 
     .arenaMode {
@@ -153,11 +153,11 @@
     }
 
     .panelArea {
-        min-height: calc(100dvh - 156px);
+        min-height: calc(100dvh - 122px);
     }
 
     .panelArea > section {
-        min-height: calc(100dvh - 145px);
+        min-height: calc(100dvh - 122px);
         border-inline: 0;
         border-radius: 0;
     }

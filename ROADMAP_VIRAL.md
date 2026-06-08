@@ -25,6 +25,8 @@ Supporting metrics:
 - Empty social surfaces must not pretend to be active.
 - Retention should come from mastery, friendship and anticipation rather than
   punitive timers or manipulative rewards.
+- Keep the player inside one continuous arena shell across home, lobby, match
+  and results. The home hub and mobile arena navigation are shipped.
 
 ## Phase 1 - Instant Play
 

@@ -1,12 +1,12 @@
 import styles from './Tabs.module.css';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 
-const ALL_TABS: { id: Tab; label: string; advanced?: boolean }[] = [
-    { id: 'training', label: 'Training' },
-    { id: 'defy', label: 'Friend Duel' },
-    { id: 'tournament', label: 'Tournament' },
-    { id: 'leaderboard', label: 'Leaderboard' },
-    { id: 'stats', label: 'History' },
+const ALL_TABS: { id: Tab; label: string; icon: string }[] = [
+    { id: 'training', label: 'Training', icon: '↗' },
+    { id: 'defy', label: 'Friend Duel', icon: 'VS' },
+    { id: 'tournament', label: 'Tournament', icon: '◆' },
+    { id: 'leaderboard', label: 'Leaderboard', icon: '↑' },
+    { id: 'stats', label: 'History', icon: '≡' },
 ];
 
 const TAB_LABELS_FR: Record<Tab, string> = {
@@ -32,7 +32,8 @@ export function Tabs() {
                     }}
                     aria-current={activeTab === t.id ? 'page' : undefined}
                 >
-                    {isFr ? TAB_LABELS_FR[t.id] : t.label}
+                    <span aria-hidden>{t.icon}</span>
+                    <b>{isFr ? TAB_LABELS_FR[t.id] : t.label}</b>
                 </button>
             ))}
         </nav>

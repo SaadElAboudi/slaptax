@@ -126,9 +126,12 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     return (
         <section className={styles.home}>
             <div className={styles.statusRail}>
-                <div>
-                    <span>{isFr ? 'JOUEUR' : 'PLAYER'}</span>
-                    <strong>{playerName}</strong>
+                <div className={styles.playerIdentity}>
+                    <i data-avatar={progression?.cosmetics.avatar || 'spark'} aria-hidden />
+                    <div>
+                        <span>{isFr ? 'JOUEUR' : 'PLAYER'}</span>
+                        <strong>{playerName}</strong>
+                    </div>
                 </div>
                 <div>
                     <span>{progression?.rank || (isFr ? 'RANG' : 'RANK')} · LVL {progression?.level || 1}</span>
@@ -169,6 +172,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             )}
 
             <div className={`${styles.quickPlay} ${matchmakingStatus === 'waiting' ? styles.quickPlaySearching : ''}`}>
+                <div className={styles.arenaLights} aria-hidden><i /><i /><i /><i /></div>
                 <div className={styles.quickPlaySignal} aria-hidden>
                     <i />
                     <i />
@@ -223,25 +227,37 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             )}
 
             <header className={styles.intro}>
-                <span>{isFr ? 'CHOISIS TON TERRAIN' : 'CHOOSE YOUR ARENA'}</span>
-                <h1>{isFr ? 'Comment veux-tu jouer ?' : 'How do you want to play?'}</h1>
-                <p>{isFr ? 'Trois modes distincts, une seule progression.' : 'Three distinct modes, one shared progression.'}</p>
+                <span>{isFr ? 'PORTES DE L ARENE' : 'ARENA GATES'}</span>
+                <h1>{isFr ? 'Choisis ton prochain combat' : 'Choose your next fight'}</h1>
+                <p>{isFr ? 'Entraîne-toi, provoque un rival ou entre dans le bracket.' : 'Train, call out a rival, or enter the bracket.'}</p>
             </header>
 
             <div className={styles.modeGrid}>
                 <article className={styles.trainingMode}>
+                    <div className={styles.modeScene} aria-hidden>
+                        <i /><i /><i />
+                        <b>↗</b>
+                    </div>
                     <span>SOLO</span>
                     <strong>{isFr ? 'Entrainement' : 'Training'}</strong>
                     <p>{isFr ? 'Apprends les jeux et bats tes records, sans mise.' : 'Learn every game and beat your records, with no stake.'}</p>
                     <button type="button" onClick={openTraining}>{isFr ? 'Jouer solo' : 'Play solo'} <b>→</b></button>
                 </article>
                 <article className={styles.duelMode}>
+                    <div className={styles.modeScene} aria-hidden>
+                        <i /><i />
+                        <b>VS</b>
+                    </div>
                     <span>1V1 · BO3</span>
                     <strong>{isFr ? 'Duel entre amis' : 'Friend duel'}</strong>
                     <p>{isFr ? 'Partage un lien. Le premier à deux manches gagne.' : 'Share a link. First to win two rounds takes it.'}</p>
                     <button type="button" onClick={() => onEnter('defy')}>{isFr ? 'Créer un duel' : 'Create duel'} <b>→</b></button>
                 </article>
                 <article className={styles.tournamentMode}>
+                    <div className={styles.modeScene} aria-hidden>
+                        <i /><i /><i /><i />
+                        <b>4</b>
+                    </div>
                     <span>LAST STANDING</span>
                     <strong>{isFr ? 'Tournoi' : 'Tournament'}</strong>
                     <p>{isFr ? 'Enchaine les adversaires. Une défaite termine le run.' : 'Clear each opponent. One loss ends the run.'}</p>
