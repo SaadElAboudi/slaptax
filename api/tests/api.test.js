@@ -6,6 +6,7 @@ const path = require("path");
 const { WebSocket } = require("ws");
 
 const { createServer } = require("../server");
+const SYMBOLS_FOR_TEST = ["◆", "●", "▲", "■", "✦"];
 
 function makeTempDbPath() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "slaptax-api-test-"));
@@ -458,6 +459,33 @@ test("Symbol Sprint shares one sequence, hides answers, and accepts spectators",
         assert.equal(revealed.spectatorCount, 1);
         assert.equal(revealed.sequence.length, revealed.sequenceLength);
         await new Promise((resolve) => setTimeout(resolve, Math.max(0, revealed.revealEndsAt - Date.now() + 80)));
+
+        sockets[0].send(JSON.stringify({ type: "arena.action", action: "power", power: "shield" }));
+        await waitForMessage(
+            states[0],
+            (state) => state.shieldArmed?.[aId] === true,
+            "Symbol shield did not arm"
+        );
+        const wrongSymbol = SYMBOLS_FOR_TEST.find((symbol) => symbol !== revealed.sequence[0]);
+        sockets[0].send(JSON.stringify({ type: "arena.action", action: "answer", symbol: wrongSymbol }));
+        const shielded = await waitForMessage(
+            states[0],
+            (state) => state.lastAction?.action === "shield-block",
+            "Symbol shield did not absorb an error"
+        );
+        assert.equal(shielded.errors[aId], 0);
+        assert.equal(shielded.shieldArmed[aId], false);
+
+        sockets[1].send(JSON.stringify({ type: "arena.action", action: "power", power: "jam" }));
+        const jammed = await waitForMessage(
+            states[0],
+            (state) => state.lastAction?.action === "jam" && state.lastAction?.targetId === aId,
+            "Symbol jam did not affect the rival"
+        );
+        assert.ok(jammed.jammedUntil[aId] > jammed.at);
+        assert.equal(jammed.abilities[bId].jam, 0);
+        await new Promise((resolve) => setTimeout(resolve, Math.max(0, jammed.jammedUntil[aId] - Date.now() + 40)));
+
         for (const symbol of revealed.sequence) {
             sockets[0].send(JSON.stringify({ type: "arena.action", action: "answer", symbol }));
             await new Promise((resolve) => setTimeout(resolve, 20));

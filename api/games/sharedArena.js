@@ -98,11 +98,21 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         return {
             sequence,
             reversed: duel.currentRound >= 3,
-            palette: shuffled(SYMBOLS),
+            palettes: {
+                [duel.challengerId]: shuffled(SYMBOLS),
+                [duel.opponentId]: shuffled(SYMBOLS),
+            },
             progress: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
             errors: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
             combos: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
+            abilities: {
+                [duel.challengerId]: { shield: 1, jam: 1 },
+                [duel.opponentId]: { shield: 1, jam: 1 },
+            },
+            shieldArmed: { [duel.challengerId]: false, [duel.opponentId]: false },
+            jammedUntil: { [duel.challengerId]: 0, [duel.opponentId]: 0 },
             lastInputAt: {},
+            lastAction: null,
             revealEndsAt: 0,
             inputEndsAt: 0,
         };
@@ -206,10 +216,14 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 sequence: now < game.revealEndsAt ? game.sequence : [],
                 sequenceLength: game.sequence.length,
                 reversed: game.reversed,
-                palette: game.palette,
+                palettes: game.palettes,
                 progress: game.progress,
                 errors: game.errors,
                 combos: game.combos,
+                abilities: game.abilities,
+                shieldArmed: game.shieldArmed,
+                jammedUntil: game.jammedUntil,
+                lastAction: game.lastAction,
                 revealEndsAt: game.revealEndsAt,
                 inputEndsAt: game.inputEndsAt,
             };
@@ -330,21 +344,52 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     function answerSymbol(session, client, payload) {
         const game = session.game;
-        if (Date.now() < game.revealEndsAt) return;
+        const now = Date.now();
+        if (now < game.revealEndsAt) return;
         const userId = client.userId;
+        if (now < game.jammedUntil[userId]) return;
         const progress = game.progress[userId];
         const targetIndex = game.reversed ? game.sequence.length - 1 - progress : progress;
         if (String(payload.symbol || "") !== game.sequence[targetIndex]) {
-            game.errors[userId] += 1;
+            if (game.shieldArmed[userId]) {
+                game.shieldArmed[userId] = false;
+                game.lastAction = { userId, action: "shield-block", at: now };
+            } else {
+                game.errors[userId] += 1;
+                game.lastAction = { userId, action: "error", at: now };
+            }
             game.combos[userId] = 0;
-            if (game.errors[userId] % 2 === 0) game.palette = shuffled(game.palette);
+            game.palettes[userId] = shuffled(game.palettes[userId]);
             return;
         }
         game.progress[userId] += 1;
         game.combos[userId] += 1;
-        game.lastInputAt[userId] = Date.now();
+        game.lastInputAt[userId] = now;
+        game.lastAction = { userId, action: "correct", at: now };
+        if (game.combos[userId] % 3 === 0) {
+            game.abilities[userId].jam = Math.min(1, game.abilities[userId].jam + 1);
+        }
         if (game.progress[userId] >= game.sequence.length) {
             finish(session, userId, game.reversed ? "reverse-memory-complete" : "sequence-complete");
+        }
+    }
+
+    function useSymbolPower(session, client, payload) {
+        const game = session.game;
+        const userId = client.userId;
+        const rivalId = userId === session.challengerId ? session.opponentId : session.challengerId;
+        const power = String(payload.power || "");
+        if (power === "shield" && game.abilities[userId].shield > 0 && !game.shieldArmed[userId]) {
+            game.abilities[userId].shield -= 1;
+            game.shieldArmed[userId] = true;
+            game.lastAction = { userId, action: "shield-armed", at: Date.now() };
+            return;
+        }
+        if (power === "jam" && game.abilities[userId].jam > 0) {
+            game.abilities[userId].jam -= 1;
+            game.jammedUntil[rivalId] = Date.now() + 900;
+            game.palettes[rivalId] = shuffled(game.palettes[rivalId]);
+            game.lastAction = { userId, action: "jam", targetId: rivalId, at: Date.now() };
         }
     }
 
@@ -390,7 +435,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             if (payload.action === "power") useBouncePower(session, client, payload);
             else moveBounce(session, client, payload);
         } else if (session.gameId === "symbolrush") {
-            answerSymbol(session, client, payload);
+            if (payload.action === "power") useSymbolPower(session, client, payload);
+            else answerSymbol(session, client, payload);
         } else if (session.gameId === "bombpass") {
             actBomb(session, client, payload);
         }

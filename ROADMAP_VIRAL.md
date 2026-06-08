@@ -51,6 +51,9 @@ Success criteria:
 
 Status: in progress
 
+- Give each signature game at least three meaningful actions. Symbol Sprint now
+  combines answers, a pre-armed error shield and a rival Jam recharged by
+  three-hit combos. In progress.
 - One-tap rematch with live accept/decline state. Shipped.
 - `Change game` and `Double stake` options after a duel. Shipped.
 - Head-to-head card with wins, streak, best game and recent results. Shipped.

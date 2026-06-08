@@ -188,9 +188,11 @@ interface SharedArenaState {
     sequence?: string[];
     sequenceLength?: number;
     reversed?: boolean;
-    palette?: string[];
+    palettes?: Record<string, string[]>;
     progress?: Record<string, number>;
     errors?: Record<string, number>;
+    shieldArmed?: Record<string, boolean>;
+    jammedUntil?: Record<string, number>;
     revealEndsAt?: number;
     inputEndsAt?: number;
     holderId?: string;
@@ -199,8 +201,8 @@ interface SharedArenaState {
     marker?: number;
     safeCenter?: number;
     safeWidth?: number;
-    abilities?: Record<string, { shield: number; feint: number }>;
-    lastAction?: { userId: string; action: string; at: number } | null;
+    abilities?: Record<string, { shield: number; feint?: number; jam?: number }>;
+    lastAction?: { userId: string; action: string; targetId?: string; at: number } | null;
 }
 
 function SharedArenaRound({
@@ -429,6 +431,9 @@ function SharedArenaRound({
         const myProgress = state?.progress?.[session.userId] || 0;
         const rivalProgress = state?.progress?.[rivalId] || 0;
         const length = state?.sequenceLength || 1;
+        const ability = state?.abilities?.[session.userId];
+        const shieldArmed = Boolean(state?.shieldArmed?.[session.userId]);
+        const jammed = (state?.jammedUntil?.[session.userId] || 0) > Date.now() + serverOffsetRef.current;
         return (
             <div className={styles.game}>
                 {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
@@ -448,19 +453,42 @@ function SharedArenaRound({
                     ))}
                 </div>
                 <div className={styles.symbolPad} data-testid="symbol-pad">
-                    {(state?.palette || SYMBOLS).map((symbol) => (
+                    {(state?.palettes?.[session.userId] || SYMBOLS).map((symbol) => (
                         <button
                             type="button"
                             key={symbol}
-                        disabled={session.spectator || phase !== 'playing' || revealing}
+                            disabled={session.spectator || phase !== 'playing' || revealing || jammed}
                             onClick={() => send({ action: 'answer', symbol })}
                         >
                             {symbol}
                         </button>
                     ))}
                 </div>
+                <div className={styles.powerBar}>
+                    <button
+                        type="button"
+                        data-testid="symbol-shield"
+                        disabled={session.spectator || phase !== 'playing' || revealing || shieldArmed || !ability?.shield}
+                        onClick={() => send({ action: 'power', power: 'shield' })}
+                    >
+                        {shieldArmed ? 'SHIELD ARMED' : `SHIELD ×${ability?.shield || 0}`}
+                    </button>
+                    <button
+                        type="button"
+                        data-testid="symbol-jam"
+                        disabled={session.spectator || phase !== 'playing' || revealing || !ability?.jam}
+                        onClick={() => send({ action: 'power', power: 'jam' })}
+                    >
+                        JAM ×{ability?.jam || 0}
+                    </button>
+                    <span>COMBO {state?.combos?.[session.userId] || 0}</span>
+                </div>
                 {!session.spectator && <button type="button" className={styles.forfeitButton} onClick={forfeit}>{isFr ? 'Abandonner la manche' : 'Forfeit round'}</button>}
-                <p>{isFr ? 'Même séquence, progression rivale visible, réponses cachées.' : 'Same sequence, rival progress visible, answers hidden.'}</p>
+                <p>
+                    {jammed
+                        ? (isFr ? 'BROUILLAGE ADVERSE' : 'RIVAL JAM ACTIVE')
+                        : (isFr ? 'Shield absorbe une erreur. Un combo de 3 recharge Jam.' : 'Shield blocks one error. A 3-hit combo recharges Jam.')}
+                </p>
             </div>
         );
     }
