@@ -1,4 +1,26 @@
+import { WebSocket } from 'ws';
 import { expect, test, type APIRequestContext, type Page, type TestInfo } from '@playwright/test';
+
+
+async function forfeitRound(duelId: string, round: number, loserId: string) {
+    await new Promise<void>((resolve, reject) => {
+        const socket = new WebSocket(`ws://127.0.0.1:3100/api/realtime?userId=${loserId}`);
+        const timer = setTimeout(() => { socket.terminate(); reject(new Error('Forfeit timed out')); }, 5000);
+        socket.on('open', () => {
+            socket.send(JSON.stringify({ type: 'arena.join', duelId, round }));
+            socket.send(JSON.stringify({ type: 'arena.forfeit' }));
+        });
+        socket.on('error', reject);
+        socket.on('message', (raw: Buffer) => {
+            const event = JSON.parse(String(raw));
+            if (event.type === 'arena.state' && event.phase === 'done') {
+                clearTimeout(timer);
+                socket.close();
+                resolve();
+            }
+        });
+    });
+}
 
 const GAMES = [
     { id: 'bounce', label: 'Bounce Panic', testId: 'bounce-canvas' },
@@ -64,18 +86,37 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
         const box = await target.boundingBox();
         expect(box?.width || 0).toBeGreaterThan(280);
         expect(box?.height || 0).toBeGreaterThan(180);
-        await expect(page.getByTestId('bounce-rally')).not.toHaveText('0', { timeout: 8_000 });
+        await page.waitForFunction(() => {
+            const canvas = document.querySelector('[data-testid="bounce-canvas"]') as HTMLCanvasElement;
+            if (!canvas) return false;
+            const context = canvas.getContext('2d')!;
+            const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+            let sum = 0;
+            let count = 0;
+            for (let y = 0; y < canvas.height * .84; y += 3) {
+                for (let x = 0; x < canvas.width; x += 3) {
+                    const offset = (y * canvas.width + x) * 4;
+                    if (pixels[offset] > 220 && pixels[offset + 1] > 150 && pixels[offset + 2] < 90) { sum += x; count++; }
+                }
+            }
+            if (count) {
+                const rect = canvas.getBoundingClientRect();
+                canvas.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse', clientX: rect.left + sum / count / canvas.width * rect.width }));
+            }
+            return Number(document.querySelector('[data-testid="bounce-rally"]')?.textContent) > 0;
+        }, null, { polling: 32, timeout: 8_000 });
     }
 
     if (game.id === 'symbolrush') {
         const board = page.getByTestId('symbol-board');
-        const sequence = Array.from(await board.getAttribute('data-qa-sequence') || '');
-        expect(sequence.length).toBe(await board.locator('span').count());
-        await expect(target.getByRole('button').first()).toBeEnabled({ timeout: 8_000 });
-        expect(await target.getByRole('button').count()).toBe(5);
-        for (const symbol of sequence) {
-            await target.getByRole('button', { name: symbol, exact: true }).click();
+        const sequence: string[] = [];
+        const tiles = board.locator('span');
+        for (let index = 0; index < await tiles.count(); index++) {
+            await expect(tiles.nth(index)).not.toHaveText('·');
+            sequence.push((await tiles.nth(index).textContent())!);
         }
+        await expect(target.getByRole('button').first()).toBeEnabled({ timeout: 8_000 });
+        for (const symbol of sequence) await target.getByRole('button', { name: symbol, exact: true }).click();
         await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
@@ -83,6 +124,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
         for (let pass = 0; pass < 9; pass += 1) {
             await page.waitForFunction(() => {
                 const track = document.querySelector('[data-testid="bomb-track"]');
+                if ((track as HTMLButtonElement)?.disabled) return false;
                 const zone = track?.querySelector('span') as HTMLElement | null;
                 const marker = track?.querySelector('i') as HTMLElement | null;
                 if (!zone || !marker) return false;
@@ -101,17 +143,25 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
     }
 
     if (game.id === 'cupshuffle') {
-        const tokenCup = await target.locator('button:has(i)').elementHandle();
-        expect(tokenCup).not.toBeNull();
-        await expect(target.getByRole('button').first()).toBeEnabled({ timeout: 9_000 });
-        expect(await target.getByRole('button').count()).toBe(3);
-        await tokenCup?.click();
+        test.setTimeout(60_000);
+        for (let stage = 1; stage <= 3; stage++) {
+            await expect(target).toHaveAttribute('data-phase', 'reveal');
+            const tokenCup = target.locator('button:has(i)');
+            const cup = await tokenCup.elementHandle();
+            expect(cup).not.toBeNull();
+            await expect(target.getByRole('button').first()).toBeEnabled({ timeout: 12_000 });
+            await cup!.click();
+            await expect(target).toHaveAttribute('data-phase', 'feedback');
+            if (stage < 3) await expect(target).toHaveAttribute('data-phase', 'reveal');
+        }
         await expect(page.getByText(/ROUND DOMINATED|IMPACT RECORDED/)).toBeVisible();
     }
 
     if (game.id === 'duelnumeric') {
         expect(await target.getByRole('button').count()).toBe(4);
         for (let question = 0; question < 5; question += 1) {
+            await expect(page.getByTestId('numeric-equation')).toHaveAttribute('data-question', String(question));
+            await expect(target.getByRole('button').first()).toBeEnabled();
             const label = await page.getByTestId('numeric-equation').textContent();
             const [left, operator, right] = String(label).trim().split(/\s+/);
             const answer = operator === '×' ? Number(left) * Number(right) : Number(left) + Number(right);
@@ -124,6 +174,10 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
         path: testInfo.outputPath(`${game.id}.png`),
         fullPage: true,
     });
+    if (game.id === 'duelnumeric') {
+        await page.getByRole('button', { name: 'Challenge a friend', exact: true }).click();
+        await expect(page.getByRole('button', { name: 'Duel Numeric PREFERRED', exact: true })).toBeVisible();
+    }
 }
 
 function duelDraft(preferred: string) {
@@ -208,24 +262,7 @@ for (const game of GAMES.slice(0, 3)) {
         await post(request, `/api/duels/${active.duelId}/start`, { userId: players[0].userId });
 
         async function resolveRound(round: number, firstPlayerWins: boolean) {
-            const first = await get(request, `/api/duels/${active.duelId}/match?userId=${players[0].userId}`);
-            const second = await get(request, `/api/duels/${active.duelId}/match?userId=${opponentId}`);
-            await Promise.all([
-                post(request, `/api/duels/${active.duelId}/rounds`, {
-                    userId: players[0].userId,
-                    round,
-                    score: firstPlayerWins ? 1000 : 0,
-                    metric: 900,
-                    attemptToken: first.match.attemptToken,
-                }),
-                post(request, `/api/duels/${active.duelId}/rounds`, {
-                    userId: opponentId,
-                    round,
-                    score: firstPlayerWins ? 0 : 1000,
-                    metric: 1100,
-                    attemptToken: second.match.attemptToken,
-                }),
-            ]);
+            await forfeitRound(active.duelId, round, firstPlayerWins ? opponentId : players[0].userId);
         }
         if (game.id === 'symbolrush' || game.id === 'bombpass') await resolveRound(1, true);
         if (game.id === 'bombpass') await resolveRound(2, false);
@@ -233,6 +270,67 @@ for (const game of GAMES.slice(0, 3)) {
         await identify(page, players[0]);
         await page.goto('/?tab=tournament');
         await enterGame(page, game.label, game.testId);
+    });
+}
+
+for (const game of GAMES.slice(3)) {
+    test(`two friends complete an authoritative ${game.label} race`, async ({ browser, request }, testInfo) => {
+        test.setTimeout(90_000);
+        const a = await join(request, `race-${game.id}-a`);
+        const b = await join(request, `race-${game.id}-b`);
+        const created = await post(request, '/api/duels', {
+            challengerId: a.userId, opponentId: b.userId, stake: 2, draft: duelDraft(game.id),
+        });
+        const id = created.duel.id;
+        await post(request, `/api/duels/${id}/ready`, { userId: a.userId, ready: true });
+        await post(request, `/api/duels/${id}/ready`, { userId: b.userId, ready: true });
+        await post(request, `/api/duels/${id}/start`, { userId: a.userId });
+        const contexts = await Promise.all([browser.newContext(testInfo.project.use), browser.newContext(testInfo.project.use)]);
+        try {
+            const [first, second] = await Promise.all(contexts.map((context) => context.newPage()));
+            await identify(first, a);
+            await identify(second, b);
+            await Promise.all([first.goto('/?tab=defy'), second.goto('/?tab=defy')]);
+            await Promise.all([enterGame(first, game.label, game.testId), enterGame(second, game.label, game.testId)]);
+            const total = game.id === 'cupshuffle' ? 3 : 5;
+            for (let stage = 1; stage <= total; stage++) {
+                if (game.id === 'cupshuffle') {
+                    const table = first.getByTestId('cup-table');
+                    await expect(table).toHaveAttribute('data-phase', 'reveal');
+                    const token = await table.locator('button:has(i)').elementHandle();
+                    expect(token).not.toBeNull();
+                    await expect(table.getByRole('button').first()).toBeEnabled();
+                    const correctLabel = await token!.getAttribute('aria-label');
+                    const alternatives = second.getByTestId('cup-table').getByRole('button');
+                    for (const button of await alternatives.all()) {
+                        if (await button.getAttribute('aria-label') !== correctLabel) { await button.click(); break; }
+                    }
+                    if (stage === 1) await first.screenshot({ path: testInfo.outputPath('cups-playing.png'), fullPage: true });
+                    await token!.click();
+                    await expect(table).toHaveAttribute('data-phase', 'feedback');
+                } else {
+                    const answers = first.getByTestId('numeric-answers');
+                    await expect(answers.getByRole('button').first()).toBeEnabled();
+                    const label = await first.getByTestId('numeric-equation').textContent();
+                    await expect(second.getByTestId('numeric-equation')).toHaveText(label!);
+                    const [a, op, b] = label!.split(' ');
+                    const result = op === '+' ? +a + +b : op === '-' ? +a - +b : +a * +b;
+                    if (stage === 1) await first.screenshot({ path: testInfo.outputPath('numeric-playing.png'), fullPage: true });
+                    for (const button of await second.getByTestId('numeric-answers').getByRole('button').all()) {
+                        if (await button.textContent() !== String(result)) { await button.click(); break; }
+                    }
+                    await answers.getByRole('button', { name: String(result), exact: true }).click();
+                    await expect(answers.getByRole('button').first()).toBeDisabled();
+                }
+                expect(await first.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+            }
+            await expect.poll(async () => (await get(request, `/api/duels/${id}/match?userId=${a.userId}`)).match.rounds.length).toBe(1);
+            const match = (await get(request, `/api/duels/${id}/match?userId=${a.userId}`)).match;
+            expect(match.rounds[0].authoritative).toBe(true);
+            expect(match.rounds[0].winnerId).toBe(a.userId);
+        } finally {
+            await Promise.all(contexts.map((context) => context.close()));
+        }
     });
 }
 
@@ -326,24 +424,13 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
     ]);
 
     async function winRound(round: number) {
-        const first = await get(request, `/api/duels/${duelId}/match?userId=${challenger.userId}`);
-        const second = await get(request, `/api/duels/${duelId}/match?userId=${opponent.userId}`);
-        await post(request, `/api/duels/${duelId}/rounds`, {
-            userId: challenger.userId,
-            round,
-            score: 1000,
-            metric: 800,
-            attemptToken: first.match.attemptToken,
-        });
-        await post(request, `/api/duels/${duelId}/rounds`, {
-            userId: opponent.userId,
-            round,
-            score: 0,
-            metric: 1200,
-            attemptToken: second.match.attemptToken,
-        });
+        await forfeitRound(duelId, round, opponent.userId);
     }
 
+    await Promise.all([
+        expect(challengerPage.getByRole('heading', { level: 3, name: 'Duel Numeric', exact: true })).toBeVisible(),
+        expect(opponentPage.getByRole('heading', { level: 3, name: 'Duel Numeric', exact: true })).toBeVisible(),
+    ]);
     await winRound(1);
     await winRound(2);
     await Promise.all([

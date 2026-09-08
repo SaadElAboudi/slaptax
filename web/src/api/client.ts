@@ -449,6 +449,13 @@ export interface AnalyticsResponse {
     kpi: AnalyticsKpi;
 }
 
+export type ProductEventType =
+    | 'quick_play_clicked'
+    | 'invite_link_copied'
+    | 'result_shared'
+    | 'share_card_created'
+    | 'share_link_copied';
+
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 const DEFAULT_BASE = '';
@@ -649,7 +656,7 @@ export const api = {
     setFavoriteRival: (userId: string, rivalId: string | null) =>
         req<{ ok: boolean; favoriteRivalId: string | null }>('POST', '/api/rivalries/favorite', { userId, rivalId }),
 
-    trackProductEvent: (type: 'quick_play_clicked' | 'invite_link_copied' | 'result_shared', userId: string, properties?: Record<string, unknown>) =>
+    trackProductEvent: (type: ProductEventType, userId: string, properties?: Record<string, unknown>) =>
         req<{ ok: boolean }>('POST', '/api/analytics/events', { type, userId, properties }),
 
     createLiveTournament: (size: number, stake: number, draft: unknown, userId: string) =>

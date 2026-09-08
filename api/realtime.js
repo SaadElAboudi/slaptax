@@ -2,7 +2,7 @@ const { WebSocketServer, WebSocket } = require("ws");
 const { createSharedArenaManager } = require("./games/sharedArena");
 
 function createRealtimeHub(server, store, service) {
-    const wss = new WebSocketServer({ noServer: true });
+    const wss = new WebSocketServer({ noServer: true, maxPayload: 4096 });
     const sharedArena = createSharedArenaManager(store, service, broadcast);
 
     server.on("upgrade", (request, socket, head) => {

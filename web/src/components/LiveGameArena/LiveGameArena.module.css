@@ -30,3 +30,84 @@
 @media (max-width:640px) {
     .arena { min-height: calc(100dvh - 145px); border-radius: 0; }.header { padding: 11px 12px; }.versus { gap: 6px; font-size: .62rem; }.series { overflow-x:auto; grid-template-columns: repeat(3,minmax(130px,1fr)); }.game { padding: 12px 10px; }.symbolPad { grid-template-columns: repeat(5,48px); }.answerGrid { grid-template-columns: repeat(2,minmax(90px,130px)); }.cupTable { height: 190px; }.cup { height: 150px; }.cup > span { font-size: 4.6rem; }
 }
+
+.arena { --game-color: #f9d84a; background: #101112; box-shadow: none; }
+.arena[data-game="cupshuffle"] { --game-color: #71d9ce; }
+.arena[data-game="symbolrush"] { --game-color: #e8a7da; }
+.arena[data-game="bombpass"] { --game-color: #ff806e; }
+.arena[data-game="duelnumeric"] { --game-color: #a9dd76; }
+.arena * { box-sizing: border-box; letter-spacing: 0; }
+.header { flex-wrap: wrap; background: #191a1b; }
+.header > div { min-width: 0; }
+.header h2 { overflow-wrap: anywhere; }
+.versus { max-width: 100%; }
+.versus > div { min-width: 0; }
+.versus strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.versus i { flex-shrink: 0; }
+.briefing,.countdown { background: #141516; }
+.gameMark { border-color: var(--game-color); color: var(--game-color); box-shadow: none; background: #202223; }
+.briefStats { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin-block: 12px; color: var(--game-color); font: 700 .65rem 'Space Mono',monospace; }
+.game { background: #141516; grid-template-rows: auto; align-content: center; gap: 22px; }
+.game > .liveHud { align-self: start; width: 100%; }
+.liveHud { gap: 12px; flex-wrap: wrap; background: #202223; border: 0; border-bottom: 2px solid var(--game-color); font-variant-numeric: tabular-nums; }
+.liveHud strong { color: var(--game-color); }
+.bounceCanvas { aspect-ratio: 1.7; max-height: 390px; border-color: #494b4d; }
+.raceScore { display: flex; justify-content: center; align-items: center; gap: 30px; text-align: center; font-variant-numeric: tabular-nums; }
+.raceScore > div { display: grid; gap: 4px; min-width: 72px; }
+.raceScore span { color: #a4a5a6; font: 700 .65rem 'Space Mono',monospace; }
+.raceScore strong { color: var(--game-color); font-size: 1.6rem; }
+.raceScore > div:last-child strong { color: #ff8b9e; }
+.roundFeedback { display: grid; place-items: center; min-height: 46px; color: var(--game-color); text-align: center; font: 700 .8rem 'Space Mono',monospace; }
+.roundFeedback[data-correct="true"] { color: #a9dd76; background: #22301d; }
+.roundFeedback[data-correct="false"] { color: #ffa3a3; background: #352022; }
+.cupTable { height: 215px; max-width: 600px; border-color: #676b6b; }
+.cup { height: 175px; bottom: 8px; transition-timing-function: cubic-bezier(.45,0,.55,1); }
+.cup > .cupShell { inset: 24px 17% 22px; border-radius: 18px 18px 8px 8px; border: 3px solid #b6eee7; background: linear-gradient(90deg,#2c7772,#63beb3 48%,#357c78); clip-path: polygon(13% 0,87% 0,100% 100%,0 100%); box-shadow: inset 0 -14px #215954; transition: translate .25s ease; }
+.cup > .cupShell::before { content: ''; position: absolute; top: 12px; left: 26%; width: 10%; height: 55%; background: #b6eee7; opacity: .45; }
+.cup > .cupToken { bottom: 12px; width: 22px; height: 22px; border: 4px solid #ffe386; border-radius: 50%; background: #e3ac23; box-shadow: 0 4px 0 #815b0a; }
+.cup:has(.cupToken) > .cupShell { translate: 0 -34px; }
+.cup:not(:disabled):hover > .cupShell { filter: brightness(1.2); }
+.cup:focus-visible { outline-offset: -4px; }
+.bombCore > .bombOrb { position: relative; width: 132px; height: 132px; border-radius: 50%; display: grid; place-items: center; font: 700 2rem 'Space Mono',monospace; color: #ffde98; background: #292727; border: 5px solid var(--game-color); text-shadow: none; animation: none; box-shadow: inset -12px -8px #1c1c1c; }
+.bombOrb::before { content: ''; position: absolute; width: 32px; height: 17px; border: 4px solid var(--game-color); border-bottom: 0; left: 45px; top: -22px; border-radius: 5px 5px 0 0; }
+.bombCore { align-self: center; padding-top: 22px; }
+.bombCritical > .bombOrb { animation: bombBeat .45s ease infinite; color: #ff9c92; border-color: #ff806e; }
+.bombTrack { touch-action: manipulation; height: 82px; background: #302324; border-color: #664a4d; }
+.bombTrack:disabled { cursor: default; opacity: .5; }
+.safeZone { background: #3d6c4a; border-inline: 3px solid #a9dd76; }
+.safeZone::after { content: ''; position: absolute; left: 50%; height: 100%; width: 2px; background: #c6f7a2; }
+.bombTrack > i { background: #fff5d7; box-shadow: none; width: 6px; height: 58px; }
+.equation { font-size: 4rem; min-height: 90px; display: grid; place-items: center; overflow-wrap: anywhere; }
+.answerGrid { width: min(540px,100%); margin-inline: auto; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.answerGrid button,.symbolPad button { min-height: 52px; background: #27292a; border-color: #505254; touch-action: manipulation; }
+.answerGrid button:disabled,.symbolPad button:disabled { opacity: .45; cursor: default; }
+.symbolPad { width: min(400px,100%); margin-inline: auto; grid-template-columns: repeat(5,minmax(0,1fr)); }
+.symbolBoard span { width: 56px; }
+.arena button:focus-visible,.arena canvas:focus-visible { outline: 3px solid var(--game-color); outline-offset: 4px; }
+.countdown { font-size: 7rem; }
+.complete strong { font-size: 6rem; }
+.syncBar i { animation-duration: 1.6s; }
+@media (max-width:640px) {
+    .arena { min-height: 570px; }
+    .header { gap: 10px; }
+    .header h2 { font-size: 1.1rem; }
+    .game { min-height: 460px; gap: 18px; padding: 16px 12px; }
+    .stage { min-height: 460px; }
+    .bounceCanvas { aspect-ratio: 1.1; }
+    .cupTable { height: 175px; }
+    .cup { height: 135px; }
+    .cup > .cupShell { inset-inline: 12%; }
+    .symbolBoard { gap: 6px; }
+    .symbolBoard span { width: 40px; font-size: 1.3rem; }
+    .symbolPad { gap: 6px; }
+    .equation { font-size: 3rem; }
+    .answerGrid { grid-template-columns: repeat(2,minmax(0,1fr)); max-width: 300px; }
+    .answerGrid button { aspect-ratio: 1.8; }
+    .briefing { padding: 22px 16px; }
+    .briefing button { min-width: 0; width: 100%; max-width: 280px; }
+    .trainingSeries { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion:reduce) {
+    .countdown,.bombCritical > .bombOrb,.impactLines i { animation: none; }
+    .symbolFlash { transform: none; box-shadow: none; }
+}

@@ -2096,6 +2096,9 @@ function createService(store) {
             if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
             if (duel.status !== "playing") return { error: "Duel is not active", code: 400 };
             if (Number(round) !== duel.currentRound) return { error: "This round is not active", code: 409 };
+            if (["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric"].includes(duel.games[duel.currentRound - 1])) {
+                return { error: "This round is server-authoritative. Submit game actions through the arena.", code: 409 };
+            }
             ensureDuelRoundSecurity(duel);
 
             const roundKey = String(duel.currentRound);
@@ -2337,6 +2340,8 @@ function createService(store) {
                 "quick_play_clicked",
                 "invite_link_copied",
                 "result_shared",
+                "share_card_created",
+                "share_link_copied",
             ]);
             const normalizedType = String(type || "").trim();
             if (!allowed.has(normalizedType)) return { error: "Unsupported event type", code: 400 };

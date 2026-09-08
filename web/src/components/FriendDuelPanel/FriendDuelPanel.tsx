@@ -25,6 +25,81 @@ function createDraft(preferred: CompetitiveGameId): DraftPlan {
     };
 }
 
+interface ShareMoment {
+    kind: 'comeback' | 'perfect' | 'sudden' | 'clutch' | 'clean' | 'revenge';
+    labelFr: string;
+    labelEn: string;
+    headlineFr: string;
+    headlineEn: string;
+}
+
+function getShareMoment(match: LiveDuelMatch, userId: string | null, myRole: 'challenger' | 'opponent', rivalRole: 'challenger' | 'opponent'): ShareMoment {
+    const won = match.winnerId === userId;
+    const myRounds = match.rounds.map((round) => myRole === 'challenger' ? round.challengerScore : round.opponentScore);
+    const rivalRounds = match.rounds.map((round) => rivalRole === 'challenger' ? round.challengerScore : round.opponentScore);
+    const myRoundWins = match.rounds.map((round) => round.winnerId === userId);
+    const lostFirst = myRoundWins[0] === false;
+    const finalRound = match.rounds[match.rounds.length - 1];
+    const finalMyScore = myRounds[myRounds.length - 1] || 0;
+    const finalRivalScore = rivalRounds[rivalRounds.length - 1] || 0;
+    const finalGap = Math.abs(finalMyScore - finalRivalScore);
+    const hasPerfect = myRounds.some((score, index) => score >= 950 && score - (rivalRounds[index] || 0) >= 300);
+    const reachedDecider = match.rounds.length >= 3 || (finalRound?.round || 0) >= 3;
+
+    if (won && lostFirst) {
+        return {
+            kind: 'comeback',
+            labelFr: 'COMEBACK',
+            labelEn: 'COMEBACK',
+            headlineFr: 'J ai pris la premiere claque. Puis j ai taxe la serie.',
+            headlineEn: 'Lost the first hit. Taxed the whole series.',
+        };
+    }
+    if (won && hasPerfect) {
+        return {
+            kind: 'perfect',
+            labelFr: 'PERFECT HIT',
+            labelEn: 'PERFECT HIT',
+            headlineFr: 'Manche parfaite. Respect obligatoire.',
+            headlineEn: 'Perfect round. Respect is mandatory.',
+        };
+    }
+    if (reachedDecider && finalGap <= 80) {
+        return {
+            kind: 'sudden',
+            labelFr: 'SUDDEN DEATH',
+            labelEn: 'SUDDEN DEATH',
+            headlineFr: won ? 'Gagne au bord du KO.' : 'Perdu d un souffle.',
+            headlineEn: won ? 'Won on the edge.' : 'Lost by one breath.',
+        };
+    }
+    if (won && match.score[myRole] > match.score[rivalRole]) {
+        return {
+            kind: 'clutch',
+            labelFr: 'CLUTCH',
+            labelEn: 'CLUTCH',
+            headlineFr: 'Deux manches. Zero excuse.',
+            headlineEn: 'Two rounds. Zero excuses.',
+        };
+    }
+    if (!won) {
+        return {
+            kind: 'revenge',
+            labelFr: 'REVANCHE',
+            labelEn: 'REVENGE',
+            headlineFr: 'La claque est prise. La revanche est ouverte.',
+            headlineEn: 'The hit landed. The rematch is open.',
+        };
+    }
+    return {
+        kind: 'clean',
+        labelFr: 'CLEAN WIN',
+        labelEn: 'CLEAN WIN',
+        headlineFr: 'Victoire propre dans l arene.',
+        headlineEn: 'Clean win in the arena.',
+    };
+}
+
 export function FriendDuelPanel() {
     const userId = useGameStore((state) => state.userId);
     const clientId = useGameStore((state) => state.clientId);
@@ -41,12 +116,19 @@ export function FriendDuelPanel() {
     const [opponentId, setOpponentId] = useState('');
     const [stake, setStake] = useState(5);
     const [message, setMessage] = useState('');
-    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>('bounce');
+    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>(() => {
+        try {
+            const stored = localStorage.getItem('slaptax_duel_game');
+            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'bounce';
+        } catch { return 'bounce'; }
+    });
     const [bestOf, setBestOf] = useState(3);
     const [duelId, setDuelId] = useState<string | null>(null);
     const [pendingChallengeId, setPendingChallengeId] = useState<string | null>(null);
     const [inviteLink, setInviteLink] = useState('');
     const [linkCopied, setLinkCopied] = useState(false);
+    const [shareLink, setShareLink] = useState('');
+    const [shareCopied, setShareCopied] = useState(false);
     const [linkInvite, setLinkInvite] = useState<OpenInvite | null>(null);
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
@@ -203,6 +285,8 @@ export function FriendDuelPanel() {
         if (match?.status !== 'done') return;
         setRematchStake(match.stake);
         setRematchGame('');
+        setShareLink('');
+        setShareCopied(false);
     }, [match?.duelId, match?.status, match?.stake]);
 
     async function createInviteLink() {
@@ -390,17 +474,71 @@ export function FriendDuelPanel() {
         setMatch((current) => current ? { ...current, reactions: data.reactions } : current);
     }
 
-    async function shareResult() {
-        if (!match) return;
-        const text = match.winnerId === userId
-            ? `SLAP$TAX ${match.score[myRole]}-${match.score[rivalRole]} victory`
-            : `SLAP$TAX duel ${match.score[myRole]}-${match.score[rivalRole]}`;
-        if (navigator.share) {
-            await navigator.share({ title: 'SLAP$TAX', text, url: window.location.origin });
-        } else {
-            await navigator.clipboard.writeText(`${text} ${window.location.origin}`);
+    async function ensureShareLink(moment: ShareMoment) {
+        if (shareLink) return shareLink;
+        if (!match || !userId) return window.location.origin;
+
+        const replayGame = match.games[match.currentRound - 1] || match.rounds[match.rounds.length - 1]?.gameId || 'bounce';
+        const shareStake = affordableStakes.includes(match.stake) ? match.stake : affordableStakes[0] || 2;
+        const created = await api.createOpenInvite(
+            userId,
+            shareStake,
+            createDraft(replayGame),
+            `${moment.labelEn}: ${match.score[myRole]}-${match.score[rivalRole]}`,
+            bestOf
+        );
+        const link = `${window.location.origin}${window.location.pathname}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
+        setShareLink(link);
+        void api.trackProductEvent('share_card_created', userId, {
+            duelId: match.duelId,
+            moment: moment.kind,
+            inviteId: created.challenge.id,
+        }).catch(() => undefined);
+        return link;
+    }
+
+    async function copyShareLink(moment: ShareMoment) {
+        try {
+            const link = await ensureShareLink(moment);
+            await navigator.clipboard.writeText(link);
+            setShareCopied(true);
+            if (userId && match) {
+                void api.trackProductEvent('share_link_copied', userId, {
+                    duelId: match.duelId,
+                    moment: moment.kind,
+                }).catch(() => undefined);
+            }
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'Share link unavailable');
         }
-        if (userId) void api.trackProductEvent('result_shared', userId, { duelId: match.duelId }).catch(() => undefined);
+    }
+
+    async function shareResult(moment: ShareMoment) {
+        if (!match) return;
+        try {
+            const link = await ensureShareLink(moment);
+            const label = isFr ? moment.labelFr : moment.labelEn;
+            const headline = isFr ? moment.headlineFr : moment.headlineEn;
+            const text = `${label} - SLAP$TAX ${match.score[myRole]}-${match.score[rivalRole]} vs ${match.opponentName}. ${headline}`;
+            if (navigator.share) {
+                await navigator.share({ title: 'SLAP$TAX', text, url: link });
+            } else {
+                await navigator.clipboard.writeText(`${text} ${link}`);
+                setShareCopied(true);
+            }
+            if (userId) {
+                void api.trackProductEvent('result_shared', userId, {
+                    duelId: match.duelId,
+                    moment: moment.kind,
+                    hasInviteLink: link !== window.location.origin,
+                }).catch(() => undefined);
+            }
+        } catch (cause) {
+            // Native share can be cancelled by the player.
+            if (!(cause instanceof DOMException && cause.name === 'AbortError')) {
+                setError(cause instanceof Error ? cause.message : 'Share unavailable');
+            }
+        }
     }
 
     async function toggleFavoriteRival(rivalId: string) {
@@ -458,10 +596,47 @@ export function FriendDuelPanel() {
         const streakIsMine = rivalry?.currentStreak.userId === userId;
         const bestGame = rivalry?.bestGame[userId || ''];
         const doubledStake = STAKES.find((value) => value === match.stake * 2);
+        const shareMoment = getShareMoment(match, userId, myRole, rivalRole);
+        const shareHeadline = isFr ? shareMoment.headlineFr : shareMoment.headlineEn;
+        const shareLabel = isFr ? shareMoment.labelFr : shareMoment.labelEn;
+        const decisiveRound = match.rounds[match.rounds.length - 1];
+        const decisiveGame = decisiveRound ? gameLabel(decisiveRound.gameId, isFr) : gameLabel(match.games[0], isFr);
         return (
             <section className={`${styles.final} ${won ? styles.finalWin : styles.finalLoss}`}>
                 <span>{won ? (isFr ? 'VICTOIRE' : 'VICTORY') : (isFr ? 'DEFAITE' : 'DEFEAT')}</span>
                 <h2>{match.score[myRole]} - {match.score[rivalRole]}</h2>
+                <div className={`${styles.shareMoment} ${styles[`moment_${shareMoment.kind}`]}`}>
+                    <div className={styles.shareMomentHeader}>
+                        <span>{shareLabel}</span>
+                        <strong>SLAP$TAX</strong>
+                    </div>
+                    <h3>{shareHeadline}</h3>
+                    <div className={styles.shareMomentScore}>
+                        <div>
+                            <small>{isFr ? 'TOI' : 'YOU'}</small>
+                            <b>{match.score[myRole]}</b>
+                        </div>
+                        <i>VS</i>
+                        <div>
+                            <small>{match.opponentName}</small>
+                            <b>{match.score[rivalRole]}</b>
+                        </div>
+                    </div>
+                    <p>
+                        {decisiveGame}
+                        {' · '}
+                        {isFr ? 'Lien de revanche pret a partager' : 'Rematch link ready to share'}
+                    </p>
+                    <div className={styles.shareMomentActions}>
+                        <button type="button" onClick={() => void shareResult(shareMoment)}>
+                            {isFr ? 'Partager le moment' : 'Share moment'}
+                        </button>
+                        <button type="button" onClick={() => void copyShareLink(shareMoment)}>
+                            {shareCopied ? (isFr ? 'Lien copie' : 'Link copied') : (isFr ? 'Copier le lien' : 'Copy link')}
+                        </button>
+                    </div>
+                    {shareLink && <input readOnly value={shareLink} aria-label={isFr ? 'Lien de revanche' : 'Rematch link'} />}
+                </div>
                 <div className={styles.rivalryCard}>
                     <div>
                         <small>{isFr ? 'FACE-A-FACE' : 'HEAD TO HEAD'}</small>
@@ -509,7 +684,7 @@ export function FriendDuelPanel() {
                 </div>
                 <div className={styles.reactions}>
                     {['GG', 'WOW', 'CLOSE'].map((reaction) => <button type="button" key={reaction} onClick={() => void react(reaction)}>{reaction}</button>)}
-                    <button type="button" onClick={() => void shareResult()}>{isFr ? 'Partager' : 'Share'}</button>
+                    <button type="button" onClick={() => void shareResult(shareMoment)}>{isFr ? 'Partager' : 'Share'}</button>
                 </div>
                 <div className={styles.reactionFeed}>
                     {match.reactions?.slice(-4).map((entry, index) => <span key={`${entry.at}-${index}`}>{entry.reaction}</span>)}

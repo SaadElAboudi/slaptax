@@ -64,6 +64,27 @@
 .roundRecap { display: flex; gap: 8px; }
 .roundRecap div { padding: 10px; display: grid; gap: 4px; border: 1px solid var(--line-soft); }
 .roundRecap span { color: var(--muted); font-size: .65rem; }
+.shareMoment { width: min(520px, calc(100vw - 40px)); padding: 16px; display: grid; gap: 12px; border: 1px solid rgba(255,212,0,.56); border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(255,212,0,.12), rgba(13,19,27,.96) 38%, rgba(239,71,111,.12)); text-align: left; box-shadow: 0 18px 42px rgba(0,0,0,.28); }
+.shareMomentHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.shareMomentHeader span { color: var(--accent); font: 900 .68rem 'Space Mono',monospace; }
+.shareMomentHeader strong { color: var(--muted); font: 800 .62rem 'Space Mono',monospace; }
+.shareMoment h3 { margin: 0; font-size: 1.28rem; line-height: 1.05; overflow-wrap: anywhere; }
+.shareMomentScore { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.shareMomentScore div { min-height: 82px; padding: 10px; display: grid; place-content: center; gap: 4px; border: 1px solid var(--line-soft); background: rgba(7,10,14,.68); text-align: center; }
+.shareMomentScore small { max-width: 130px; overflow: hidden; color: var(--muted); font: 800 .58rem 'Space Mono',monospace; text-overflow: ellipsis; white-space: nowrap; }
+.shareMomentScore b { color: var(--text); font: 400 2.2rem 'Black Ops One',sans-serif; }
+.shareMomentScore i { color: var(--accent); font: 900 .72rem 'Space Mono',monospace; font-style: normal; }
+.shareMoment p { margin: 0; color: var(--muted); font-size: .72rem; }
+.shareMomentActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.shareMomentActions button { min-width: 0; }
+.shareMomentActions button:last-child { border: 1px solid var(--line-strong); color: var(--text); background: #101720; }
+.shareMoment input { min-height: 36px; min-width: 0; border: 1px solid var(--line-soft); border-radius: 4px; padding: 0 10px; color: var(--muted); background: #070a0e; font-size: .66rem; }
+.moment_comeback { border-left-color: var(--success); }
+.moment_perfect { border-color: rgba(54,211,153,.62); border-left-color: var(--success); }
+.moment_sudden { border-color: rgba(239,71,111,.62); border-left-color: var(--danger); }
+.moment_clutch { border-left-color: var(--accent); }
+.moment_clean { border-left-color: var(--success); }
+.moment_revenge { border-color: rgba(239,71,111,.5); border-left-color: var(--danger); }
 .rivalryCard { min-width: min(420px, calc(100vw - 40px)); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line-strong); border-left: 3px solid var(--accent); background: #090c10; text-align: left; }
 .rivalryCard > div:first-child { display: grid; gap: 3px; }
 .rivalryCard small { color: var(--accent); font: 800 .6rem 'Space Mono',monospace; }
@@ -103,6 +124,10 @@
     .queueRoom { min-height: 320px; margin-inline: 14px; grid-template-columns: auto 1fr; padding: 22px 18px; }
     .queueRoom button { grid-column: 1 / -1; width: 100%; }
     .rivalryCard { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .shareMoment { width: calc(100vw - 28px); padding: 14px; }
+    .shareMomentScore { gap: 8px; }
+    .shareMomentScore small { max-width: 96px; }
+    .shareMomentActions { grid-template-columns: 1fr; }
     .rematchOptions { grid-template-columns: 1fr; }
     .fields { grid-template-columns: 1fr; }
     .gameDraft { grid-template-columns: repeat(2, minmax(0,1fr)); }

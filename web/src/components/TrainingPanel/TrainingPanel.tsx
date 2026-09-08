@@ -17,6 +17,7 @@ const LEVEL_LABELS = {
 
 export function TrainingPanel() {
     const language = useGameStore((state) => state.language);
+    const setActiveTab = useGameStore((state) => state.setActiveTab);
     const isFr = language === 'fr';
     const [gameId, setGameId] = useState<CompetitiveGameId>(() => {
         try {
@@ -29,10 +30,11 @@ export function TrainingPanel() {
     const [level, setLevel] = useState<(typeof LEVELS)[number]>(1);
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
+    const [playing, setPlaying] = useState(false);
 
     const best = useMemo(() => {
         try {
-            return Number(localStorage.getItem(`slaptax_training_best_${gameId}_${level}`) || 0);
+            return Number(localStorage.getItem(`slaptax_training_v2_best_${gameId}_${level}`) || 0);
         } catch {
             return 0;
         }
@@ -53,7 +55,7 @@ export function TrainingPanel() {
         setResult(next);
         if (next.score > best) {
             try {
-                localStorage.setItem(`slaptax_training_best_${gameId}_${level}`, String(next.score));
+                localStorage.setItem(`slaptax_training_v2_best_${gameId}_${level}`, String(next.score));
             } catch {
                 // Best score persistence is optional.
             }
@@ -61,6 +63,7 @@ export function TrainingPanel() {
     }
 
     function replay() {
+        setPlaying(false);
         setResult(null);
         setAttempt((value) => value + 1);
     }
@@ -74,7 +77,11 @@ export function TrainingPanel() {
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
                 <div className={styles.resultActions}>
                     <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
-                    <button type="button" className={styles.secondary} onClick={() => setResult(null)}>
+                    <button type="button" onClick={() => {
+                        try { localStorage.setItem('slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
+                        setActiveTab('defy');
+                    }}>{isFr ? 'Defier un ami' : 'Challenge a friend'}</button>
+                    <button type="button" className={styles.secondary} onClick={() => { setPlaying(false); setResult(null); }}>
                         {isFr ? 'Changer d exercice' : 'Change drill'}
                     </button>
                 </div>
@@ -84,6 +91,7 @@ export function TrainingPanel() {
 
     return (
         <section className={styles.panel}>
+            {!playing && <>
             <header className={styles.head}>
                 <div>
                     <span>{isFr ? 'ZONE SANS ENJEU' : 'NO-STAKES ZONE'}</span>
@@ -120,6 +128,7 @@ export function TrainingPanel() {
                 </div>
             </div>
 
+            </>}
             <LiveGameArena
                 key={`${gameId}-${level}-${attempt}`}
                 mode="training"
@@ -129,6 +138,7 @@ export function TrainingPanel() {
                 opponentName=""
                 isFr={isFr}
                 onComplete={complete}
+                onStart={() => setPlaying(true)}
             />
         </section>
     );

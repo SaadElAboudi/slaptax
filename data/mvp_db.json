@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "currency": "SLAP$",
-  "activeUserId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+  "activeUserId": "09810794-57c0-43b1-86ad-fcbe46d2bcc2",
   "users": [
     {
       "id": "local-player",
@@ -482,7 +482,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -511,6 +511,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -917,7 +966,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -946,6 +995,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -957,7 +1055,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -986,6 +1084,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -997,7 +1144,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1026,6 +1173,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1037,7 +1233,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1066,6 +1262,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1077,7 +1322,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1106,6 +1351,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1127,7 +1421,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1156,6 +1450,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1167,7 +1510,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1196,6 +1539,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1207,7 +1599,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1236,6 +1628,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1247,7 +1688,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1276,6 +1717,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1287,7 +1777,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1316,6 +1806,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1337,7 +1876,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1366,6 +1905,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1438,7 +2026,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1467,6 +2055,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1546,7 +2183,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1575,6 +2212,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1586,7 +2272,7 @@
       "history": [],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1615,6 +2301,55 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     },
@@ -1687,7 +2422,7 @@
       ],
       "progression": {
         "daily": {
-          "dayKey": "2026-06-06",
+          "dayKey": "2026-06-08",
           "claimed": false,
           "tasks": [
             {
@@ -1716,6 +2451,720 @@
         "season": {
           "id": "2026-06",
           "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "60a3ff7f-3242-409f-a708-e7b9b85e8154",
+      "playerName": "Player",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "playerName": "Saad",
+      "wallet": 13.5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "WIN",
+          "opponentId": "5534821c-e2ea-486e-8026-130eecc99a50",
+          "opponentName": "Player",
+          "stake": 5,
+          "net": 3.5,
+          "note": "Draft: you banned Duel Numeric / favored Bounce Panic • opponent banned Bomb Pass / favored Symbol Sprint",
+          "date": "2026-06-06T15:47:32.054Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "playerName": "Player",
+      "wallet": 5,
+      "stake": 5,
+      "history": [
+        {
+          "type": "DUEL_P2P",
+          "result": "LOSS",
+          "opponentId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+          "opponentName": "Saad",
+          "stake": 5,
+          "net": -5,
+          "note": "Draft: you banned Duel Numeric / favored Bounce Panic • opponent banned Bomb Pass / favored Symbol Sprint",
+          "date": "2026-06-06T15:47:32.054Z"
+        }
+      ],
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      },
+      "presence": {
+        "online": false,
+        "lastSeenAt": "2026-06-07T11:20:46.671Z"
+      }
+    },
+    {
+      "id": "a0d6058f-a0e5-4fa9-b549-3aee6f84dd71",
+      "playerName": "VisualQA",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "presence": {
+        "online": false,
+        "lastSeenAt": "2026-06-07T09:35:55.687Z"
+      },
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "228bed86-0431-4c8e-9ba8-a2e132c841de",
+      "playerName": "DesignReview",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "presence": {
+        "online": false,
+        "lastSeenAt": "2026-06-08T19:55:45.008Z"
+      },
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "7b2bf022-c2ec-4d41-a7a0-c9e0d40a60f9",
+      "playerName": "DesignReview",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "presence": {
+        "online": false,
+        "lastSeenAt": "2026-06-08T19:57:14.287Z"
+      },
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "09810794-57c0-43b1-86ad-fcbe46d2bcc2",
+      "playerName": "DesignReview",
+      "wallet": 25,
+      "stake": 5,
+      "history": [],
+      "presence": {
+        "online": false,
+        "lastSeenAt": "2026-06-08T20:07:50.245Z"
+      },
+      "progression": {
+        "daily": {
+          "dayKey": "2026-06-08",
+          "claimed": false,
+          "tasks": [
+            {
+              "id": "round_wins",
+              "label": "Win 3 rounds",
+              "target": 3,
+              "rewardXp": 120,
+              "progress": 0
+            },
+            {
+              "id": "perfect_rounds",
+              "label": "Hit 2 perfect rounds",
+              "target": 2,
+              "rewardXp": 140,
+              "progress": 0
+            },
+            {
+              "id": "duel_complete",
+              "label": "Complete 1 Best-of-3",
+              "target": 1,
+              "rewardXp": 100,
+              "progress": 0
+            }
+          ]
+        },
+        "season": {
+          "id": "2026-06",
+          "points": 0
+        },
+        "xp": 0,
+        "level": 1,
+        "rankedPoints": 0,
+        "winStreak": 0,
+        "bestStreak": 0,
+        "mastery": {
+          "bounce": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "symbolrush": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "bombpass": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "cupshuffle": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          },
+          "duelnumeric": {
+            "xp": 0,
+            "wins": 0,
+            "plays": 0
+          }
+        },
+        "badges": [],
+        "cosmetics": {
+          "avatar": "spark",
+          "arena": "foundry",
+          "trail": "pulse",
+          "unlocked": {
+            "avatars": [
+              "spark"
+            ],
+            "arenas": [
+              "foundry"
+            ],
+            "trails": [
+              "pulse"
+            ]
+          }
         }
       }
     }
@@ -4226,6 +5675,218 @@
         "cupshuffle"
       ],
       "playedAt": "2026-06-06T12:55:19.750Z"
+    },
+    {
+      "id": "96d722f0-f6d5-4d51-a5e9-f8303a1d9ef4",
+      "challengerId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "opponentId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "stake": 5,
+      "status": "playing",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "room": {
+        "readyBy": {
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": true,
+          "5534821c-e2ea-486e-8026-130eecc99a50": true
+        },
+        "readyCountdownAt": "2026-06-06T15:22:00.319Z"
+      },
+      "createdAt": "2026-06-06T15:21:50.205Z",
+      "games": [
+        "bounce",
+        "symbolrush",
+        "cupshuffle"
+      ],
+      "currentRound": 2,
+      "score": {
+        "challenger": 0,
+        "opponent": 1
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "bounce",
+          "challengerScore": 420,
+          "opponentScore": 788,
+          "challengerMetric": 12003,
+          "opponentMetric": 11829,
+          "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55"
+        }
+      ],
+      "submissions": {
+        "1": {
+          "5534821c-e2ea-486e-8026-130eecc99a50": {
+            "score": 420,
+            "metric": 12003,
+            "completedAt": "2026-06-06T15:22:15.271Z"
+          },
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": {
+            "score": 788,
+            "metric": 11829,
+            "completedAt": "2026-06-06T15:22:31.471Z"
+          }
+        },
+        "2": {
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": {
+            "score": 532,
+            "metric": 11375,
+            "completedAt": "2026-06-06T15:48:25.478Z"
+          }
+        }
+      },
+      "startedAt": "2026-06-06T15:22:00.333Z"
+    },
+    {
+      "id": "193b7460-4ea7-4649-9e86-cd05f536317b",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "stake": 5,
+      "status": "done",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "room": {
+        "readyBy": {},
+        "readyCountdownAt": null
+      },
+      "createdAt": "2026-06-06T15:29:22.494Z",
+      "games": [
+        "bounce",
+        "symbolrush",
+        "cupshuffle"
+      ],
+      "currentRound": 2,
+      "score": {
+        "challenger": 2,
+        "opponent": 0
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "bounce",
+          "challengerScore": 0,
+          "opponentScore": 0,
+          "challengerMetric": 12005,
+          "opponentMetric": 12005,
+          "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55"
+        },
+        {
+          "round": 2,
+          "gameId": "symbolrush",
+          "challengerScore": 556,
+          "opponentScore": 360,
+          "challengerMetric": 10290,
+          "opponentMetric": 10266,
+          "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55"
+        }
+      ],
+      "submissions": {
+        "1": {
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": {
+            "score": 0,
+            "metric": 12005,
+            "completedAt": "2026-06-06T15:29:39.450Z"
+          },
+          "5534821c-e2ea-486e-8026-130eecc99a50": {
+            "score": 0,
+            "metric": 12005,
+            "completedAt": "2026-06-06T15:29:55.943Z"
+          }
+        },
+        "2": {
+          "5534821c-e2ea-486e-8026-130eecc99a50": {
+            "score": 360,
+            "metric": 10266,
+            "completedAt": "2026-06-06T15:46:28.329Z"
+          },
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": {
+            "score": 556,
+            "metric": 10290,
+            "completedAt": "2026-06-06T15:47:32.053Z"
+          }
+        }
+      },
+      "startedAt": "2026-06-06T15:29:26.333Z",
+      "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "loserId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "playedAt": "2026-06-06T15:47:32.054Z",
+      "rematchId": "d22776ab-ef3a-4aa6-ad2c-8629e56d0215"
+    },
+    {
+      "id": "d22776ab-ef3a-4aa6-ad2c-8629e56d0215",
+      "challengerId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "opponentId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "stake": 5,
+      "status": "playing",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "room": {
+        "readyBy": {
+          "5534821c-e2ea-486e-8026-130eecc99a50": true,
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": true
+        },
+        "readyCountdownAt": "2026-06-06T15:49:06.983Z"
+      },
+      "createdAt": "2026-06-06T15:48:30.972Z",
+      "games": [
+        "bounce",
+        "symbolrush",
+        "cupshuffle"
+      ],
+      "currentRound": 2,
+      "score": {
+        "challenger": 0,
+        "opponent": 1
+      },
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "bounce",
+          "challengerScore": 325,
+          "opponentScore": 559,
+          "challengerMetric": 2092,
+          "opponentMetric": 12443,
+          "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55"
+        }
+      ],
+      "submissions": {
+        "1": {
+          "29725a41-bb6a-409f-853f-3e3df83a3e55": {
+            "score": 559,
+            "metric": 12443,
+            "completedAt": "2026-06-06T15:49:24.474Z"
+          },
+          "5534821c-e2ea-486e-8026-130eecc99a50": {
+            "score": 325,
+            "metric": 2092,
+            "completedAt": "2026-06-06T15:49:27.261Z"
+          }
+        }
+      },
+      "startedAt": "2026-06-06T15:49:07.023Z"
     }
   ],
   "rivalries": {
@@ -4372,9 +6033,202 @@
           "date": "2026-06-06T12:55:17.153Z"
         }
       ]
+    },
+    "29725a41-bb6a-409f-853f-3e3df83a3e55_5534821c-e2ea-486e-8026-130eecc99a50": {
+      "users": [
+        "29725a41-bb6a-409f-853f-3e3df83a3e55",
+        "5534821c-e2ea-486e-8026-130eecc99a50"
+      ],
+      "wins": {
+        "29725a41-bb6a-409f-853f-3e3df83a3e55": 1,
+        "5534821c-e2ea-486e-8026-130eecc99a50": 0
+      },
+      "last5": [
+        {
+          "winnerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+          "date": "2026-06-06T15:47:32.054Z"
+        }
+      ]
     }
   },
   "challenges": [
+    {
+      "id": "247b890c-dc79-4726-ab35-1c551b0f627f",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "stake": 5,
+      "status": "accepted",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:29:14.697Z",
+      "respondedAt": "2026-06-06T15:29:22.494Z",
+      "respondedBy": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "duelId": "193b7460-4ea7-4649-9e86-cd05f536317b"
+    },
+    {
+      "id": "e237f967-acfa-447a-9887-a585097e7e53",
+      "challengerId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "opponentId": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:29:05.681Z"
+    },
+    {
+      "id": "9302192a-94d8-4d45-9b49-8e369a78dc5b",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:28:52.361Z"
+    },
+    {
+      "id": "16d9b624-29c9-492f-9d1f-48ee5a94a605",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:28:50.865Z"
+    },
+    {
+      "id": "b89c7c84-fec0-4b1c-8d63-92da9a6345c4",
+      "challengerId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "opponentId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "stake": 5,
+      "status": "accepted",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:21:36.304Z",
+      "respondedAt": "2026-06-06T15:21:50.205Z",
+      "respondedBy": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "duelId": "96d722f0-f6d5-4d51-a5e9-f8303a1d9ef4"
+    },
+    {
+      "id": "1a230c68-ce73-459b-9dc1-d6bf8a1aabd7",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:14:55.000Z"
+    },
+    {
+      "id": "c68196f9-9a46-4b00-87df-84817677755f",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:14:52.666Z"
+    },
+    {
+      "id": "2239ef9e-e2ac-4405-81cd-c5497054c826",
+      "challengerId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "opponentId": "local-player",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "bounce"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:14:03.140Z"
+    },
+    {
+      "id": "067c2cd4-6f22-4d09-b69d-10e85f22a20c",
+      "challengerId": "60a3ff7f-3242-409f-a708-e7b9b85e8154",
+      "opponentId": "25d17295-5c3b-4b45-9154-84e8a6242c28",
+      "stake": 5,
+      "status": "pending",
+      "draft": {
+        "challenger": {
+          "ban": "duelnumeric",
+          "pick": "symbolrush"
+        },
+        "opponent": {
+          "ban": "bombpass",
+          "pick": "symbolrush"
+        }
+      },
+      "message": "",
+      "createdAt": "2026-06-06T15:13:05.119Z"
+    },
     {
       "id": "dd23f22b-5f49-4ccc-89e5-ec381a8085ba",
       "challengerId": "1a668e83-2f67-4e6c-8084-90791bfb2551",
@@ -4520,6 +6374,79 @@
     "a78c1ab9-8b84-41cc-92d6-d1596283bc25": "43c1512e-244c-4646-8385-ed00c83c9cc8",
     "client-alpha": "8d9ebac6-4be3-4a33-95fd-fdb8f9f2f33f",
     "client-beta": "7b2d404e-e4da-47cd-9c44-08223c47d861",
-    "5c97f699-acd7-485d-938f-4539e1fea8bd": "1a668e83-2f67-4e6c-8084-90791bfb2551"
-  }
+    "5c97f699-acd7-485d-938f-4539e1fea8bd": "1a668e83-2f67-4e6c-8084-90791bfb2551",
+    "a9343570-f7cf-422c-9f00-c150defee51d": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+    "1a4385cc-c898-4a04-8159-345d2faabf5d": "5534821c-e2ea-486e-8026-130eecc99a50",
+    "visual-qa-cosmetics": "a0d6058f-a0e5-4fa9-b549-3aee6f84dd71",
+    "design-review-client": "228bed86-0431-4c8e-9ba8-a2e132c841de",
+    "design-mobile-client": "7b2bf022-c2ec-4d41-a7a0-c9e0d40a60f9",
+    "design-v2": "09810794-57c0-43b1-86ad-fcbe46d2bcc2"
+  },
+  "tournaments": [
+    {
+      "id": "a37661cf-a2e4-426a-84ae-bd91f4f274cb",
+      "userId": "29725a41-bb6a-409f-853f-3e3df83a3e55",
+      "size": 8,
+      "stake": 5,
+      "status": "playing",
+      "games": [
+        "bombpass",
+        "cupshuffle",
+        "bounce"
+      ],
+      "currentRound": 3,
+      "roundsTotal": 3,
+      "rounds": [
+        {
+          "round": 1,
+          "gameId": "bombpass",
+          "label": "Bomb Pass",
+          "opponentName": "Seed 4-1",
+          "scoreFor": 601,
+          "scoreAgainst": 542,
+          "metric": 5619,
+          "won": true
+        },
+        {
+          "round": 2,
+          "gameId": "cupshuffle",
+          "label": "Cup Shuffle",
+          "opponentName": "Seed 2-2",
+          "scoreFor": 960,
+          "scoreAgainst": 672,
+          "metric": 4519,
+          "won": true
+        }
+      ],
+      "draft": {
+        "ban": "duelnumeric",
+        "pick": "bombpass"
+      },
+      "createdAt": "2026-06-06T15:14:18.081Z"
+    },
+    {
+      "id": "6eb2a3f1-b3d7-434e-b911-19b680a5216e",
+      "userId": "5534821c-e2ea-486e-8026-130eecc99a50",
+      "size": 8,
+      "stake": 5,
+      "status": "playing",
+      "games": [
+        "bounce",
+        "cupshuffle",
+        "duelnumeric"
+      ],
+      "currentRound": 1,
+      "roundsTotal": 3,
+      "rounds": [],
+      "draft": {
+        "ban": "symbolrush",
+        "pick": "bounce"
+      },
+      "createdAt": "2026-06-07T09:25:17.417Z",
+      "attemptToken": "Ui6QrAyi0P3krQHP_Ebil_yrYxU-7FDs",
+      "roundStartedAt": "2026-06-07T09:25:17.420Z"
+    }
+  ],
+  "matchmakingQueue": [],
+  "productEvents": []
 }

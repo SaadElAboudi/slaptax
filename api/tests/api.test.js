@@ -22,7 +22,7 @@ async function withServer(run) {
     const baseUrl = `http://127.0.0.1:${address.port}`;
 
     try {
-        await run(baseUrl);
+        await run(baseUrl, require("../application/service").createService(server.store));
     } finally {
         await new Promise((resolve, reject) => {
             server.close((err) => (err ? reject(err) : resolve()));
@@ -578,7 +578,7 @@ test("Bomb Pass alternates a server-owned bomb and explodes on its holder", asyn
 });
 
 test("multiplayer tournament creates human duels and advances a persistent bracket", async () => {
-    await withServer(async (baseUrl) => {
+    await withServer(async (baseUrl, service) => {
         const players = await Promise.all(
             ["BracketA", "BracketB", "BracketC", "BracketD"].map((playerName) =>
                 jfetch(baseUrl, "POST", "/api/users", { playerName })
@@ -614,31 +614,11 @@ test("multiplayer tournament creates human duels and advances a persistent brack
             const bId = match.playerBId;
             await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/ready`, { userId: aId, ready: true });
             await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/ready`, { userId: bId, ready: true });
-            const aStart = await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/start`, { userId: aId });
-            const bStart = await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${bId}`);
+            await jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/start`, { userId: aId });
             for (const round of [1, 2]) {
-                const currentA = round === 1
-                    ? aStart
-                    : await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${aId}`);
-                const currentB = round === 1
-                    ? bStart
-                    : await jfetch(baseUrl, "GET", `/api/duels/${match.duelId}/match?userId=${bId}`);
-                await Promise.all([
-                    jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/rounds`, {
-                        userId: aId,
-                        round,
-                        score: 1000,
-                        metric: 900,
-                        attemptToken: currentA.data.match.attemptToken,
-                    }),
-                    jfetch(baseUrl, "POST", `/api/duels/${match.duelId}/rounds`, {
-                        userId: bId,
-                        round,
-                        score: 0,
-                        metric: 1200,
-                        attemptToken: currentB.data.match.attemptToken,
-                    }),
-                ]);
+                assert.equal(service.resolveAuthoritativeDuelRound(match.duelId, round, aId, {
+                    duration: 5000, reason: "test-bracket-arbitration",
+                }).ok, true);
             }
             return aId;
         }
@@ -1187,128 +1167,36 @@ test("opponent can accept or decline challenge", async () => {
     });
 });
 
-test("live P2P duel waits for both real scores and resolves best-of-three", async () => {
-    await withServer(async (baseUrl) => {
+test("live duel rejects browser scores and resolves only through server arbitration", async () => {
+    await withServer(async (baseUrl, service) => {
         const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "LiveA" });
         const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "LiveB" });
         const aId = a.data.user.id;
         const bId = b.data.user.id;
-        const created = await jfetch(baseUrl, "POST", "/api/duels", {
-            challengerId: aId,
-            opponentId: bId,
-            stake: 2,
-        });
+        const created = await jfetch(baseUrl, "POST", "/api/duels", { challengerId: aId, opponentId: bId, stake: 2 });
         const duelId = created.data.duel.id;
-
         await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
         await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
         const started = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
         assert.equal(started.status, 200);
-        assert.equal(started.data.match.status, "playing");
-        assert.equal(started.data.match.games.length, 3);
-        assert.ok(started.data.match.attemptToken);
-        const playerAFirstToken = started.data.match.attemptToken;
-        const playerBMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
-        const playerBFirstToken = playerBMatch.data.match.attemptToken;
-        assert.ok(playerBFirstToken);
-        assert.notEqual(playerAFirstToken, playerBFirstToken);
-
-        const recovered = await jfetch(baseUrl, "GET", `/api/duels/active?userId=${aId}`);
-        assert.equal(recovered.status, 200);
-        assert.equal(recovered.data.match.duelId, duelId);
-
-        const [playerAFirst, playerBFirst] = await Promise.all([
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: aId,
-                round: 1,
-                score: 900,
-                metric: 1000,
-                attemptToken: playerAFirstToken,
-            }),
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: bId,
-                round: 1,
-                score: 500,
-                metric: 1200,
-                attemptToken: playerBFirstToken,
-            }),
-        ]);
-        assert.equal(playerAFirst.status, 200);
-        assert.equal(playerBFirst.status, 200);
-        const roundOne = playerAFirst.data.match.currentRound === 2 ? playerAFirst : playerBFirst;
-        assert.deepEqual(roundOne.data.match.score, { challenger: 1, opponent: 0 });
-        const playerBSecondToken = roundOne.data.match.attemptToken;
-        const playerASecondMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${aId}`);
-        const playerASecondToken = playerASecondMatch.data.match.attemptToken;
-        const secondRoundResults = await Promise.all([
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: aId,
-                round: 2,
-                score: 850,
-                metric: 1100,
-                attemptToken: playerASecondToken,
-            }),
-            jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-                userId: bId,
-                round: 2,
-                score: 400,
-                metric: 1300,
-                attemptToken: playerBSecondToken,
-            }),
-        ]);
-        const finished = secondRoundResults.find((result) => result.data.match.status === "done");
-
-        assert.ok(finished);
-        assert.equal(finished.data.match.winnerId, aId);
-        assert.deepEqual(finished.data.match.score, { challenger: 2, opponent: 0 });
-        assert.equal(finished.data.match.rounds.length, 2);
-    });
-});
-
-test("live duel rejects forged scores and another player's attempt token", async () => {
-    await withServer(async (baseUrl) => {
-        const a = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SecureA" });
-        const b = await jfetch(baseUrl, "POST", "/api/users", { playerName: "SecureB" });
-        const aId = a.data.user.id;
-        const bId = b.data.user.id;
-        const created = await jfetch(baseUrl, "POST", "/api/duels", {
-            challengerId: aId,
-            opponentId: bId,
-            stake: 2,
-        });
-        const duelId = created.data.duel.id;
-        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: aId, ready: true });
-        await jfetch(baseUrl, "POST", `/api/duels/${duelId}/ready`, { userId: bId, ready: true });
-        const aMatch = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/start`, { userId: aId });
-        const bMatch = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${bId}`);
-
-        const forged = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: aId,
-            round: 1,
-            score: 99999,
-            metric: 100,
-            attemptToken: aMatch.data.match.attemptToken,
-        });
-        assert.equal(forged.status, 400);
-        assert.match(forged.data.error, /Score/);
-
-        const stolen = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: bId,
-            round: 1,
-            score: 700,
-            metric: 900,
-            attemptToken: aMatch.data.match.attemptToken,
-        });
-        assert.equal(stolen.status, 409);
-
-        const valid = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
-            userId: bId,
-            round: 1,
-            score: 700,
-            metric: 900,
-            attemptToken: bMatch.data.match.attemptToken,
-        });
-        assert.equal(valid.status, 200);
+        for (const score of [0, 700, 1000, 99999]) {
+            const forged = await jfetch(baseUrl, "POST", `/api/duels/${duelId}/rounds`, {
+                userId: aId, round: 1, score, metric: 1000, attemptToken: started.data.match.attemptToken,
+            });
+            assert.equal(forged.status, 409);
+            assert.match(forged.data.error, /server-authoritative/);
+        }
+        const active = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${aId}`);
+        assert.deepEqual(active.data.match.score, { challenger: 0, opponent: 0 });
+        for (const round of [1, 2]) {
+            const resolved = service.resolveAuthoritativeDuelRound(duelId, round, aId, { reason: "test-arbitration", duration: 5000 });
+            assert.equal(resolved.ok, true);
+        }
+        const done = await jfetch(baseUrl, "GET", `/api/duels/${duelId}/match?userId=${aId}`);
+        assert.equal(done.data.match.status, "done");
+        assert.equal(done.data.match.winnerId, aId);
+        assert.deepEqual(done.data.match.score, { challenger: 2, opponent: 0 });
+        assert.ok(done.data.match.rounds.every((round) => round.authoritative));
     });
 });
 

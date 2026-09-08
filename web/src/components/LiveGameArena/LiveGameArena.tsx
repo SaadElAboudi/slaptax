@@ -21,6 +21,7 @@ interface LiveGameArenaProps {
     opponentName: string;
     isFr: boolean;
     duelSession?: DuelSession;
+    onStart?: () => void;
     onComplete: (result: { score: number; metric: number; authoritative?: boolean }) => void;
 }
 
@@ -32,20 +33,23 @@ interface RoundProps {
 
 const SYMBOLS = ['◆', '●', '▲', '■', '✦'];
 
-export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr, duelSession, onComplete }: LiveGameArenaProps) {
+export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr, duelSession, onStart, onComplete }: LiveGameArenaProps) {
     const [phase, setPhase] = useState<'briefing' | 'countdown' | 'playing' | 'complete'>('briefing');
     const [countdown, setCountdown] = useState(3);
     const [result, setResult] = useState<{ score: number; detail: string } | null>(null);
     const startRef = useRef(0);
     const finishedRef = useRef(false);
+    const completionTimer = useRef(0);
     const onCompleteRef = useRef(onComplete);
     const { activateAudio, playReady, playWin, playLoss } = useSfx();
     const playerName = useGameStore((state) => state.playerName);
     const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
-    const usesSharedArena = Boolean(duelSession && ['bounce', 'symbolrush', 'bombpass'].includes(gameId));
+    const usesSharedArena = Boolean(duelSession);
     onCompleteRef.current = onComplete;
+    useEffect(() => () => window.clearTimeout(completionTimer.current), []);
 
     function begin() {
+        onStart?.();
         void activateAudio();
         playReady(Math.min(1, round / 3));
         if (usesSharedArena) {
@@ -87,11 +91,11 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         if (score >= 500) playWin(Math.min(1, round / 3));
         else playLoss(Math.min(1, round / 3));
         navigator.vibrate?.([35, 30, 70]);
-        window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative }), 1100);
+        completionTimer.current = window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative }), 1600);
     }, [playLoss, playWin, round]);
 
     return (
-        <section className={styles.arena}>
+        <section className={styles.arena} data-game={gameId}>
             <header className={styles.header}>
                 <div>
                     <span>{isFr ? `MANCHE ${round}` : `ROUND ${round}`}</span>
@@ -122,6 +126,10 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <h3>{gameLabel(gameId, isFr)}</h3>
                     <p>{gameRule(gameId, isFr)}</p>
+                    <div className={styles.briefStats}>
+                        <span>{gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
+                    </div>
                     <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}</button>
                 </div>
             )}
@@ -137,8 +145,8 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     ) : null}
                     {gameId === 'symbolrush' && !duelSession && <SymbolRound round={round} isFr={isFr} finish={finish} />}
                     {gameId === 'bombpass' && !duelSession && <BombRound round={round} isFr={isFr} finish={finish} />}
-                    {gameId === 'cupshuffle' && <CupRound round={round} isFr={isFr} finish={finish} />}
-                    {gameId === 'duelnumeric' && <NumericRound round={round} isFr={isFr} finish={finish} />}
+                    {gameId === 'cupshuffle' && !duelSession && <CupRound round={round} isFr={isFr} finish={finish} />}
+                    {gameId === 'duelnumeric' && !duelSession && <NumericRound round={round} isFr={isFr} finish={finish} />}
                 </div>
             )}
 
@@ -183,6 +191,20 @@ interface SharedArenaState {
     paddles?: Record<string, number>;
     balls?: Array<{ id: string; x: number; y: number; vx: number; vy: number }>;
     paddleWidth?: number;
+    paddleWidths?: Record<string, number>;
+    stage?: number;
+    totalStages?: number;
+    challengePhase?: 'waiting' | 'reveal' | 'shuffle' | 'answer' | 'feedback';
+    phaseEndsAt?: number;
+    scores?: Record<string, number>;
+    answered?: string[];
+    feedback?: Record<string, boolean>;
+    order?: number[];
+    swap?: number;
+    swapCount?: number;
+    swapDuration?: number;
+    tokenCup?: number | null;
+    question?: { label: string; options: number[] } | null;
     suddenDeath?: boolean;
     obstacles?: Array<{ x: number; y: number; width: number }>;
     sequence?: string[];
@@ -222,6 +244,9 @@ function SharedArenaRound({
     const [countdown, setCountdown] = useState(0);
     const [disconnectSeconds, setDisconnectSeconds] = useState(0);
     const [connection, setConnection] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting');
+    const [arenaError, setArenaError] = useState('');
+    const [pendingStage, setPendingStage] = useState<number | null>(null);
+    const lastMoveRef = useRef(0);
     const isChallenger = session.userId === session.challengerId;
     const rivalId = state
         ? (session.userId === state.challengerId ? state.opponentId : state.challengerId)
@@ -247,10 +272,14 @@ function SharedArenaRound({
                 }));
             });
             socket.addEventListener('message', (message) => {
-                let event: SharedArenaState | null = null;
+                let event: SharedArenaState | { type: 'arena.error'; error: string } | null = null;
                 try {
                     event = JSON.parse(String(message.data));
                 } catch {
+                    return;
+                }
+                if (event?.type === 'arena.error') {
+                    setArenaError(isFr ? 'Cette manche a change. Actualise le duel pour reprendre.' : 'This round changed. Refresh the duel to rejoin.');
                     return;
                 }
                 if (event?.type !== 'arena.state' || event.duelId !== session.duelId || event.round !== round) return;
@@ -263,7 +292,7 @@ function SharedArenaRound({
                     finish(
                         won ? 1000 : 0,
                         won
-                            ? (isFr ? 'Victoire arbitree par le serveur' : 'Server-authoritative victory')
+                            ? (isFr ? 'Ton rival est battu.' : 'You beat your rival.')
                             : (isFr ? 'Manche perdue' : 'Round lost'),
                         true
                     );
@@ -340,12 +369,13 @@ function SharedArenaRound({
                 const mirror = !isChallenger;
                 const localX = (value: number) => (mirror ? 1 - value : value);
                 const localY = (value: number) => (mirror ? 1 - value : value);
-                const paddleWidth = (current.paddleWidth || .22) * width;
+                const rivalWidth = (current.paddleWidths?.[currentRivalId] || current.paddleWidth || .22) * width;
+                const selfWidth = (current.paddleWidths?.[selfId] || current.paddleWidth || .22) * width;
 
                 drawingContext.fillStyle = '#ef476f';
-                drawingContext.fillRect(localX(current.paddles?.[currentRivalId] || .5) * width - paddleWidth / 2, 18, paddleWidth, 9);
+                drawingContext.fillRect(localX(current.paddles?.[currentRivalId] ?? .5) * width - rivalWidth / 2, height * .06 - 5, rivalWidth, 10);
                 drawingContext.fillStyle = '#ffd400';
-                drawingContext.fillRect(localX(current.paddles?.[selfId] || .5) * width - paddleWidth / 2, height - 27, paddleWidth, 10);
+                drawingContext.fillRect(localX(current.paddles?.[selfId] ?? .5) * width - selfWidth / 2, height * .94 - 5, selfWidth, 10);
 
                 for (const obstacle of current.obstacles || []) {
                     drawingContext.fillStyle = 'rgba(239,71,111,.78)';
@@ -368,7 +398,7 @@ function SharedArenaRound({
                     drawingContext.fill();
                     drawingContext.fillStyle = '#ffd400';
                     drawingContext.beginPath();
-                    drawingContext.arc(ballX, ballY, 9, 0, Math.PI * 2);
+                    drawingContext.ellipse(ballX, ballY, width * .016, height * .016, 0, 0, Math.PI * 2);
                     drawingContext.fill();
                 }
             }
@@ -400,6 +430,9 @@ function SharedArenaRound({
     }
 
     function move(clientX: number) {
+        const now = performance.now();
+        if (now - lastMoveRef.current < 32) return;
+        lastMoveRef.current = now;
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
         const localX = Math.max(.07, Math.min(.93, (clientX - rect.left) / rect.width));
@@ -411,13 +444,13 @@ function SharedArenaRound({
 
     const phase = state?.phase || 'waiting';
     const disconnectedSelf = state?.disconnectedUserId === session.userId;
-    const interruption = connection !== 'connected'
+    const interruption = arenaError || (connection !== 'connected'
         ? (isFr ? 'Connexion perdue. Reprise en cours...' : 'Connection lost. Rejoining...')
         : state?.disconnectDeadline
             ? disconnectedSelf
                 ? (isFr ? `Reconnexion... forfait dans ${disconnectSeconds}s` : `Reconnecting... forfeit in ${disconnectSeconds}s`)
                 : (isFr ? `Rival déconnecté · reprise pendant ${disconnectSeconds}s` : `Rival disconnected · resuming for ${disconnectSeconds}s`)
-            : '';
+            : '');
     const status = phase === 'waiting'
         ? (isFr ? 'En attente du rival...' : 'Waiting for rival...')
         : phase === 'countdown'
@@ -425,6 +458,65 @@ function SharedArenaRound({
             : phase === 'playing'
                 ? (isFr ? 'ECHANGE LIVE' : 'LIVE RALLY')
                 : (isFr ? 'MANCHE TERMINEE' : 'ROUND COMPLETE');
+
+    if (gameId === 'cupshuffle' || gameId === 'duelnumeric') {
+        const stage = state?.stage || 0;
+        const answering = phase === 'playing' && state?.challengePhase === 'answer';
+        const answered = state?.answered?.includes(session.userId) || pendingStage === stage;
+        const feedback = state?.challengePhase === 'feedback';
+        const remaining = Math.max(0, ((state?.phaseEndsAt || 0) - Date.now() - serverOffsetRef.current) / 1000);
+        const submit = (value: number) => {
+            if (!answering || answered || session.spectator) return;
+            setPendingStage(stage);
+            send({ action: 'answer', stage, value });
+        };
+        return (
+            <div className={styles.game}>
+                {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
+                <div className={styles.liveHud}>
+                    <span>{phase !== 'playing' ? status : state?.suddenDeath ? (isFr ? 'EGALITE · DEPARTAGE' : 'TIEBREAK') : `${stage} / ${state?.totalStages || 3}`}</span>
+                    <strong>{phase === 'playing' ? `${remaining.toFixed(1)} s` : '--'}</strong>
+                </div>
+                <div className={styles.raceScore}>
+                    <div><span>{isFr ? 'TOI' : 'YOU'}</span><strong>{state?.scores?.[session.userId] || 0}</strong></div>
+                    <span>VS</span>
+                    <div><span>{isFr ? 'RIVAL' : 'RIVAL'}</span><strong>{state?.scores?.[rivalId] || 0}</strong></div>
+                </div>
+                {gameId === 'cupshuffle' ? (
+                    <div className={styles.cupTable} data-testid="cup-table" data-phase={state?.challengePhase}>
+                        {[0, 1, 2].map((id) => {
+                            const slot = (state?.order || [0, 1, 2]).indexOf(id);
+                            return <button type="button" key={id} className={styles.cup}
+                                style={{ transform: `translateX(${slot * 100}%)`, transitionDuration: `${state?.swapDuration || 500}ms` }}
+                                aria-label={`${isFr ? 'Gobelet' : 'Cup'} ${slot + 1}`}
+                                disabled={!answering || answered || session.spectator} onClick={() => submit(slot)}>
+                                <span className={styles.cupShell} />
+                                {state?.tokenCup === id && <i className={styles.cupToken} />}
+                            </button>;
+                        })}
+                    </div>
+                ) : (
+                    <>
+                        <div className={styles.equation} data-testid="numeric-equation">{state?.question?.label || '…'}</div>
+                        <div className={styles.answerGrid} data-testid="numeric-answers">
+                            {!state?.question && [0, 1, 2, 3].map((slot) => <button type="button" key={`waiting-${slot}`} disabled>--</button>)}
+                            {(state?.question?.options || []).map((value) => <button type="button" key={value}
+                                disabled={!answering || answered || session.spectator} onClick={() => submit(value)}>{value}</button>)}
+                        </div>
+                    </>
+                )}
+                <div className={styles.roundFeedback} role="status" data-correct={feedback ? String(Boolean(state?.feedback?.[session.userId])) : undefined}>
+                    {phase !== 'playing' ? status : feedback
+                        ? state?.feedback?.[session.userId] ? (isFr ? 'BIEN JOUE !' : 'NAILED IT!') : (isFr ? 'RATE. PROCHAINE CHANCE.' : 'MISSED. NEXT CHANCE.')
+                        : answered ? (isFr ? 'REPONSE VERROUILLEE' : 'ANSWER LOCKED')
+                            : state?.challengePhase === 'reveal' ? (isFr ? 'REPERE LE JETON' : 'FIND THE TOKEN')
+                                : state?.challengePhase === 'shuffle' ? (isFr ? 'GARDE LE FIL' : 'KEEP TRACK')
+                                    : (isFr ? 'A TOI DE JOUER' : 'YOUR MOVE')}
+                </div>
+                {!session.spectator && <button type="button" className={styles.forfeitButton} onClick={forfeit}>{isFr ? 'Abandonner la manche' : 'Forfeit round'}</button>}
+            </div>
+        );
+    }
 
     if (gameId === 'symbolrush') {
         const revealing = Boolean(state?.sequence?.length);
@@ -495,7 +587,7 @@ function SharedArenaRound({
 
     if (gameId === 'bombpass') {
         const holding = state?.holderId === session.userId;
-        const fuse = Math.max(0, ((state?.fuseEndsAt || Date.now()) - Date.now()) / 1000);
+        const fuse = Math.max(0, ((state?.fuseEndsAt || Date.now()) - Date.now() - serverOffsetRef.current) / 1000);
         const ability = state?.abilities?.[session.userId];
         return (
             <div className={styles.game}>
@@ -505,13 +597,14 @@ function SharedArenaRound({
                     <span>PASSES <strong data-testid="bomb-passes">{state?.passes || 0}</strong></span>
                 </div>
                 <div className={`${styles.bombCore} ${fuse < 2.5 ? styles.bombCritical : ''}`}>
-                    <span>●</span>
+                    <span className={styles.bombOrb}><b>{fuse.toFixed(1)}</b></span>
                     <i style={{ width: `${Math.min(100, fuse / 8 * 100)}%` }} />
                 </div>
                 <button
                     type="button"
                     className={styles.bombTrack}
                     data-testid="bomb-track"
+                    aria-label={isFr ? 'Passer la bombe' : 'Pass the bomb'}
                     disabled={session.spectator || !holding || phase !== 'playing'}
                     onClick={() => send({ action: 'pass' })}
                 >
@@ -546,6 +639,14 @@ function SharedArenaRound({
                 className={styles.bounceCanvas}
                 data-testid="bounce-canvas"
                 tabIndex={0}
+                aria-label={isFr ? 'Terrain Bounce Panic' : 'Bounce Panic field'}
+                onKeyDown={(event) => {
+                    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+                    event.preventDefault();
+                    const current = stateRef.current?.paddles?.[session.userId] ?? .5;
+                    const delta = (event.key === 'ArrowLeft' ? -.07 : .07) * (isChallenger ? 1 : -1);
+                    send({ action: 'move', x: Math.max(.07, Math.min(.93, current + delta)) });
+                }}
                 onPointerMove={(event) => {
                     if (event.pointerType === 'mouse' || event.currentTarget.hasPointerCapture(event.pointerId)) move(event.clientX);
                 }}
@@ -605,8 +706,8 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
         function resize() {
             const rect = drawingCanvas.getBoundingClientRect();
             const ratio = Math.min(2, window.devicePixelRatio || 1);
-            const width = Math.max(320, rect.width);
-            const height = Math.max(210, rect.height);
+            const width = Math.max(1, rect.width);
+            const height = Math.max(1, rect.height);
             drawingCanvas.width = Math.round(width * ratio);
             drawingCanvas.height = Math.round(height * ratio);
             context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -646,6 +747,11 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             );
             const paddleX = paddleRef.current * state.width;
             const survival = (now - started) / 1000;
+            if (survival >= 45) {
+                stopped = true;
+                finish(Math.min(1000, state.rally * 55 + 200), `${state.rally} ${isFr ? 'retours' : 'returns'} · 45s`);
+                return;
+            }
             const obstacleY = state.height * .37;
             const obstacleWidth = Math.max(76, state.width * Math.max(.14, .25 - round * .018));
             const obstacleX = state.width / 2
@@ -786,6 +892,7 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
     const [input, setInput] = useState<string[]>([]);
     const [errors, setErrors] = useState(0);
     const [time, setTime] = useState(10);
+    const deadline = useRef(0);
 
     useEffect(() => {
         if (phase !== 'reveal') return;
@@ -799,7 +906,8 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
 
     useEffect(() => {
         if (phase !== 'input') return;
-        const timer = window.setInterval(() => setTime((value) => value - .1), 100);
+        deadline.current = performance.now() + 10000;
+        const timer = window.setInterval(() => setTime(Math.max(0, (deadline.current - performance.now()) / 1000)), 50);
         return () => window.clearInterval(timer);
     }, [phase]);
 
@@ -808,9 +916,11 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
     }, [finish, input.length, isFr, sequence.length, time]);
 
     function choose(symbol: string) {
+        if (phase !== 'input' || performance.now() >= deadline.current) return;
         const index = input.length;
         if (symbol !== sequence[index]) {
             setErrors((value) => value + 1);
+            deadline.current -= 1200;
             setTime((value) => Math.max(0, value - 1.2));
             navigator.vibrate?.(80);
             return;
@@ -828,7 +938,6 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
             <div
                 className={styles.symbolBoard}
                 data-testid="symbol-board"
-                data-qa-sequence={typeof navigator !== 'undefined' && navigator.webdriver ? sequence.join('') : undefined}
             >
                 {sequence.map((symbol, index) => (
                     <span key={index} className={phase === 'reveal' && index === revealIndex - 1 ? styles.symbolFlash : input[index] ? styles.symbolLocked : ''}>
@@ -845,162 +954,215 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
 }
 
 function BombRound({ round, isFr, finish }: RoundProps) {
-    const [marker, setMarker] = useState(0);
-    const [direction, setDirection] = useState(1);
-    const [passes, setPasses] = useState(0);
-    const [fuse, setFuse] = useState(8.5 - round * .45);
-    const safeCenter = useMemo(() => 22 + Math.random() * 56, [passes]);
-    const safeWidth = Math.max(11, 27 - passes * 2.4);
-
+    const [view, setView] = useState({ marker: 0, passes: 0, fuse: 8, perfects: 0, center: 50 });
+    const run = useRef({ started: 0, deadline: 0, passes: 0, perfects: 0, center: 50, lastTap: 0, done: false });
+    const markerAt = (now: number) => {
+        const wave = ((now - run.current.started) / 1000 * (85 + run.current.passes * 7)) % 200;
+        return wave <= 100 ? wave : 200 - wave;
+    };
     useEffect(() => {
-        const timer = window.setInterval(() => {
-            setMarker((value) => {
-                const next = value + direction * (2.2 + passes * .24);
-                if (next >= 100 || next <= 0) {
-                    setDirection((current) => -current);
-                    return Math.max(0, Math.min(100, next));
-                }
-                return next;
-            });
-            setFuse((value) => value - .025);
-        }, 25);
-        return () => window.clearInterval(timer);
-    }, [direction, passes]);
-
-    useEffect(() => {
-        if (fuse <= 0) finish(passes * 118, `${passes} passes · BOOM`);
-    }, [finish, fuse, passes]);
+        const current = run.current;
+        current.started = performance.now();
+        current.deadline = current.started + 8500 - round * 450;
+        let frame = 0;
+        const tick = (now: number) => {
+            if (current.done) return;
+            const fuse = Math.max(0, (current.deadline - now) / 1000);
+            setView({ marker: markerAt(now), passes: current.passes, fuse, perfects: current.perfects, center: current.center });
+            if (!fuse) {
+                current.done = true;
+                finish(current.passes * 90 + current.perfects * 15, `${current.passes} passes · BOOM`);
+                return;
+            }
+            frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [finish, round]);
 
     function pass() {
-        const hit = Math.abs(marker - safeCenter) <= safeWidth / 2;
-        if (!hit) {
-            finish(passes * 105, `${passes} passes · ${isFr ? 'zone ratee' : 'missed zone'}`);
+        const current = run.current;
+        const now = performance.now();
+        if (current.done || now >= current.deadline || now - current.lastTap < 180) return;
+        current.lastTap = now;
+        const distance = Math.abs(markerAt(now) - current.center);
+        if (distance > Math.max(11, 27 - current.passes * 2.4) / 2) {
+            current.done = true;
+            finish(current.passes * 90 + current.perfects * 15, isFr ? 'Hors zone !' : 'Outside the zone!');
             return;
         }
-        const next = passes + 1;
-        setPasses(next);
-        setFuse((value) => Math.min(9, value + .72));
+        if (distance < 4) current.perfects++;
+        current.passes++;
+        current.deadline = Math.min(now + 9000, current.deadline + 720);
+        current.center = 22 + Math.random() * 56;
         navigator.vibrate?.(20);
-        if (next >= 8 + round) finish(920 + fuse * 7, `${next} passes · ${fuse.toFixed(1)}s`);
+        if (current.passes >= 8 + round) {
+            current.done = true;
+            finish(850 + current.perfects * 15, `${current.passes} passes · ${current.perfects} perfect`);
+        }
     }
 
     return (
         <div className={styles.game}>
-            <div className={styles.liveHud}><span>PASSES <strong data-testid="bomb-passes">{passes}</strong></span><span>FUSE <strong>{Math.max(0, fuse).toFixed(1)}s</strong></span></div>
-            <div className={`${styles.bombCore} ${fuse < 2.5 ? styles.bombCritical : ''}`}><span>●</span><i style={{ width: `${Math.max(0, fuse / 8.5) * 100}%` }} /></div>
-            <button type="button" className={styles.bombTrack} data-testid="bomb-track" onClick={pass}>
-                <span className={styles.safeZone} style={{ left: `${safeCenter - safeWidth / 2}%`, width: `${safeWidth}%` }} />
-                <i style={{ left: `${marker}%` }} />
+            <div className={styles.liveHud}><span>PASSES <strong data-testid="bomb-passes">{view.passes}</strong></span><span>PERFECT <strong>{view.perfects}</strong></span></div>
+            <div className={`${styles.bombCore} ${view.fuse < 2.5 ? styles.bombCritical : ''}`}>
+                <span className={styles.bombOrb}><b>{view.fuse.toFixed(1)}</b></span>
+                <i style={{ width: `${Math.max(0, view.fuse / 8.5) * 100}%` }} />
+            </div>
+            <button type="button" className={styles.bombTrack} data-testid="bomb-track" onClick={pass} disabled={performance.now() - run.current.lastTap < 180} aria-label={isFr ? 'Passer la bombe' : 'Pass the bomb'}>
+                <span className={styles.safeZone} style={{ left: `${view.center - Math.max(11, 27 - view.passes * 2.4) / 2}%`, width: `${Math.max(11, 27 - view.passes * 2.4)}%` }} />
+                <i style={{ left: `${view.marker}%` }} />
             </button>
-            <p>{isFr ? 'Clique quand le curseur traverse le vert. La fenetre retrecit.' : 'Tap as the marker crosses green. The window keeps shrinking.'}</p>
+            <p>{isFr ? 'Dans la zone : passe. Au centre : perfect.' : 'Inside: pass. Dead center: perfect.'}</p>
         </div>
     );
 }
 
 function CupRound({ round, isFr, finish }: RoundProps) {
-    const tokenCup = useMemo(() => Math.floor(Math.random() * 3), []);
-    const swaps = useMemo(() => makeSwaps(4 + round * 2), [round]);
+    const [stage, setStage] = useState(1);
+    const [phase, setPhase] = useState<'reveal' | 'shuffle' | 'choose' | 'feedback'>('reveal');
     const [order, setOrder] = useState([0, 1, 2]);
-    const [phase, setPhase] = useState<'reveal' | 'shuffle' | 'choose'>('reveal');
     const [step, setStep] = useState(0);
-    const chooseStarted = useRef(0);
+    const [correct, setCorrect] = useState(false);
+    const score = useRef(0);
+    const hits = useRef(0);
+    const locked = useRef(false);
+    const deadline = useRef(0);
+    const tokenCup = useMemo(() => Math.floor(Math.random() * 3), [stage]);
+    const swaps = useMemo(() => makeSwaps(3 + round + stage), [round, stage]);
+    const duration = Math.max(320, 650 - round * 40 - stage * 50);
 
     useEffect(() => {
-        if (phase !== 'reveal') return;
-        const timer = window.setTimeout(() => setPhase('shuffle'), 1600);
-        return () => window.clearTimeout(timer);
-    }, [phase]);
-
-    useEffect(() => {
-        if (phase !== 'shuffle') return;
-        if (step >= swaps.length) {
-            chooseStarted.current = performance.now();
-            setPhase('choose');
-            return;
+        if (phase === 'reveal') {
+            const timer = window.setTimeout(() => setPhase('shuffle'), 1400);
+            return () => window.clearTimeout(timer);
+        }
+        if (phase === 'shuffle') {
+            const timer = window.setTimeout(() => {
+                if (step >= swaps.length) {
+                    deadline.current = performance.now() + 5000;
+                    locked.current = false;
+                    setPhase('choose');
+                    return;
+                }
+                const [a, b] = swaps[step];
+                setOrder((current) => {
+                    const next = [...current];
+                    [next[a], next[b]] = [next[b], next[a]];
+                    return next;
+                });
+                setStep((value) => value + 1);
+            }, duration + 100);
+            return () => window.clearTimeout(timer);
+        }
+        if (phase === 'choose') {
+            const timer = window.setTimeout(() => {
+                locked.current = true;
+                setCorrect(false);
+                setPhase('feedback');
+            }, Math.max(0, deadline.current - performance.now()));
+            return () => window.clearTimeout(timer);
         }
         const timer = window.setTimeout(() => {
-            const [a, b] = swaps[step];
-            setOrder((current) => {
-                const copy = [...current];
-                [copy[a], copy[b]] = [copy[b], copy[a]];
-                return copy;
-            });
-            setStep((value) => value + 1);
-        }, Math.max(300, 590 - round * 65));
+            if (stage === 3) {
+                finish(score.current, `${hits.current}/3 · ${isFr ? 'gobelets retrouves' : 'cups found'}`);
+            } else {
+                setStage((value) => value + 1);
+                setStep(0);
+                setOrder([0, 1, 2]);
+                setPhase('reveal');
+            }
+        }, 1100);
         return () => window.clearTimeout(timer);
-    }, [phase, round, step, swaps]);
+    }, [phase, step, swaps, duration, stage, finish, isFr]);
 
     function choose(slot: number) {
+        if (phase !== 'choose' || locked.current || performance.now() >= deadline.current) return;
+        locked.current = true;
         const won = order[slot] === tokenCup;
-        const reaction = performance.now() - chooseStarted.current;
-        finish(won ? Math.max(650, 1000 - reaction * .12) : 120, won ? `${reaction.toFixed(0)}ms` : (isFr ? 'mauvais gobelet' : 'wrong cup'));
+        if (won) {
+            hits.current++;
+            score.current += Math.round(260 + Math.max(0, deadline.current - performance.now()) / 70);
+        }
+        setCorrect(won);
+        setPhase('feedback');
+        navigator.vibrate?.(won ? 20 : 70);
     }
-
     return (
         <div className={styles.game}>
-            <div className={styles.liveHud}><span>{phase === 'reveal' ? 'LOCK ON' : phase === 'shuffle' ? 'TRACK' : 'CHOOSE'}</span><span><strong>{step}/{swaps.length}</strong></span></div>
-            <div className={styles.cupTable} data-testid="cup-table">
-                {[0, 1, 2].map((cupId) => {
-                    const slot = order.indexOf(cupId);
-                    return (
-                        <button
-                            type="button"
-                            key={cupId}
-                            className={styles.cup}
-                            style={{ transform: `translateX(${slot * 100}%)` }}
-                            disabled={phase !== 'choose'}
-                            onClick={() => choose(slot)}
-                        >
-                            <span>▰</span>
-                            {phase === 'reveal' && cupId === tokenCup && <i>●</i>}
-                        </button>
-                    );
+            <div className={styles.liveHud}><span>{stage} / 3</span><span><strong>{hits.current}</strong> / 3</span></div>
+            <div className={styles.cupTable} data-testid="cup-table" data-phase={phase}>
+                {[0, 1, 2].map((id) => {
+                    const slot = order.indexOf(id);
+                    return <button type="button" key={id} className={styles.cup}
+                        style={{ transform: `translateX(${slot * 100}%)`, transitionDuration: `${duration}ms` }}
+                        disabled={phase !== 'choose'} aria-label={`${isFr ? 'Gobelet' : 'Cup'} ${slot + 1}`} onClick={() => choose(slot)}>
+                        <span className={styles.cupShell} />
+                        {(phase === 'reveal' || phase === 'feedback') && id === tokenCup && <i className={styles.cupToken} />}
+                    </button>;
                 })}
             </div>
-            <div className={styles.slotLabels}><span>1</span><span>2</span><span>3</span></div>
-            <p>{phase === 'choose' ? (isFr ? 'Choisis maintenant.' : 'Pick now.') : (isFr ? 'Ne perds pas le jeton.' : 'Do not lose the token.')}</p>
+            <div className={styles.roundFeedback} role="status" data-correct={phase === 'feedback' ? String(correct) : undefined}>
+                {phase === 'feedback' ? correct ? (isFr ? 'BIEN VU !' : 'GOOD EYE!') : (isFr ? 'PERDU DE VUE' : 'LOST TRACK')
+                    : phase === 'reveal' ? (isFr ? 'REPERE LE JETON' : 'FIND THE TOKEN')
+                        : phase === 'shuffle' ? (isFr ? 'GARDE LE FIL' : 'KEEP TRACK') : (isFr ? 'OU EST LE JETON ?' : 'WHERE IS THE TOKEN?')}
+            </div>
         </div>
     );
 }
 
 function NumericRound({ round, isFr, finish }: RoundProps) {
-    const questions = useMemo(() => Array.from({ length: 4 + round }, () => makeQuestion(round)), [round]);
+    const questions = useMemo(() => Array.from({ length: 5 }, () => makeQuestion(round)), [round]);
     const [index, setIndex] = useState(0);
-    const [errors, setErrors] = useState(0);
-    const [time, setTime] = useState(12);
+    const [time, setTime] = useState(6);
+    const [feedback, setFeedback] = useState<boolean | null>(null);
+    const score = useRef(0);
+    const hits = useRef(0);
+    const locked = useRef(false);
+    const deadline = useRef(0);
     const question = questions[index];
 
     useEffect(() => {
-        const timer = window.setInterval(() => setTime((value) => value - .1), 100);
+        if (feedback !== null) {
+            const timer = window.setTimeout(() => {
+                if (index === 4) finish(score.current, `${hits.current}/5 · ${isFr ? 'bonnes reponses' : 'correct answers'}`);
+                else { setIndex((value) => value + 1); setFeedback(null); }
+            }, 850);
+            return () => window.clearTimeout(timer);
+        }
+        locked.current = false;
+        deadline.current = performance.now() + 6000;
+        setTime(6);
+        const timer = window.setInterval(() => {
+            const remaining = Math.max(0, (deadline.current - performance.now()) / 1000);
+            setTime(remaining);
+            if (!remaining) { locked.current = true; setFeedback(false); }
+        }, 50);
         return () => window.clearInterval(timer);
-    }, []);
-
-    useEffect(() => {
-        if (time <= 0) finish(index * 135, `${index}/${questions.length}`);
-    }, [finish, index, questions.length, time]);
+    }, [feedback, index, finish, isFr]);
 
     function answer(value: number) {
-        if (value !== question.answer) {
-            setErrors((count) => count + 1);
-            setTime((value) => Math.max(0, value - 1));
-            navigator.vibrate?.(70);
-            return;
+        if (locked.current || performance.now() >= deadline.current) return;
+        locked.current = true;
+        const correct = value === question.answer;
+        if (correct) {
+            hits.current++;
+            score.current += Math.round(180 + Math.max(0, deadline.current - performance.now()) / 300);
         }
-        if (index === questions.length - 1) {
-            finish(720 + time * 20 - errors * 70, `${questions.length}/${questions.length} · ${time.toFixed(1)}s`);
-        } else {
-            setIndex((count) => count + 1);
-        }
+        setFeedback(correct);
+        navigator.vibrate?.(correct ? 15 : 60);
     }
-
     return (
         <div className={styles.game}>
-            <div className={styles.liveHud}><span>STACK <strong>{index + 1}/{questions.length}</strong></span><span>TIME <strong>{time.toFixed(1)}s</strong></span></div>
-            <div className={styles.equation} data-testid="numeric-equation">{question.label}</div>
+            <div className={styles.liveHud}><span>{index + 1} / 5</span><span><strong>{time.toFixed(1)} s</strong></span></div>
+            <div className={styles.equation} data-testid="numeric-equation" data-question={index}>{question.label}</div>
             <div className={styles.answerGrid} data-testid="numeric-answers">
-                {question.options.map((option) => <button type="button" key={option} onClick={() => answer(option)}>{option}</button>)}
+                {question.options.map((option) => <button type="button" key={option} disabled={feedback !== null} onClick={() => answer(option)}>{option}</button>)}
             </div>
-            <p>{errors ? `${errors} ${isFr ? 'erreur, -1s chacune' : 'miss, -1s each'}` : (isFr ? 'Lis, tranche, enchaine.' : 'Read, decide, chain.')}</p>
+            <div className={styles.roundFeedback} role="status" data-correct={feedback === null ? undefined : String(feedback)}>
+                {feedback === null ? (isFr ? 'UNE SEULE REPONSE' : 'ONE ANSWER ONLY')
+                    : feedback ? (isFr ? 'BIEN JOUE !' : 'NAILED IT!') : `${isFr ? 'LA REPONSE' : 'THE ANSWER'} : ${question.answer}`}
+            </div>
         </div>
     );
 }
@@ -1014,8 +1176,8 @@ function gameRule(gameId: CompetitiveGameId, isFr: boolean) {
         bounce: ['Deplace ton paddle et garde la balle en vie. Une erreur termine la manche.', 'Move your paddle and keep the ball alive. One miss ends the round.'],
         symbolrush: ['Memorise la suite animee puis reconstruis-la avant la fin du chrono.', 'Memorize the animated sequence, then rebuild it before time runs out.'],
         bombpass: ['Enchaine les passes dans la zone sure avant l explosion.', 'Chain passes through the safe zone before the explosion.'],
-        cupshuffle: ['Verrouille le jeton, suis les deplacements et choisis le bon gobelet.', 'Lock onto the token, track every move, and choose the right cup.'],
-        duelnumeric: ['Resous une pile de problemes sous pression, sans casser ton rythme.', 'Clear a stack of problems under pressure without breaking pace.'],
+        cupshuffle: ['Trois melanges de plus en plus rapides. Retrouve le jeton : une seule reponse par passage.', 'Three increasingly fast shuffles. Find the token: one answer per shuffle.'],
+        duelnumeric: ['Cinq questions, six secondes chacune. Une seule reponse : vise juste, puis vise vite.', 'Five questions, six seconds each. One answer: accuracy first, then speed.'],
     } as const;
     return rules[gameId][isFr ? 0 : 1];
 }

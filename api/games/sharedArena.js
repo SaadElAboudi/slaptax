@@ -1,4 +1,5 @@
 const { WebSocket } = require("ws");
+const { createRace, nextStage, publicRace, answerRace, tickRace } = require('./challengeRace');
 
 const TICK_MS = 1000 / 30;
 const BALL_RADIUS = 0.016;
@@ -26,7 +27,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     const clients = new Map();
 
     function send(client, event) {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN && client.bufferedAmount < 128 * 1024) {
             client.send(JSON.stringify({ ...event, at: Date.now() }));
         }
     }
@@ -149,6 +150,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             disconnectDeadline: 0,
             disconnectedUserId: null,
             startedAt: 0,
+            pausedAt: 0,
             updatedAt: Date.now(),
             winnerId: null,
             finishReason: "",
@@ -156,8 +158,9 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 ? createBounceState(duel)
                 : gameId === "symbolrush"
                     ? createSymbolState(duel)
-                    : createBombState(duel),
+                    : gameId === "bombpass" ? createBombState(duel) : null,
         };
+        if (!session.game) session.game = createRace(session);
         sessions.set(session.key, session);
         return session;
     }
@@ -198,6 +201,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 paddles: game.paddles,
                 balls: game.balls,
                 paddleWidth: Math.max(0.11, 0.3 - Math.min(16, game.rally) * 0.008 - shrink),
+                paddleWidths: Object.fromEntries([session.challengerId, session.opponentId].map((id) => [id, bouncePaddleWidth(session, id)])),
                 suddenDeath: game.suddenDeath,
                 obstacles: elapsed > 12
                     ? [{
@@ -228,6 +232,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 inputEndsAt: game.inputEndsAt,
             };
         }
+
+        if (["cupshuffle", "duelnumeric"].includes(session.gameId)) return { ...common, ...publicRace(session) };
 
         const game = session.game;
         const wave = ((now - game.markerStartedAt) / 1000 * game.markerSpeed) % 2;
@@ -276,7 +282,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             return;
         }
         const gameId = duel.games?.[round - 1];
-        if (!["bounce", "symbolrush", "bombpass"].includes(gameId)) {
+        if (!["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric"].includes(gameId)) {
             send(client, { type: "arena.error", error: "This game is not a shared signature game" });
             return;
         }
@@ -345,7 +351,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     function answerSymbol(session, client, payload) {
         const game = session.game;
         const now = Date.now();
-        if (now < game.revealEndsAt) return;
+        if (now < game.revealEndsAt || now >= game.inputEndsAt) return;
         const userId = client.userId;
         if (now < game.jammedUntil[userId]) return;
         const progress = game.progress[userId];
@@ -359,6 +365,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 game.lastAction = { userId, action: "error", at: now };
             }
             game.combos[userId] = 0;
+            game.jammedUntil[userId] = now + 450;
             game.palettes[userId] = shuffled(game.palettes[userId]);
             return;
         }
@@ -396,6 +403,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     function actBomb(session, client, payload) {
         const game = session.game;
         if (game.holderId !== client.userId) return;
+        if (Date.now() >= game.fuseEndsAt) return tickBomb(session, Date.now());
         const rivalId = client.userId === session.challengerId ? session.opponentId : session.challengerId;
         const action = String(payload.action || "pass");
         if (action === "feint" && game.abilities[client.userId].feint > 0) {
@@ -439,6 +447,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             else answerSymbol(session, client, payload);
         } else if (session.gameId === "bombpass") {
             actBomb(session, client, payload);
+        } else if (["cupshuffle", "duelnumeric"].includes(session.gameId)) {
+            answerRace(session, client.userId, payload, Date.now());
         }
         session.updatedAt = Date.now();
         broadcast(session);
@@ -455,7 +465,22 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     function startGame(session, now) {
         session.phase = "playing";
+        if (session.startedAt && session.pausedAt) {
+            const pause = now - session.pausedAt;
+            session.startedAt += pause;
+            for (const field of ['revealEndsAt', 'inputEndsAt', 'fuseEndsAt', 'markerStartedAt', 'phaseEndsAt', 'stageStartedAt']) {
+                if (session.game[field]) session.game[field] += pause;
+            }
+            for (const id of Object.keys(session.game.jammedUntil || {})) session.game.jammedUntil[id] += pause;
+            for (const id of Object.keys(session.game.lastInputAt || {})) session.game.lastInputAt[id] += pause;
+            for (const debuff of Object.values(session.game.debuffs || {})) debuff.until += pause;
+            for (const answer of Object.values(session.game.answers || {})) answer.at += pause;
+            session.pausedAt = 0;
+            return;
+        }
         session.startedAt ||= now;
+        session.pausedAt = 0;
+        if (["cupshuffle", "duelnumeric"].includes(session.gameId)) nextStage(session, now);
         if (session.gameId === "symbolrush") {
             session.game.revealEndsAt = now + session.game.sequence.length * 650 + 500;
             session.game.inputEndsAt = session.game.revealEndsAt + 18_000;
@@ -476,7 +501,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     function tickBounce(session, dt, now) {
         const game = session.game;
         const elapsed = (now - session.startedAt) / 1000;
-        game.suddenDeath = elapsed >= 60;
+        game.suddenDeath = elapsed >= 30;
         const obstacle = elapsed > 12
             ? {
                 x: 0.5 + Math.sin(elapsed * 1.1 + game.obstacleSeed) * 0.25,
@@ -540,7 +565,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 return;
             }
         }
-        if (elapsed >= 90) {
+        if (elapsed >= 45) {
             const winnerId = game.perfects[session.challengerId] >= game.perfects[session.opponentId]
                 ? session.challengerId
                 : session.opponentId;
@@ -594,6 +619,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         if (session.gameId === "bounce") tickBounce(session, dt, now);
         if (session.gameId === "symbolrush") tickSymbol(session, now);
         if (session.gameId === "bombpass") tickBomb(session, now);
+        if (["cupshuffle", "duelnumeric"].includes(session.gameId)) tickRace(session, now, finish);
         session.updatedAt = now;
         broadcast(session);
     }
@@ -605,6 +631,13 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         } catch {
             return;
         }
+        if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return;
+        const now = Date.now();
+        if (!client.rateWindow || now - client.rateWindow >= 1000) {
+            client.rateWindow = now;
+            client.actionCount = 0;
+        }
+        if (++client.actionCount > 90) return;
         if (payload.type === "arena.join" || payload.type === "bounce.join") join(client, payload);
         if (payload.type === "arena.watch") join(client, payload, true);
         if (payload.type === "arena.action") action(client, payload);
@@ -623,10 +656,11 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             const session = sessions.get(client.arenaSessionKey);
             if (!session || client.arenaRole !== "player" || session.phase === "done") return;
             if (participantConnected(session, client.userId)) return;
+            session.pausedAt ||= Date.now();
             session.phase = "waiting";
             session.resumeAt = 0;
-            session.disconnectedUserId = client.userId;
-            session.disconnectDeadline = Date.now() + 20_000;
+            session.disconnectedUserId ||= client.userId;
+            session.disconnectDeadline ||= Date.now() + 20_000;
             broadcast(session);
         });
     }

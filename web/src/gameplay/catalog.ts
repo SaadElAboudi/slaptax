@@ -49,8 +49,8 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
         labelFr: 'Cup Shuffle',
         skillEn: 'Tracking + focus',
         skillFr: 'Suivi + concentration',
-        ruleEn: 'Track the token cup through increasingly fast swaps.',
-        ruleFr: 'Suis le gobelet du jeton pendant des echanges de plus en plus rapides.',
+        ruleEn: 'Three shuffles. Follow the token, then lock your answer before your friend.',
+        ruleFr: 'Trois melanges. Suis le jeton et verrouille ta reponse avant ton ami.',
     },
     {
         id: 'duelnumeric',
@@ -58,8 +58,8 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
         labelFr: 'Duel Numeric',
         skillEn: 'Logic + calculation',
         skillFr: 'Logique + calcul',
-        ruleEn: 'Solve the problem correctly before the rival.',
-        ruleFr: 'Resous correctement le probleme avant le rival.',
+        ruleEn: 'Five common questions. One answer each. Accuracy first, speed breaks the tie.',
+        ruleFr: 'Cinq questions communes. Une reponse chacun. La precision prime, la vitesse departage.',
     },
 ];
 
