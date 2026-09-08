@@ -10,6 +10,7 @@ const {
 const { toMoney2 } = require("../shared/money");
 const { SCHEMA_VERSION } = require("../infrastructure/db");
 const crypto = require("crypto");
+const { PARTY_IDS } = require('../games/partyGames');
 
 const ALLOWED_STAKES = [2, 5, 10, 20];
 const ALLOWED_TOURNAMENT_SIZES = [4, 8, 16];
@@ -19,6 +20,9 @@ const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
 const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
 
 const DRAFT_GAMES = [
+    { id: 'falsestart', label: 'False Start' },
+    { id: 'onesecond', label: 'One Second' },
+    { id: 'onemore', label: 'One More' },
     { id: "bounce", label: "Bounce Panic" },
     { id: "symbolrush", label: "Symbol Sprint" },
     { id: "bombpass", label: "Bomb Pass" },
@@ -2096,7 +2100,7 @@ function createService(store) {
             if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
             if (duel.status !== "playing") return { error: "Duel is not active", code: 400 };
             if (Number(round) !== duel.currentRound) return { error: "This round is not active", code: 409 };
-            if (["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric"].includes(duel.games[duel.currentRound - 1])) {
+            if (["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric", ...PARTY_IDS].includes(duel.games[duel.currentRound - 1])) {
                 return { error: "This round is server-authoritative. Submit game actions through the arena.", code: 409 };
             }
             ensureDuelRoundSecurity(duel);
@@ -2183,6 +2187,7 @@ function createService(store) {
                 winnerId,
                 authoritative: true,
                 detail: String(detail.reason || "").slice(0, 120),
+                ...(detail.moment ? { moment: detail.moment } : {}),
             });
             duel.lastAuthoritativeResult = {
                 round: duel.currentRound,
@@ -2361,10 +2366,12 @@ function createService(store) {
             const duel = db.duels.find((entry) => entry.id === duelId);
             if (!duel) return { error: "Duel not found", code: 404 };
             if (!isDuelParticipant(duel, userId)) return { error: "User is not part of duel", code: 403 };
-            const allowed = ["GG", "WOW", "CLOSE", "REMATCH"];
+            const allowed = ["GG", "WOW", "CLOSE", "REMATCH", "LUCK"];
             const normalized = String(reaction || "").toUpperCase();
             if (!allowed.includes(normalized)) return { error: "Unsupported reaction", code: 400 };
             if (!Array.isArray(duel.reactions)) duel.reactions = [];
+            const lastReaction = [...duel.reactions].reverse().find((entry) => entry.userId === userId);
+            if (lastReaction && Date.now() - Date.parse(lastReaction.at) < 1000) return { error: 'Please wait before reacting again', code: 429 };
             duel.reactions.push({ userId, reaction: normalized, at: new Date().toISOString() });
             duel.reactions = duel.reactions.slice(-12);
             store.write(db);
@@ -2381,6 +2388,12 @@ function createService(store) {
                     && [duel.challengerId, duel.opponentId].sort().join("_") === pairKey
             );
             const gameWins = { [userAId]: {}, [userBId]: {} };
+            const month = new Date().toISOString().slice(0, 7);
+            const seasonDuels = pairDuels.filter((duel) => duel.playedAt?.startsWith(month) && duel.rounds?.every((round) => round.authoritative));
+            const season = { month, matches: seasonDuels.length, wins: {
+                [userAId]: seasonDuels.filter((duel) => duel.winnerId === userAId).length,
+                [userBId]: seasonDuels.filter((duel) => duel.winnerId === userBId).length,
+            } };
             pairDuels.forEach((duel) => {
                 (duel.rounds || []).forEach((round) => {
                     const roundWinnerId = round.winnerId
@@ -2408,6 +2421,7 @@ function createService(store) {
                 return {
                     ok: true,
                     exists: false,
+                    season,
                     users: [userAId, userBId],
                     wins: { [userAId]: 0, [userBId]: 0 },
                     last5: [],
@@ -2420,6 +2434,7 @@ function createService(store) {
             return {
                 ok: true,
                 exists: true,
+                season,
                 pairKey,
                 users: [
                     { id: userAId, playerName: userA?.playerName || userAId },

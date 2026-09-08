@@ -44,6 +44,9 @@ function note(ctx: AudioContext, destination: AudioNode, frequency: number, dura
 }
 
 const PATTERNS: Record<CompetitiveGameId, number[]> = {
+    falsestart: [110, 0, 165, 0, 110, 0, 220, 0],
+    onesecond: [0],
+    onemore: [130, 165, 196, 220, 247, 220, 196, 165],
     bounce: [110, 165, 220, 165, 132, 198, 247, 198],
     symbolrush: [196, 247, 294, 370, 294, 247, 220, 247],
     bombpass: [82, 82, 123, 92, 82, 138, 92, 110],
@@ -52,6 +55,7 @@ const PATTERNS: Record<CompetitiveGameId, number[]> = {
 };
 
 export function startAdaptiveMusic(gameId: CompetitiveGameId, intensity = .35) {
+    if (gameId === 'onesecond') { stopAdaptiveMusic(); return; }
     if (!enabled()) return;
     const ctx = context();
     if (!ctx) return;

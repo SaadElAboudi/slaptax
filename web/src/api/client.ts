@@ -253,6 +253,8 @@ export interface DuelRoomState {
 }
 
 export interface LiveDuelRound {
+    moment?: import('../gameplay/party').PartyMoment;
+    authoritative?: boolean;
     round: number;
     gameId: CompetitiveGameId;
     challengerScore: number;
@@ -263,6 +265,7 @@ export interface LiveDuelRound {
 }
 
 export interface LiveDuelMatch {
+    bestOf: number;
     duelId: string;
     status: 'pending' | 'playing' | 'done';
     challengerId: string;
@@ -385,6 +388,7 @@ export interface DuelRoomResponse {
 }
 
 export interface RivalryResponse {
+    season?: { month: string; matches: number; wins: Record<string, number> };
     ok: boolean;
     exists: boolean;
     users?: Array<string | { id: string; playerName: string }>;

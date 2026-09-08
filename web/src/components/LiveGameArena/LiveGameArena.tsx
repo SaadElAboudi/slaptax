@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { gameLabel, getCompetitiveGame, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
+import { PartyArena } from './PartyArena';
 import { getRealtimeUrl } from '../../api/realtime';
 import { useSfx } from '../../hooks/useSfx';
 import { startAdaptiveMusic, stopAdaptiveMusic } from '../../hooks/useAdaptiveAudio';
@@ -44,7 +45,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const { activateAudio, playReady, playWin, playLoss } = useSfx();
     const playerName = useGameStore((state) => state.playerName);
     const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
-    const usesSharedArena = Boolean(duelSession);
+    const usesSharedArena = Boolean(duelSession) || isPartyGame(gameId);
     onCompleteRef.current = onComplete;
     useEffect(() => () => window.clearTimeout(completionTimer.current), []);
 
@@ -127,7 +128,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <h3>{gameLabel(gameId, isFr)}</h3>
                     <p>{gameRule(gameId, isFr)}</p>
                     <div className={styles.briefStats}>
-                        <span>{gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{gameId === 'falsestart' ? '3 POINTS' : gameId === 'onesecond' ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
                     <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}</button>
@@ -138,7 +139,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'playing' && (
                 <div className={styles.stage}>
-                    {duelSession && usesSharedArena ? (
+                    {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} /> : duelSession && usesSharedArena ? (
                         <SharedArenaRound round={round} gameId={gameId} isFr={isFr} finish={finish} session={duelSession} />
                     ) : gameId === 'bounce' ? (
                         <BounceRound round={round} isFr={isFr} finish={finish} />
@@ -1168,10 +1169,11 @@ function NumericRound({ round, isFr, finish }: RoundProps) {
 }
 
 function gameGlyph(gameId: CompetitiveGameId) {
-    return { bounce: '●', symbolrush: '◆▲', bombpass: '●', cupshuffle: '▰', duelnumeric: '42' }[gameId];
+    return { falsestart: 'GO', onesecond: '1.000', onemore: '+1', bounce: '●', symbolrush: '◆▲', bombpass: '●', cupshuffle: '▰', duelnumeric: '42' }[gameId];
 }
 
 function gameRule(gameId: CompetitiveGameId, isFr: boolean) {
+    if (isPartyGame(gameId)) { const game = getCompetitiveGame(gameId)!; return isFr ? game.ruleFr : game.ruleEn; }
     const rules = {
         bounce: ['Deplace ton paddle et garde la balle en vie. Une erreur termine la manche.', 'Move your paddle and keep the ball alive. One miss ends the round.'],
         symbolrush: ['Memorise la suite animee puis reconstruis-la avant la fin du chrono.', 'Memorize the animated sequence, then rebuild it before time runs out.'],
@@ -1179,7 +1181,7 @@ function gameRule(gameId: CompetitiveGameId, isFr: boolean) {
         cupshuffle: ['Trois melanges de plus en plus rapides. Retrouve le jeton : une seule reponse par passage.', 'Three increasingly fast shuffles. Find the token: one answer per shuffle.'],
         duelnumeric: ['Cinq questions, six secondes chacune. Une seule reponse : vise juste, puis vise vite.', 'Five questions, six seconds each. One answer: accuracy first, then speed.'],
     } as const;
-    return rules[gameId][isFr ? 0 : 1];
+    return rules[gameId as keyof typeof rules][isFr ? 0 : 1];
 }
 
 function makeSequence(length: number) {

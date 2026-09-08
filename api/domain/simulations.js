@@ -1,6 +1,9 @@
 const { toMoney2 } = require("../shared/money");
 
 const P2P_GAME_LIBRARY = {
+    falsestart: { label: 'False Start', metric: [180, 720], elite: 250, hard: 450 },
+    onesecond: { label: 'One Second', metric: [900, 1300], elite: 1020, hard: 1100 },
+    onemore: { label: 'One More', metric: [1000, 30000], elite: 10000, hard: 20000 },
     bounce: {
         label: "Bounce Panic",
         metric: [180, 720],
@@ -78,7 +81,7 @@ function normalizeDraftGameId(value) {
 
 function resolveP2PGames(draft) {
     const roster = Object.keys(P2P_GAME_LIBRARY);
-    if (!draft) return shuffle(roster).slice(0, 3);
+    if (!draft) return shuffle(['falsestart', 'onesecond', 'onemore']);
 
     const banned = new Set([draft.challenger?.ban, draft.opponent?.ban].filter(Boolean));
     const available = roster.filter((id) => !banned.has(id));

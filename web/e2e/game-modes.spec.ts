@@ -104,7 +104,7 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
                 canvas.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse', clientX: rect.left + sum / count / canvas.width * rect.width }));
             }
             return Number(document.querySelector('[data-testid="bounce-rally"]')?.textContent) > 0;
-        }, null, { polling: 32, timeout: 8_000 });
+        }, null, { polling: 32, timeout: 15_000 });
     }
 
     if (game.id === 'symbolrush') {

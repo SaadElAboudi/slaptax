@@ -5,6 +5,7 @@ import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../game
 import { getRiskStakeCap } from '../../gameplay/difficulty';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
+import { MomentReplay } from '../LiveGameArena/MomentReplay';
 import styles from './FriendDuelPanel.module.css';
 
 const STAKES = [2, 5, 10, 20];
@@ -43,8 +44,15 @@ function getShareMoment(match: LiveDuelMatch, userId: string | null, myRole: 'ch
     const finalMyScore = myRounds[myRounds.length - 1] || 0;
     const finalRivalScore = rivalRounds[rivalRounds.length - 1] || 0;
     const finalGap = Math.abs(finalMyScore - finalRivalScore);
-    const hasPerfect = myRounds.some((score, index) => score >= 950 && score - (rivalRounds[index] || 0) >= 300);
+    const hasPerfect = myRounds.some((score, index) => !match.rounds[index].authoritative && score >= 950 && score - (rivalRounds[index] || 0) >= 300);
     const reachedDecider = match.rounds.length >= 3 || (finalRound?.round || 0) >= 3;
+    if (finalRound?.moment && !finalRound.moment.summary.includes('forfeit')) {
+        const moment = finalRound.moment;
+        const gap = Math.abs((moment.scores[match.challengerId] || 0) - (moment.scores[match.opponentId] || 0));
+        return { kind: won ? 'clutch' : 'revenge', labelFr: won ? 'BIEN JOUE' : 'REVANCHE', labelEn: won ? 'WELL PLAYED' : 'REMATCH',
+            headlineFr: moment.gameId === 'onesecond' ? `${gap} ms d'ecart sur trois essais.` : moment.gameId === 'onemore' ? 'Il fallait savoir s arreter.' : 'Le sang-froid a fait la difference.',
+            headlineEn: moment.gameId === 'onesecond' ? `${gap} ms apart over three attempts.` : moment.gameId === 'onemore' ? 'Knowing when to stop makes the difference.' : 'Composure made the difference.' };
+    }
 
     if (won && lostFirst) {
         return {
@@ -101,6 +109,7 @@ function getShareMoment(match: LiveDuelMatch, userId: string | null, myRole: 'ch
 }
 
 export function FriendDuelPanel() {
+    const playerName = useGameStore((state) => state.playerName);
     const userId = useGameStore((state) => state.userId);
     const clientId = useGameStore((state) => state.clientId);
     const wallet = useGameStore((state) => state.wallet);
@@ -431,7 +440,7 @@ export function FriendDuelPanel() {
                 <h2>{myRoundScore} - {rivalRoundScore}</h2>
                 <p>{gameLabel(intermission.gameId, isFr)}</p>
                 <div className={styles.scoreboard}>
-                    <strong>{match.score[myRole]}</strong><span>BO3</span><strong>{match.score[rivalRole]}</strong>
+                    <strong>{match.score[myRole]}</strong><span>BO{match.bestOf}</span><strong>{match.score[rivalRole]}</strong>
                 </div>
                 <button type="button" onClick={() => setIntermission(null)}>
                     {match.status === 'done' ? (isFr ? 'Voir le resultat' : 'See result') : (isFr ? 'Manche suivante' : 'Next round')}
@@ -605,6 +614,7 @@ export function FriendDuelPanel() {
             <section className={`${styles.final} ${won ? styles.finalWin : styles.finalLoss}`}>
                 <span>{won ? (isFr ? 'VICTOIRE' : 'VICTORY') : (isFr ? 'DEFAITE' : 'DEFEAT')}</span>
                 <h2>{match.score[myRole]} - {match.score[rivalRole]}</h2>
+                {decisiveRound?.moment && userId && <MomentReplay moment={decisiveRound.moment} userId={userId} playerName={playerName} rivalName={match.opponentName} isFr={isFr} />}
                 <div className={`${styles.shareMoment} ${styles[`moment_${shareMoment.kind}`]}`}>
                     <div className={styles.shareMomentHeader}>
                         <span>{shareLabel}</span>
@@ -682,8 +692,13 @@ export function FriendDuelPanel() {
                         </div>
                     ))}
                 </div>
+                {rivalry?.season && <div className={styles.seasonRail}>
+                    <span>{isFr ? 'VOTRE SAISON' : 'YOUR SEASON'} · {rivalry.season.month}</span>
+                    <strong>{rivalry.season.wins[userId || ''] || 0} - {rivalry.season.wins[rivalId] || 0}</strong>
+                    <span>{rivalry.season.matches} {isFr ? 'duels' : 'duels'}</span>
+                </div>}
                 <div className={styles.reactions}>
-                    {['GG', 'WOW', 'CLOSE'].map((reaction) => <button type="button" key={reaction} onClick={() => void react(reaction)}>{reaction}</button>)}
+                    {['GG', 'LUCK', 'CLOSE'].map((reaction) => <button type="button" key={reaction} onClick={() => void react(reaction)}>{({ GG: isFr ? 'Bien joue.' : 'Well played.', LUCK: isFr ? 'Chance.' : 'Lucky.', CLOSE: isFr ? 'A un rien.' : 'So close.' })[reaction]}</button>)}
                     <button type="button" onClick={() => void shareResult(shareMoment)}>{isFr ? 'Partager' : 'Share'}</button>
                 </div>
                 <div className={styles.reactionFeed}>

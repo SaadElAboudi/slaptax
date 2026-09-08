@@ -1,300 +1,109 @@
-import { useEffect, useMemo, useState } from 'react';
-import { api } from '../../api/client';
+import { useEffect, useState } from 'react';
+import { ArrowRight, ChevronRight, Play, Swords, Trophy, Zap, Timer, Layers3 } from 'lucide-react';
+import { api, type RivalryResponse } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
-import { COMPETITIVE_GAMES } from '../../gameplay/catalog';
+import { SIGNATURE_GAMES, COMPETITIVE_GAMES, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import styles from './ArenaHome.module.css';
 
-interface ArenaHomeProps {
-    onEnter: (tab: Tab) => void;
-}
-
-const GAME_MARKS: Record<string, string> = {
-    bounce: '↗',
-    symbolrush: '◆',
-    bombpass: '●',
-    cupshuffle: '▰',
-    duelnumeric: '42',
+interface ArenaHomeProps { onEnter: (tab: Tab) => void }
+const MARKS = [Zap, Timer, Layers3];
+const HOOKS = {
+    fr: ['Tu paniques trop vite.', 'Tu pensais etre precis ?', 'Tu aurais du t arreter.'],
+    en: ['You blinked first.', 'Think you have perfect timing?', 'You should have stopped.'],
 };
 
 export function ArenaHome({ onEnter }: ArenaHomeProps) {
-    const language = useGameStore((state) => state.language);
-    const playerName = useGameStore((state) => state.playerName);
-    const userId = useGameStore((state) => state.userId);
-    const wallet = useGameStore((state) => state.wallet);
-    const history = useGameStore((state) => state.history);
-    const progression = useGameStore((state) => state.progression);
-    const favoriteRivalId = useGameStore((state) => state.favoriteRivalId);
+    const { language, userId, playerName, history, favoriteRivalId } = useGameStore();
     const isFr = language === 'fr';
-    const [selectedIndex, setSelectedIndex] = useState(0);
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
-    const [matchmakingStatus, setMatchmakingStatus] = useState<'idle' | 'waiting' | 'matched'>('idle');
-    const [quickPlayBusy, setQuickPlayBusy] = useState(false);
-    const [quickPlayError, setQuickPlayError] = useState('');
-    const [incomingChallenges, setIncomingChallenges] = useState(0);
-    const [rivalBusy, setRivalBusy] = useState(false);
-    const [realtimeTick, setRealtimeTick] = useState(0);
-    const selectedGame = COMPETITIVE_GAMES[selectedIndex];
-    const recentRival = history.find((entry) => entry.opponentId === favoriteRivalId && entry.opponentName)
+    const [queued, setQueued] = useState(false);
+    const [incoming, setIncoming] = useState(0);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [tick, setTick] = useState(0);
+    const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
+    const rival = history.find((entry) => entry.opponentId === favoriteRivalId && entry.opponentName)
         || history.find((entry) => entry.opponentId && entry.opponentName);
-
-    useRealtime(userId, (event) => {
-        if (event.type === 'state.changed' || event.type === 'connected') {
-            setRealtimeTick((value) => value + 1);
-        }
-    });
-
-    const localStreak = useMemo(() => {
-        let value = 0;
-        for (const entry of history) {
-            const won = entry.won === true || entry.result === 'WIN';
-            if (!won) break;
-            value += 1;
-        }
-        return value;
-    }, [history]);
-    const streak = progression?.winStreak ?? localStreak;
-    const dailyDone = progression?.daily.tasks.filter((task) => task.progress >= task.target).length || 0;
-    const dailyTotal = progression?.daily.tasks.length || 3;
-
+    useRealtime(userId, () => setTick((value) => value + 1));
     useEffect(() => {
         if (!userId) return;
         let cancelled = false;
-        Promise.all([
-            api.getActiveLiveDuel(userId),
-            api.getActiveLiveTournament(userId),
-            api.getMatchmakingStatus(userId),
-            api.listChallenges(userId, 'pending'),
-        ]).then(([duel, tournament, matchmaking, challenges]) => {
-            if (cancelled) return;
-            setActiveDuel(Boolean(duel.match));
-            setActiveTournament(Boolean(tournament.tournament));
-            setMatchmakingStatus(matchmaking.status);
-            setIncomingChallenges(challenges.challenges.filter((challenge) => challenge.direction === 'incoming').length);
-        }).catch(() => {
-            // The home remains fully usable while the live service reconnects.
-        });
-        return () => {
-            cancelled = true;
-        };
-    }, [userId, realtimeTick]);
+        Promise.all([api.getActiveLiveDuel(userId), api.getActiveLiveTournament(userId), api.getMatchmakingStatus(userId), api.listChallenges(userId, 'pending')])
+            .then(([duel, tournament, queue, challenges]) => {
+                if (cancelled) return;
+                setActiveDuel(Boolean(duel.match)); setActiveTournament(Boolean(tournament.tournament));
+                setQueued(queue.status !== 'idle');
+                setIncoming(challenges.challenges.filter((entry) => entry.direction === 'incoming').length);
+            }).catch(() => undefined);
+        if (rival?.opponentId) api.getRivalry(userId, rival.opponentId).then((value) => { if (!cancelled) setRivalry(value); }).catch(() => undefined);
+        return () => { cancelled = true; };
+    }, [userId, tick, rival?.opponentId]);
 
+    function enter(gameId: CompetitiveGameId, tab: 'training' | 'defy') {
+        try { localStorage.setItem(tab === 'training' ? 'slaptax_training_game' : 'slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
+        onEnter(tab);
+    }
     async function quickPlay() {
-        if (!userId) return;
-        setQuickPlayError('');
-        if (matchmakingStatus !== 'idle') {
-            onEnter('defy');
-            return;
-        }
-        setQuickPlayBusy(true);
-        void api.trackProductEvent('quick_play_clicked', userId, { source: 'home' }).catch(() => undefined);
+        if (!userId || busy) return;
+        if (queued || activeDuel) { onEnter('defy'); return; }
+        setBusy(true); setError('');
         try {
-            const result = await api.joinMatchmaking(userId, 2);
-            setMatchmakingStatus(result.status);
-            onEnter('defy');
-        } catch (cause) {
-            setQuickPlayError(cause instanceof Error ? cause.message : (isFr ? 'Matchmaking indisponible' : 'Matchmaking unavailable'));
-        } finally {
-            setQuickPlayBusy(false);
-        }
+            void api.trackProductEvent('quick_play_clicked', userId, { source: 'signature_home' }).catch(() => undefined);
+            await api.joinMatchmaking(userId, 2); onEnter('defy');
+        } catch (cause) { setError(cause instanceof Error ? cause.message : 'Connection unavailable'); }
+        finally { setBusy(false); }
     }
-
-    async function challengeRecentRival() {
-        if (!userId || !recentRival?.opponentId) return;
-        setRivalBusy(true);
-        setQuickPlayError('');
-        try {
-            await api.createChallenge(userId, recentRival.opponentId, 2, isFr ? 'On remet ça ?' : 'Run it back?');
-            onEnter('defy');
-        } catch (cause) {
-            setQuickPlayError(cause instanceof Error ? cause.message : (isFr ? 'Défi indisponible' : 'Challenge unavailable'));
-        } finally {
-            setRivalBusy(false);
-        }
+    async function rematch() {
+        if (!userId || !rival?.opponentId || busy) return;
+        setBusy(true); setError('');
+        try { await api.createChallenge(userId, rival.opponentId, 2, isFr ? 'On remet ca ?' : 'Run it back?'); onEnter('defy'); }
+        catch (cause) { setError(cause instanceof Error ? cause.message : 'Connection unavailable'); }
+        finally { setBusy(false); }
     }
-
-    function openTraining() {
-        try {
-            localStorage.setItem('slaptax_training_game', selectedGame.id);
-        } catch {
-            // Training falls back to Bounce Panic.
-        }
-        onEnter('training');
-    }
-
-    return (
-        <section className={styles.home}>
-            <div className={styles.statusRail}>
-                <div className={styles.playerIdentity}>
-                    <i data-avatar={progression?.cosmetics.avatar || 'spark'} aria-hidden />
-                    <div>
-                        <span>{isFr ? 'JOUEUR' : 'PLAYER'}</span>
-                        <strong>{playerName}</strong>
+    return <section className={styles.home}>
+        <div className={styles.topline}><span>{playerName}</span><span>{isFr ? 'LE TERRAIN DES RIVALITES' : 'HOME OF FRIENDLY RIVALRIES'}</span></div>
+        <header className={styles.intro}>
+            <div><span>SLAP$TAX</span><h1>{isFr ? 'Entre vous deux, qui gagne ?' : 'Between you two, who wins?'}</h1></div>
+            <button type="button" onClick={() => onEnter('tournament')}><Trophy size={17} />{isFr ? 'Tournois' : 'Tournaments'}<ChevronRight size={16} /></button>
+        </header>
+        {(activeDuel || activeTournament || incoming > 0) && <div className={styles.resume}>
+            <span>{incoming ? `${incoming} ${isFr ? 'defi en attente' : 'pending challenge'}` : (isFr ? 'Une partie est en cours.' : 'A match is in progress.')}</span>
+            <button type="button" onClick={() => onEnter(activeTournament && !activeDuel ? 'tournament' : 'defy')}>{isFr ? 'Reprendre' : 'Resume'}<ArrowRight size={17} /></button>
+        </div>}
+        <div className={styles.games}>
+            {SIGNATURE_GAMES.map((game, index) => {
+                const Icon = MARKS[index];
+                return <article key={game.id} className={styles.game} data-game={game.id}>
+                    <div className={styles.gameArt} aria-hidden="true">
+                        {index === 0 ? <div className={styles.signalArt}><span>WAIT</span><b>GO</b><i>NOPE</i></div>
+                            : index === 1 ? <div className={styles.dialArt}><Timer size={38} /><b>1.000<span>s</span></b></div>
+                                : <div className={styles.stackArt}>{[0,1,2,3,4].map((n) => <i key={n} />)}<span>+1</span></div>}
                     </div>
-                </div>
-                <div>
-                    <span>{progression?.rank || (isFr ? 'RANG' : 'RANK')} · LVL {progression?.level || 1}</span>
-                    <strong>{isFr ? 'Série' : 'Streak'} {streak}×</strong>
-                </div>
-                <div>
-                    <span>BANK</span>
-                    <strong>SLAP$ {Number(wallet ?? 0).toFixed(0)}</strong>
-                </div>
-            </div>
-
-            <div className={styles.progressionRail}>
-                <div>
-                    <span>XP {progression?.xp || 0}</span>
-                    <i style={{ width: `${Math.min(100, ((progression?.xp || 0) % 1200) / 12)}%` }} />
-                </div>
-                <div>
-                    <span>{isFr ? 'MISSIONS DU JOUR' : 'DAILY MISSIONS'}</span>
-                    <strong>{dailyDone}/{dailyTotal}</strong>
-                </div>
-                <div>
-                    <span>{isFr ? 'MEILLEURE SERIE' : 'BEST STREAK'}</span>
-                    <strong>{progression?.bestStreak || streak}×</strong>
-                </div>
-            </div>
-
-            {(activeDuel || activeTournament) && (
-                <div className={styles.resume}>
-                    <div>
-                        <span>{isFr ? 'SESSION EN COURS' : 'ACTIVE SESSION'}</span>
-                        <strong>{isFr ? 'Ta partie t attend.' : 'Your game is waiting.'}</strong>
+                    <div className={styles.cardHeading}><Icon size={19} /><span>0{index + 1}</span><small>{index === 0 ? 'REFLEX' : index === 1 ? 'PRECISION' : 'RISK'}</small></div>
+                    <h2>{isFr ? game.labelFr : game.labelEn}</h2>
+                    <p>{HOOKS[isFr ? 'fr' : 'en'][index]}</p>
+                    <div className={styles.actions}>
+                        <button type="button" onClick={() => enter(game.id, 'defy')}><Swords size={17} />{isFr ? 'Defier un ami' : 'Challenge a friend'}</button>
+                        <button type="button" onClick={() => enter(game.id, 'training')} title={isFr ? 'Jouer solo' : 'Play solo'} aria-label={`${isFr ? 'Jouer solo' : 'Play solo'}: ${isFr ? game.labelFr : game.labelEn}`}><Play size={18} /></button>
                     </div>
-                    <div>
-                        {activeDuel && <button type="button" onClick={() => onEnter('defy')}>{isFr ? 'Reprendre le duel' : 'Resume duel'}</button>}
-                        {activeTournament && <button type="button" onClick={() => onEnter('tournament')}>{isFr ? 'Reprendre le tournoi' : 'Resume tournament'}</button>}
-                    </div>
-                </div>
-            )}
-
-            <div className={`${styles.quickPlay} ${matchmakingStatus === 'waiting' ? styles.quickPlaySearching : ''}`}>
-                <div className={styles.arenaLights} aria-hidden><i /><i /><i /><i /></div>
-                <div className={styles.quickPlaySignal} aria-hidden>
-                    <i />
-                    <i />
-                    <i />
-                </div>
-                <div>
-                    <span>{matchmakingStatus === 'waiting' ? (isFr ? 'RECHERCHE EN COURS' : 'SEARCHING') : 'MATCHMAKING LIVE'}</span>
-                    <strong>{isFr ? 'Jouer maintenant' : 'Play now'}</strong>
-                    <p>
-                        {matchmakingStatus === 'waiting'
-                            ? (isFr ? 'Ta place est conservée. Entre dans le salon pour suivre la recherche.' : 'Your place is saved. Enter the room to follow the search.')
-                            : (isFr ? 'Un rival humain, une série BO3, aucune configuration.' : 'One human rival, one BO3 series, zero setup.')}
-                    </p>
-                </div>
-                <button type="button" onClick={() => void quickPlay()} disabled={quickPlayBusy}>
-                    {quickPlayBusy
-                        ? (isFr ? 'Connexion...' : 'Connecting...')
-                        : matchmakingStatus === 'idle'
-                            ? (isFr ? 'Trouver un rival' : 'Find a rival')
-                            : (isFr ? 'Entrer dans le salon' : 'Enter the room')}
-                    <b aria-hidden>→</b>
-                </button>
-                {quickPlayError && <small>{quickPlayError}</small>}
-            </div>
-
-            {(incomingChallenges > 0 || recentRival) && (
-                <div className={styles.rivalRail}>
-                    {incomingChallenges > 0 && (
-                        <button type="button" className={styles.incomingChallenge} onClick={() => onEnter('defy')}>
-                            <span>{incomingChallenges}</span>
-                            <div>
-                                <small>{isFr ? 'DÉFI ENTRANT' : 'INCOMING CHALLENGE'}</small>
-                                <strong>{isFr ? 'Un rival t’attend' : 'A rival is waiting'}</strong>
-                            </div>
-                            <b aria-hidden>→</b>
-                        </button>
-                    )}
-                    {recentRival && (
-                        <button type="button" className={styles.recentRival} onClick={() => void challengeRecentRival()} disabled={rivalBusy}>
-                            <div>
-                                <small>
-                                    {favoriteRivalId === recentRival.opponentId
-                                        ? (isFr ? 'RIVAL FAVORI' : 'FAVORITE RIVAL')
-                                        : (isFr ? 'DERNIER RIVAL' : 'LAST RIVAL')}
-                                </small>
-                                <strong>{favoriteRivalId === recentRival.opponentId ? '★ ' : ''}{recentRival.opponentName}</strong>
-                            </div>
-                            <span>{rivalBusy ? (isFr ? 'Envoi...' : 'Sending...') : (isFr ? 'Défier à nouveau' : 'Challenge again')}</span>
-                        </button>
-                    )}
-                </div>
-            )}
-
-            <header className={styles.intro}>
-                <span>{isFr ? 'PORTES DE L ARENE' : 'ARENA GATES'}</span>
-                <h1>{isFr ? 'Choisis ton prochain combat' : 'Choose your next fight'}</h1>
-                <p>{isFr ? 'Entraîne-toi, provoque un rival ou entre dans le bracket.' : 'Train, call out a rival, or enter the bracket.'}</p>
-            </header>
-
-            <div className={styles.modeGrid}>
-                <article className={styles.trainingMode}>
-                    <div className={styles.modeScene} aria-hidden>
-                        <i /><i /><i />
-                        <b>↗</b>
-                    </div>
-                    <span>SOLO</span>
-                    <strong>{isFr ? 'Entrainement' : 'Training'}</strong>
-                    <p>{isFr ? 'Apprends les jeux et bats tes records, sans mise.' : 'Learn every game and beat your records, with no stake.'}</p>
-                    <button type="button" onClick={openTraining}>{isFr ? 'Jouer solo' : 'Play solo'} <b>→</b></button>
-                </article>
-                <article className={styles.duelMode}>
-                    <div className={styles.modeScene} aria-hidden>
-                        <i /><i />
-                        <b>VS</b>
-                    </div>
-                    <span>1V1 · BO3</span>
-                    <strong>{isFr ? 'Duel entre amis' : 'Friend duel'}</strong>
-                    <p>{isFr ? 'Partage un lien. Le premier à deux manches gagne.' : 'Share a link. First to win two rounds takes it.'}</p>
-                    <button type="button" onClick={() => onEnter('defy')}>{isFr ? 'Créer un duel' : 'Create duel'} <b>→</b></button>
-                </article>
-                <article className={styles.tournamentMode}>
-                    <div className={styles.modeScene} aria-hidden>
-                        <i /><i /><i /><i />
-                        <b>4</b>
-                    </div>
-                    <span>LAST STANDING</span>
-                    <strong>{isFr ? 'Tournoi' : 'Tournament'}</strong>
-                    <p>{isFr ? 'Enchaine les adversaires. Une défaite termine le run.' : 'Clear each opponent. One loss ends the run.'}</p>
-                    <button type="button" onClick={() => onEnter('tournament')}>{isFr ? 'Lancer un run' : 'Start a run'} <b>→</b></button>
-                </article>
-            </div>
-
-            <div className={styles.trainingStrip}>
-                <div className={styles.gamePreview}>
-                    <span aria-hidden>{GAME_MARKS[selectedGame.id]}</span>
-                    <div>
-                        <small>{isFr ? 'ECHAUFFEMENT RAPIDE' : 'QUICK WARM-UP'}</small>
-                        <strong>{isFr ? selectedGame.labelFr : selectedGame.labelEn}</strong>
-                        <p>{isFr ? selectedGame.skillFr : selectedGame.skillEn}</p>
-                    </div>
-                    <button type="button" onClick={openTraining}>{isFr ? 'Jouer' : 'Play'}</button>
-                </div>
-                <div className={styles.selector} aria-label={isFr ? 'Choisir une épreuve' : 'Choose an event'}>
-                    {COMPETITIVE_GAMES.map((game, index) => (
-                        <button
-                            key={game.id}
-                            type="button"
-                            className={index === selectedIndex ? styles.selected : ''}
-                            onClick={() => setSelectedIndex(index)}
-                            aria-label={isFr ? game.labelFr : game.labelEn}
-                            aria-pressed={index === selectedIndex}
-                        >
-                            {GAME_MARKS[game.id]}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <nav className={styles.secondary} aria-label={isFr ? 'Progression' : 'Progress'}>
-                <button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Voir le classement' : 'View leaderboard'}</button>
-                <button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Voir mon historique' : 'View my history'}</button>
-            </nav>
-        </section>
-    );
+                </article>;
+            })}
+        </div>
+        {rival && <div className={styles.rival}>
+            <div><span>{isFr ? 'VOTRE SAISON' : 'YOUR SEASON'} · {rivalry?.season?.month || ''}</span><h2>{isFr ? 'Toi' : 'You'} <small>vs</small> {rival.opponentName}</h2></div>
+            <strong>{rivalry?.season?.wins[userId || ''] || 0}<i>:</i>{rivalry?.season?.wins[rival.opponentId || ''] || 0}</strong>
+            <button type="button" disabled={busy} onClick={() => void rematch()}>{isFr ? 'La revanche' : 'Run it back'}<ArrowRight size={18} /></button>
+        </div>}
+        <div className={styles.matchmaking}>
+            <div><strong>{isFr ? 'Un nouvel adversaire ?' : 'A new opponent?'}</strong><span>{queued ? (isFr ? 'Recherche en cours' : 'Finding a rival') : 'BO3 · LIVE'}</span></div>
+            <button type="button" disabled={!userId || busy} onClick={() => void quickPlay()}>{busy ? '…' : queued ? (isFr ? 'Entrer dans le salon' : 'Enter the room') : (isFr ? 'Trouver un rival' : 'Find a rival')}<ArrowRight size={18} /></button>
+        </div>
+        {error && <p role="alert" className={styles.error}>{error}</p>}
+        <details className={styles.classics}><summary>{isFr ? 'Les classiques' : 'The classics'} <span>05</span></summary>
+            <div>{COMPETITIVE_GAMES.slice(3).map((game) => <button type="button" key={game.id} onClick={() => enter(game.id, 'training')}>{isFr ? game.labelFr : game.labelEn}<Play size={14} /></button>)}</div>
+        </details>
+        <nav className={styles.footer}><button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Classement' : 'Leaderboard'}</button><button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Historique' : 'History'}</button></nav>
+    </section>;
 }
