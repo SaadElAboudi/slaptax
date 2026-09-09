@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { COMPETITIVE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TrainingPanel.module.css';
@@ -22,23 +22,25 @@ export function TrainingPanel() {
     const [gameId, setGameId] = useState<CompetitiveGameId>(() => {
         try {
             const stored = localStorage.getItem('slaptax_training_game');
-            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'bounce';
+            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'falsestart';
         } catch {
-            return 'bounce';
+            return 'falsestart';
         }
     });
     const [level, setLevel] = useState<(typeof LEVELS)[number]>(1);
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
     const [playing, setPlaying] = useState(false);
+    const effectiveLevel = isPartyGame(gameId) ? 1 : level;
+    const bestKey = `slaptax_training_${gameId === 'onesecond' ? 'v3' : 'v2'}_best_${gameId}_${effectiveLevel}`;
 
     const best = useMemo(() => {
         try {
-            return Number(localStorage.getItem(`slaptax_training_v2_best_${gameId}_${level}`) || 0);
+            return Number(localStorage.getItem(bestKey) || 0);
         } catch {
             return 0;
         }
-    }, [gameId, level, attempt]);
+    }, [bestKey, attempt]);
 
     function selectGame(next: CompetitiveGameId) {
         setGameId(next);
@@ -55,7 +57,7 @@ export function TrainingPanel() {
         setResult(next);
         if (next.score > best) {
             try {
-                localStorage.setItem(`slaptax_training_v2_best_${gameId}_${level}`, String(next.score));
+                localStorage.setItem(bestKey, String(next.score));
             } catch {
                 // Best score persistence is optional.
             }
@@ -110,7 +112,7 @@ export function TrainingPanel() {
                         </button>
                     ))}
                 </div>
-                <div className={styles.levels}>
+                {!isPartyGame(gameId) && <div className={styles.levels}>
                     <span>{isFr ? 'INTENSITE' : 'INTENSITY'}</span>
                     {LEVELS.map((value) => (
                         <button
@@ -125,7 +127,7 @@ export function TrainingPanel() {
                             {LEVEL_LABELS[isFr ? 'fr' : 'en'][value - 1]}
                         </button>
                     ))}
-                </div>
+                </div>}
             </div>
 
             </>}
@@ -134,7 +136,7 @@ export function TrainingPanel() {
                 mode="training"
                 gameId={gameId}
                 series={[gameId]}
-                round={level}
+                round={effectiveLevel}
                 opponentName=""
                 isFr={isFr}
                 onComplete={complete}

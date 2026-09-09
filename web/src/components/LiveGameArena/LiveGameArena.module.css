@@ -7,6 +7,12 @@
 .series > div { min-width: 0; padding: 7px 9px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; border: 1px solid var(--line-soft); color: var(--muted); }
 .series span { font-size: .6rem; }.series strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .7rem; }.seriesActive { border-color: var(--accent)!important; color: var(--text)!important; background: rgba(255,212,0,.06); }.seriesDone { border-color: rgba(54,211,153,.35)!important; color: var(--success)!important; }
 .trainingSeries { grid-template-columns: 1fr; }
+.arena[data-phase="playing"]:has(.series > div:only-child) { grid-template-rows:auto 1fr; }
+.arena[data-phase="playing"] .series:has(> div:only-child) { display:none; }
+.header { flex-wrap:wrap; }
+.header > div { min-width:0; }
+.versus { max-width:100%; flex-wrap:wrap; overflow-wrap:anywhere; }
+.versus > div { min-width:0; }
 .briefing,.countdown,.complete { display: grid; place-content: center; justify-items: center; gap: 10px; padding: 28px; text-align: center; background: radial-gradient(circle at center, rgba(255,212,0,.08), transparent 48%); }
 .gameMark { min-width: 110px; min-height: 110px; padding: 20px; display: grid; place-content: center; border: 1px solid rgba(255,212,0,.45); color: var(--accent); background: #090d13; box-shadow: 0 0 60px rgba(255,212,0,.12); font: 400 2.2rem 'Black Ops One', sans-serif; }
 .briefing h3 { margin: 0; font-size: 1.8rem; }.briefing p { max-width: 54ch; margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.6; }

@@ -12,10 +12,18 @@
 .signal strong { font-size:42px; font-weight:900; font-family:inherit; }
 .signal[data-signal="go"] { background:#aff2b4; border-color:#aff2b4; color:#112018; }
 .signal[data-signal="trap"] { background:#402629; border-color:#ef929b; color:#ffadb4; }
-.hold { border-radius:50%; aspect-ratio:1; width:240px; min-height:0; border:10px solid #38546a; background:#202b31; color:#d1edfc; touch-action:none; user-select:none; }
-.hold strong { font:700 28px monospace; }
-.hold[data-held="true"] { border-color:#9ad9fa; background:#293f4c; box-shadow:inset 0 0 0 6px #151719; }
-.hold:disabled { cursor:default; }
+.target { display:grid; gap:6px; justify-items:center; min-height:104px; }
+.target > span { font:700 10px monospace; color:#a8bcc8; }
+.target strong { font:800 48px monospace; color:#d9f1ff; }
+.target small { font-size:24px; color:#92b4cb; }
+.clockButton { width:min(430px,100%); height:202px; margin:auto; border:2px solid #506677; border-radius:8px; background:#202c34; color:#d9f1ff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; touch-action:manipulation; user-select:none; cursor:pointer; }
+.clockButton strong { font:800 32px monospace; }
+.clockButton > span { font:700 11px monospace; }
+.clockButton[data-state="timing"]:not(:disabled) { background:#b6e5ff; border-color:#b6e5ff; color:#10242e; }
+.clockButton[data-state="prepare"] strong { font-size:56px; }
+.clockButton[data-state="reveal"] { border-color:#9ad9fa; }
+.arena .clockButton:disabled { opacity:1; }
+.clockButton:active:not(:disabled) { background:#83c3e8; }
 .secondary,.stackFooter button,.draw button { display:flex; gap:10px; align-items:center; justify-content:center; min-height:46px; padding:10px 18px; border:1px solid #525b54; background:#252c27; color:#dcf1df; border-radius:6px; font-weight:700; cursor:pointer; }
 .secondary { justify-self:center; min-width:160px; }
 .secondary span { font-family:monospace; color:#b8bcb8; }
@@ -25,8 +33,10 @@
 .attempts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:450px; width:100%; margin:auto; }
 .attempts span { display:grid; gap:8px; text-align:center; font:700 12px monospace; color:#889697; padding:12px 0; border-bottom:2px solid #38546a; }
 .attempts b { color:#d1edfc; font-size:15px; white-space:nowrap; }
+.attempts span[data-current="true"] { border-color:#b6e5ff; color:#b6e5ff; }
 .stackSurface { padding:0; border:0; display:block; width:min(500px,100%); margin:auto; background:#151719; cursor:pointer; touch-action:manipulation; }
 .stackSurface canvas { display:block; width:100%; height:290px; }
+.arena .stackSurface:disabled { opacity:1; }
 .stackFooter { width:min(500px,100%); margin:auto; display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .stackFooter > span { font:700 11px monospace; color:#a9beb0; }
 .stackFooter button { background:#afeeb7; color:#18261b; border:0; }
@@ -36,3 +46,4 @@
 .draw { display:grid; justify-items:center; gap:24px; min-height:280px; align-content:center; }
 .draw h3 { margin:0; font-size:24px; }
 @media(max-width:600px) { .arena { padding:16px 12px; gap:14px; min-height:500px; } .signal { min-height:210px; } .signal strong { font-size:34px; } .hold { width:210px; } .stackSurface canvas { height:265px; } .stackFooter { flex-wrap:wrap; } .attempts { gap:6px; } }
+@media(max-width:600px) { .arena { min-height:480px; gap:10px; padding:12px; }.hud { min-height:28px; }.score { min-height:44px; }.clockButton { height:160px; }.clockButton strong { font-size:28px; }.target { min-height:80px; }.target strong { font-size:40px; }.attempts span { padding:8px 0; } }

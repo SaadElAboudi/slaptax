@@ -502,7 +502,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         if (session.startedAt && session.pausedAt) {
             const pause = now - session.pausedAt;
             session.startedAt += pause;
-            if (PARTY_IDS.includes(session.gameId)) pauseParty(session.game, pause);
+            if (PARTY_IDS.includes(session.gameId)) pauseParty(session.game, pause, now);
             for (const field of ['revealEndsAt', 'inputEndsAt', 'fuseEndsAt', 'markerStartedAt', 'phaseEndsAt', 'stageStartedAt']) {
                 if (session.game[field]) session.game[field] += pause;
             }

@@ -11,6 +11,8 @@ web/test-results/
 # Local runtime files
 .slaptax_api.pid
 .slaptax_api.port
+data/*.bak
+data/*.tmp
 
 # macOS
 .DS_Store

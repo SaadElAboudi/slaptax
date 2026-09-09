@@ -26,10 +26,10 @@ export const COMPETITIVE_GAMES: CompetitiveGame[] = [
         ruleEn: 'Wait for GO. A false start gives your rival the point. One feint each. First to three.',
     },
     {
-        id: 'onesecond', labelFr: 'Une Seconde', labelEn: 'One Second',
+        id: 'onesecond', labelFr: 'Pile Chrono', labelEn: 'Blind Clock',
         skillFr: 'Precision + sang-froid', skillEn: 'Precision + composure',
-        ruleFr: 'Maintiens une seconde, puis relache. Trois essais sans chrono visible. Le plus petit ecart total gagne.',
-        ruleEn: 'Hold for one second, then release. Three attempts, no visible clock. Lowest total error wins.',
+        ruleFr: 'Une cible de 2 a 10 secondes. Au TOP, compte dans ta tete puis appuie sur STOP. Trois essais, le plus petit ecart total gagne.',
+        ruleEn: 'A target from 2 to 10 seconds. At GO, count in your head and hit STOP. Three attempts, lowest total error wins.',
     },
     {
         id: 'onemore', labelFr: 'Encore Un', labelEn: 'One More',

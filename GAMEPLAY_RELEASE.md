@@ -8,13 +8,26 @@ au solo et au defi ami. Les cinq jeux historiques restent dans le catalogue.
 | Jeu | Regle | Resultat |
 | --- | --- | --- |
 | Faux Depart | Attendre GO, eviter le leurre, une feinte par joueur | Premier a trois points, sept essais maximum |
-| Une Seconde | Maintenir puis relacher au plus pres de 1 seconde, trois essais | Plus faible erreur cumulee |
+| Pile Chrono (Blind Clock) | Cible commune aleatoire de 2 a 10 secondes, depart 3-2-1 puis TOP, un appui STOP ; trois essais | Plus faible erreur cumulee |
 | Encore Un | Empiler, accepter le risque ou securiser sa tour | Plus haute tour securisee ; chute = zero |
 
 Les trois utilisent le meme moteur serveur en solo et en duel. Le solo ne
 modifie pas le portefeuille ni l'historique competitif. Une egalite exacte
 attend le consentement des deux joueurs pour rejouer. Un essai de precision
 interrompu ou expire est penalise, jamais transforme en score parfait.
+
+Pile Chrono conserve l'identifiant `onesecond` pour les liens existants. Chaque
+essai tire une cible entiere commune, affiche trois secondes de preparation,
+puis un signal TOP visuel et sonore. Il n'y a ni musique rythmique ni temps
+ecoule dans l'etat public pendant l'estimation. Le resultat montre la mesure,
+l'ecart signe et les erreurs cumulees. Apres reconnexion, seul l'essai inacheve
+recommence avec la meme cible et un nouveau numero de tour. Les anciens appuis
+sont rejetes. Les records solo de l'ancienne regle ne sont pas reutilises.
+
+Encore Un interpole les positions entre les etats serveur pour un rendu fluide,
+sans deplacer l'arbitrage dans le navigateur. Le verrou anti-double-appui est
+repercute dans le bouton. Les niveaux solo inoperants des jeux signatures ont
+ete retires ; les cinq jeux historiques conservent leurs niveaux.
 
 Le resultat comprend une rivalite mensuelle calculee sur les duels arbitres,
 des reactions avec temporisation, la revanche et un replay des trois dernieres
@@ -60,10 +73,13 @@ records v2 ont une nouvelle cle de stockage pour ne pas melanger les baremes.
 - `POST /api/duels/:id/rounds` refuse les scores clients pour les huit jeux.
 - Une deconnexion suspend la manche pendant le delai existant de 20 secondes.
   La reprise conserve la question, les reponses, la sequence et le temps restant.
+  Exception : Pile Chrono relance l'essai inacheve avec un nouveau TOP.
 - Les messages WebSocket sont limites a 4 Ko et 90 messages par seconde par
   connexion ; un client lent ne cumule pas une file illimitee d'etats sortants.
 - Les animations de timing solo utilisent une horloge monotone. Les callbacks
   de fin et animations sont nettoyes au demontage.
+- Le stockage JSON remplace les fichiers par renommage atomique afin de ne pas
+  laisser un JSON partiellement ecrit apres une interruption.
 - Les gobelets et la balle restent animes car le mouvement constitue l'epreuve.
   Les animations decoratives respectent la preference de mouvement reduit.
 
@@ -80,8 +96,37 @@ clients, entrainements, deux navigateurs concurrents, arbitrage persiste,
 tournois, invitations et revanches. Playwright execute les parcours sur Chromium
 desktop et mobile et produit des captures dans `web/test-results`.
 
+Validation du 9 septembre 2026 : build TypeScript/Vite reussi, 56 tests serveur
+reussis, 47 parcours Playwright reussis sans echec. Trois scenarios de
+synchronisation/rematch/salon multijoueur sont ignores sur mobile car executes
+sur desktop. Les nouveaux jeux sont joues sur les deux formats. Le test francais
+verifie aussi l'absence d'obstruction du bouton et de debordement horizontal.
+L'export video est decode en 720 x 900 avec verification de pixels non uniformes.
+`npm audit` dans `web` rapporte zero vulnerabilite. Les tests mobiles emulent
+Chromium : ils ne remplacent pas une validation sur appareils iOS reels.
+
+## Recharge beta
+
+100 SLAP$ virtuels additionnels par joueur existant, une seule fois pour
+`beta-september-2026`. La trace est dans `user.creditGrants`, sans toucher aux
+duels ni aux historiques. La commande est en simulation par defaut :
+
+```sh
+node api/scripts/grantBetaCredits.js
+node api/scripts/grantBetaCredits.js --apply
+```
+
+Elle utilise `DATABASE_URL` si renseigne, sinon `DB_PATH` ou la base JSON locale.
+Arreter l'instance applicative avant une execution sur la base publique : le
+store PostgreSQL actuel conserve un cache en memoire. Sauvegarder PostgreSQL
+avant application. En mode fichier, une copie `.bak` est creee automatiquement.
+La recharge locale du 9 septembre a credite 23 joueurs (+2300 au total) ;
+une seconde execution a credite zero joueur. La base publique n'a pas ete jointe.
+
 ## Conditions avant ouverture massive
 
+La beta reste sans compte, conformement au choix produit. Les credits sont
+virtuels et cette version n'est pas destinee a des mises en argent reel.
 Cette refonte des jeux ne constitue pas une certification de production globale.
 Les points suivants sont presents dans l'architecture existante et restent a traiter :
 

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Flag, Hand, LockKeyhole, RotateCcw, Zap } from 'lucide-react';
+import { Flag, LockKeyhole, RotateCcw, Square, Timer, Zap, Check } from 'lucide-react';
 import { getRealtimeUrl } from '../../api/realtime';
 import { useGameStore } from '../../hooks/useGameStore';
 import { useSfx } from '../../hooks/useSfx';
-import { paintTower, type PartyState } from '../../gameplay/party';
+import { interpolateTower, paintTower, type PartyState } from '../../gameplay/party';
 import styles from './PartyArena.module.css';
 
 interface Props {
@@ -25,6 +25,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const duelId = session?.duelId || `practice:${identity}:${practiceId.current}`;
     const socket = useRef<WebSocket | null>(null);
     const latest = useRef<ArenaEvent | null>(null);
+    const receivedAt = useRef(0);
     const finishRef = useRef(finish);
     finishRef.current = finish;
     const [event, setEvent] = useState<ArenaEvent | null>(null);
@@ -32,8 +33,6 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const [error, setError] = useState('');
     const [clock, setClock] = useState(Date.now());
     const offset = useRef(0);
-    const held = useRef(false);
-    const [pressed, setPressed] = useState(false);
     const canvas = useRef<HTMLCanvasElement>(null);
     const completed = useRef(false);
     const { playDraw, playFalseStart } = useSfx();
@@ -60,6 +59,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                 if (data?.type !== 'arena.state' || data.duelId !== duelId || !data.party || (session && data.round !== round)) return;
                 offset.current = data.at - Date.now();
                 latest.current = data;
+                receivedAt.current = performance.now();
                 setEvent(data);
                 if (data.phase === 'done' && !completed.current) {
                     completed.current = true;
@@ -67,14 +67,14 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                     const raw = party.scores[identity] || 0;
                     const score = session ? (data.winnerId === identity ? 1000 : 0)
                         : gameId === 'onesecond' ? Math.max(0, 1000 + raw / 3)
-                            : gameId === 'onemore' ? raw * 50 : raw * 333;
+                            : gameId === 'onemore' ? raw * 50 : raw * 1000 / 3;
                     const detail = gameId === 'onesecond' ? `${Math.abs(raw)} ms ${isFr ? "d'ecart cumule" : 'total error'}`
                         : gameId === 'onemore' ? `${raw} ${isFr ? 'blocs securises' : 'blocks banked'}` : `${raw} ${isFr ? 'points' : 'points'}`;
                     finishRef.current(score, detail, Boolean(session));
                 }
             };
             ws.onclose = () => {
-                setConnected(false); held.current = false; setPressed(false);
+                setConnected(false);
                 if (!stopped && !completed.current) retry = window.setTimeout(connect, Math.min(5000, 400 * 2 ** attempts++));
             };
         };
@@ -95,52 +95,58 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         if (!active || !ws || ws.readyState !== WebSocket.OPEN) return;
         ws.send(JSON.stringify({ type: 'arena.action', action, turn: latest.current?.party.turn }));
     }
-    function press() {
-        if (!active || submitted || held.current || party?.phase !== 'hold') return;
-        held.current = true; setPressed(true); send('hold');
-    }
-    function release(cancel = false) {
-        if (!held.current) return;
-        held.current = false; setPressed(false); send(cancel ? 'cancel' : 'release');
+    function stopClock() {
+        if (!active || submitted || party?.phase !== 'timing') return;
+        send('stop');
     }
     useEffect(() => {
         const blur = () => {
-            if (!held.current) return;
-            held.current = false; setPressed(false);
-            if (socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: 'arena.action', action: 'cancel', turn: latest.current?.party.turn }));
+            if (gameId !== 'onesecond' || latest.current?.party.phase !== 'timing' || session?.spectator) return;
+            if (socket.current?.readyState === WebSocket.OPEN) socket.current.send(JSON.stringify({ type: 'arena.action', action: 'cancel', turn: latest.current.party.turn }));
         };
         const visibility = () => { if (document.hidden) blur(); };
         window.addEventListener('blur', blur); document.addEventListener('visibilitychange', visibility);
         return () => { window.removeEventListener('blur', blur); document.removeEventListener('visibilitychange', visibility); };
-    }, []);
+    }, [gameId, session?.spectator]);
     useEffect(() => {
         if (!party) return;
         const cue = `${party.turn}:${party.phase}`;
         if (cue === soundTurn.current) return;
         soundTurn.current = cue;
-        if (party.phase === 'go') playDraw();
+        if (party.phase === 'go' || party.phase === 'timing') playDraw();
         if (party.phase === 'reveal' && party.feedback.falseStart) playFalseStart();
     }, [party?.turn, party?.phase, playDraw, playFalseStart]);
     useEffect(() => {
         if (gameId !== 'onemore' || !canvas.current) return;
         const surface = canvas.current;
-        const draw = () => {
+        const resize = () => {
             const ratio = Math.min(2, devicePixelRatio || 1);
             const rect = surface.getBoundingClientRect();
             surface.width = Math.max(1, Math.round(rect.width * ratio));
             surface.height = Math.max(1, Math.round(rect.height * ratio));
-            const ctx = surface.getContext('2d');
-            if (ctx) paintTower(ctx, run, surface.width, surface.height);
         };
-        draw();
-        const observer = new ResizeObserver(draw); observer.observe(surface);
-        return () => observer.disconnect();
-    }, [run, gameId]);
+        let frame = 0;
+        const draw = (now: number) => {
+            const state = latest.current;
+            const ctx = surface.getContext('2d');
+            const elapsed = state?.phase === 'playing' ? now - receivedAt.current : 0;
+            if (ctx) paintTower(ctx, interpolateTower(state?.party.runs[identity], elapsed), surface.width, surface.height);
+            frame = requestAnimationFrame(draw);
+        };
+        resize(); frame = requestAnimationFrame(draw);
+        const observer = new ResizeObserver(resize); observer.observe(surface);
+        return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+    }, [gameId, identity]);
 
     const status = error || (!connected ? (isFr ? 'Connexion en cours…' : 'Connecting…')
         : event?.phase === 'waiting' ? (isFr ? 'En attente du rival' : 'Waiting for your rival')
             : event?.phase === 'countdown' ? `${Math.max(1, Math.ceil(((event.resumeAt || 0) - clock - offset.current) / 1000))}` : '');
     const feedback = party?.feedback;
+    const preparing = party?.phase === 'prepare';
+    const targetSeconds = (party?.targetMs || 0) / 1000;
+    const attemptIndex = Math.max(0, (party?.attempt || 1) - 1);
+    const duration = run?.durations?.[attemptIndex];
+    const delta = duration == null ? null : duration - (party?.targetMs || 0);
     return <div className={styles.arena} data-testid="party-arena" data-game={gameId} data-phase={party?.phase || 'ready'}>
         <div className={styles.hud}>
             <span>{session ? (isFr ? 'FACE A FACE' : 'HEAD TO HEAD') : 'SOLO'}</span>
@@ -163,18 +169,20 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             </button>
             <button className={styles.secondary} type="button" disabled={!active || !rival || !party?.feints[identity] || party.phase !== 'wait'} onClick={() => send('feint')}><Zap size={16} />{isFr ? 'Feinter' : 'Feint'} <span>{party?.feints[identity] ?? 1}/1</span></button>
         </> : gameId === 'onesecond' ? <>
-            <button type="button" className={styles.hold} data-held={pressed} data-testid="hold-button" disabled={!active || revealing || submitted}
-                onPointerDown={(e) => { if (e.button !== 0) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); press(); }}
-                onPointerUp={() => release()} onPointerCancel={() => release(true)} onLostPointerCapture={() => release(true)}
-                onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); press(); } }}
-                onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); release(); } }} aria-label={isFr ? 'Maintenir une seconde' : 'Hold one second'}>
-                <Hand size={38} /><strong>{submitted ? (isFr ? 'VERROUILLE' : 'LOCKED') : pressed ? '…' : '1.000 s'}</strong>
+            <div className={styles.target}><span>{isFr ? 'CIBLE' : 'TARGET'}</span><strong data-testid="clock-target" data-ms={party?.targetMs || 0}>{targetSeconds || '–'}<small> s</small></strong><span>{isFr ? 'ERREUR TOTALE MINIMALE' : 'LOWEST TOTAL ERROR'}</span></div>
+            <button type="button" className={styles.clockButton} data-state={party?.phase} data-testid="clock-button" disabled={!active || party?.phase !== 'timing' || submitted}
+                onPointerDown={(e) => { if (e.button !== 0) return; e.preventDefault(); stopClock(); }}
+                onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); stopClock(); } }}
+                onClick={(e) => { if (e.detail === 0) stopClock(); }} aria-label={isFr ? 'Arreter le chrono' : 'Stop the clock'}>
+                {submitted || revealing ? <Check size={28} /> : preparing ? <Timer size={28} /> : <Square size={28} />}
+                <strong>{preparing ? Math.max(1, Math.ceil((party?.remaining || 0) / 1000)) : revealing ? duration == null ? '—' : `${(duration / 1000).toFixed(3)} s` : submitted ? (isFr ? 'VERROUILLE' : 'LOCKED') : party?.clockSignal ? (isFr ? 'TOP CHRONO' : 'GO!') : 'STOP'}</strong>
+                <span>{preparing ? (isFr ? 'PRET ?' : 'READY?') : revealing ? delta === null ? (isFr ? 'ESSAI MANQUE' : 'MISSED ATTEMPT') : `${delta > 0 ? '+' : ''}${delta} ms` : submitted ? (isFr ? 'AU RIVAL' : 'RIVAL IS PLAYING') : party?.phase === 'timing' ? (isFr ? 'A TOI DE JUGER' : 'TRUST YOUR TIMING') : '3 · 2 · 1'}</span>
             </button>
             <div className={styles.attempts} aria-live="polite">
-                {[0, 1, 2].map((i) => <span key={i}>{i + 1}<b>{run?.durations?.[i] === null ? '--' : run?.durations?.[i] !== undefined ? `${(run.durations[i]! / 1000).toFixed(3)} s` : '·'}</b></span>)}
+                {[0, 1, 2].map((i) => <span key={i} data-current={i === attemptIndex}>{party?.targets?.[i] ? `${party.targets[i] / 1000} s` : `0${i + 1}`}<b>{run?.durations?.[i] === null ? '--' : run?.errors?.[i] !== undefined ? `${run.errors[i]} ms` : '·'}</b></span>)}
             </div>
         </> : <>
-            <button type="button" className={styles.stackSurface} disabled={!active || run?.status !== 'playing'} onClick={() => send('drop')} aria-label={isFr ? 'Poser le bloc' : 'Drop block'}>
+            <button type="button" className={styles.stackSurface} disabled={!active || run?.status !== 'playing' || (run.motion?.ageMs || 0) < 180} onClick={() => send('drop')} aria-label={isFr ? 'Poser le bloc' : 'Drop block'}>
                 <canvas ref={canvas} data-testid="stack-canvas" data-level={run?.level || 0} />
             </button>
             <div className={styles.stackFooter}>
@@ -183,8 +191,8 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             </div>
         </>}
         <div className={styles.feedback} role="status">{revealing && gameId === 'falsestart'
-            ? feedback?.trapped ? (isFr ? 'La feinte a marche.' : 'The feint landed.') : feedback?.falseStart ? (isFr ? 'Un point pour le rival.' : 'A point for the rival.') : (isFr ? 'Bien vu.' : 'Good reaction.')
-            : gameId === 'onemore' && run?.status === 'banked' ? (isFr ? 'Tour securisee. Au rival de tenter.' : 'Tower banked. Your rival decides.') : ''}</div>
+            ? feedback?.timeout ? (isFr ? 'Personne n a appuye.' : 'Nobody tapped.') : feedback?.falseStart ? feedback.actor === identity ? (isFr ? 'Trop tot. Le rival prend le point.' : 'Too early. Your rival takes the point.') : (isFr ? 'Le rival a craque. Ton point.' : 'Your rival jumped. Your point.') : feedback?.actor === identity ? (isFr ? 'Le point est pour toi.' : 'You take the point.') : (isFr ? 'Le rival a ete plus rapide.' : 'Your rival was faster.')
+            : gameId === 'onemore' && run?.status === 'crashed' ? (isFr ? 'Tour perdue. Le rival peut encore chuter.' : 'Tower lost. Your rival can still fall.') : gameId === 'onemore' && run?.status === 'banked' ? (isFr ? 'Tour securisee. Au rival de tenter.' : 'Tower banked. Your rival decides.') : ''}</div>
         {session && !session.spectator && <button type="button" className={styles.forfeit} onClick={() => {
             if (confirm(isFr ? 'Abandonner cette manche ?' : 'Forfeit this round?')) socket.current?.send(JSON.stringify({ type: 'arena.forfeit' }));
         }}><Flag size={14} />{isFr ? 'Abandonner' : 'Forfeit'}</button>}

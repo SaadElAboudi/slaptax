@@ -96,7 +96,14 @@ function readDb(dbPath = DB_PATH) {
 }
 
 function writeDb(data, dbPath = DB_PATH) {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    const serialized = JSON.stringify(data, null, 2);
+    const temporary = `${dbPath}.${crypto.randomUUID()}.tmp`;
+    try {
+        fs.writeFileSync(temporary, serialized, { flag: 'wx', mode: 0o600 });
+        fs.renameSync(temporary, dbPath);
+    } finally {
+        if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    }
 }
 
 function resetDb(dbPath = DB_PATH) {

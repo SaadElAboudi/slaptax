@@ -21,7 +21,7 @@ const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
 
 const DRAFT_GAMES = [
     { id: 'falsestart', label: 'False Start' },
-    { id: 'onesecond', label: 'One Second' },
+    { id: 'onesecond', label: 'Blind Clock' },
     { id: 'onemore', label: 'One More' },
     { id: "bounce", label: "Bounce Panic" },
     { id: "symbolrush", label: "Symbol Sprint" },

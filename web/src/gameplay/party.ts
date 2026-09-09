@@ -3,15 +3,22 @@ export interface PartyRun {
     errors?: number[];
     layers?: Array<{ x: number; width: number }>;
     moving?: { x: number; width: number };
+    motion?: { ageMs: number; speed: number };
     level?: number;
     bank?: number;
     perfects?: number;
     status?: 'playing' | 'crashed' | 'banked';
 }
 
+export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): PartyRun | undefined {
+    if (!run?.motion || !run.moving || run.status !== 'playing') return run;
+    const wave = ((run.motion.ageMs + Math.max(0, Math.min(150, elapsedMs))) / 1000 * run.motion.speed) % 2;
+    return { ...run, moving: { width: run.moving.width, x: (wave <= 1 ? wave : 2 - wave) * (1 - run.moving.width) } };
+}
+
 export interface PartyState {
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'hold' | 'stack' | 'reveal' | 'done' | 'draw';
+    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw';
     turn: number;
     attempt: number;
     remaining: number;
@@ -21,13 +28,16 @@ export interface PartyState {
     ready: string[];
     signal: 'go' | 'trap' | 'wait';
     answered: string[];
-    holding: string[];
+    targetMs?: number;
+    targets?: number[];
+    clockSignal?: boolean;
     runs: Record<string, PartyRun>;
     winnerId: string | null;
     summary: string;
 }
 
 export interface PartyMoment {
+    targets?: number[];
     gameId: string;
     players: string[];
     scores: Record<string, number>;

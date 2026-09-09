@@ -78,7 +78,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                 return <article key={game.id} className={styles.game} data-game={game.id}>
                     <div className={styles.gameArt} aria-hidden="true">
                         {index === 0 ? <div className={styles.signalArt}><span>WAIT</span><b>GO</b><i>NOPE</i></div>
-                            : index === 1 ? <div className={styles.dialArt}><Timer size={38} /><b>1.000<span>s</span></b></div>
+                            : index === 1 ? <div className={styles.dialArt}><Timer size={38} /><b>2–10<span>s</span></b></div>
                                 : <div className={styles.stackArt}>{[0,1,2,3,4].map((n) => <i key={n} />)}<span>+1</span></div>}
                     </div>
                     <div className={styles.cardHeading}><Icon size={19} /><span>0{index + 1}</span><small>{index === 0 ? 'REFLEX' : index === 1 ? 'PRECISION' : 'RISK'}</small></div>

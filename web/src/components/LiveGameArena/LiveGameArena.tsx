@@ -96,7 +96,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     }, [playLoss, playWin, round]);
 
     return (
-        <section className={styles.arena} data-game={gameId}>
+        <section className={styles.arena} data-game={gameId} data-phase={phase}>
             <header className={styles.header}>
                 <div>
                     <span>{isFr ? `MANCHE ${round}` : `ROUND ${round}`}</span>

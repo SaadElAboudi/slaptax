@@ -42,7 +42,7 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         ctx.fillText(state?.phase === 'done' ? 'FINISH' : signal.toUpperCase(), 360, 498);
     } else {
         ctx.strokeStyle = accent; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(360, 490, 128, 0, Math.PI * 2); ctx.stroke();
-        ctx.textAlign = 'center'; ctx.fillStyle = accent; ctx.font = 'bold 47px monospace'; ctx.fillText('1.000 s', 360, 507);
+        ctx.textAlign = 'center'; ctx.fillStyle = accent; ctx.font = 'bold 47px monospace'; ctx.fillText(`${((state?.targetMs || moment.targets?.[moment.targets.length - 1] || 1000) / 1000).toFixed(0)} s`, 360, 507);
         players.forEach((id, index) => {
             const durations = state?.runs[id]?.durations || [];
             ctx.font = '16px monospace'; ctx.fillStyle = '#dbe4dc';

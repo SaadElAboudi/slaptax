@@ -6,7 +6,7 @@
     {
       "id": "local-player",
       "playerName": "Player",
-      "wallet": 164,
+      "wallet": 264,
       "stake": 5,
       "history": [
         {
@@ -561,12 +561,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "d757dacf-860c-4e8b-bb66-0a4186120fd9",
       "playerName": "Opponent1",
-      "wallet": 10,
+      "wallet": 110,
       "stake": 5,
       "history": [
         {
@@ -1045,12 +1051,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "25d17295-5c3b-4b45-9154-84e8a6242c28",
       "playerName": "Saad",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1133,13 +1145,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "a5d84607-bcf2-47c7-bf20-293dbfa6dc8e",
       "playerName": "Saad",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1222,13 +1240,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "03b8b567-a5d3-4f11-bd71-65d2cc022075",
       "playerName": "Toto",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1311,13 +1335,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "7d93e64c-939b-4322-88a7-526c2008d0a1",
       "playerName": "Player",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1401,12 +1431,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "77e48107-2dba-4bcb-8fbe-ab6fdd3de448",
       "playerName": "Opponent1",
-      "wallet": 20,
+      "wallet": 120,
       "stake": 5,
       "history": [
         {
@@ -1500,12 +1536,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "43c1512e-244c-4646-8385-ed00c83c9cc8",
       "playerName": "Player",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1588,13 +1630,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "3e2ef20c-8e42-402b-a779-d1106353a2cb",
       "playerName": "Alpha",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1677,13 +1725,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "8d9ebac6-4be3-4a33-95fd-fdb8f9f2f33f",
       "playerName": "Alpha2",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1766,13 +1820,19 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     },
     {
       "id": "7b2d404e-e4da-47cd-9c44-08223c47d861",
       "playerName": "Beta",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -1856,12 +1916,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "baac30d6-8617-4652-a511-a3daccd1642c",
       "playerName": "AliceTest",
-      "wallet": 28.5,
+      "wallet": 128.5,
       "stake": 5,
       "history": [
         {
@@ -1955,12 +2021,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "b588f91b-6ace-47d8-b527-02bd34d86529",
       "playerName": "Saad",
-      "wallet": 3.5,
+      "wallet": 103.5,
       "stake": 5,
       "history": [
         {
@@ -2105,12 +2177,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "9ec201a4-ff52-4404-9e3a-2cc15ff2faec",
       "playerName": "toto",
-      "wallet": 1.5,
+      "wallet": 101.5,
       "stake": 5,
       "history": [
         {
@@ -2262,12 +2340,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "2595e71c-b69d-43bf-ba3d-9db7da5df97a",
       "playerName": "9ec201a4-ff52-4404-9",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -2351,12 +2435,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "1a668e83-2f67-4e6c-8084-90791bfb2551",
       "playerName": "Saad",
-      "wallet": 3.5,
+      "wallet": 103.5,
       "stake": 5,
       "history": [
         {
@@ -2501,12 +2591,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "60a3ff7f-3242-409f-a708-e7b9b85e8154",
       "playerName": "Player",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "progression": {
@@ -2590,12 +2686,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "29725a41-bb6a-409f-853f-3e3df83a3e55",
       "playerName": "Saad",
-      "wallet": 13.5,
+      "wallet": 113.5,
       "stake": 5,
       "history": [
         {
@@ -2690,12 +2792,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "5534821c-e2ea-486e-8026-130eecc99a50",
       "playerName": "Player",
-      "wallet": 5,
+      "wallet": 105,
       "stake": 5,
       "history": [
         {
@@ -2794,12 +2902,18 @@
       "presence": {
         "online": false,
         "lastSeenAt": "2026-06-07T11:20:46.671Z"
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "a0d6058f-a0e5-4fa9-b549-3aee6f84dd71",
       "playerName": "VisualQA",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "presence": {
@@ -2887,12 +3001,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "228bed86-0431-4c8e-9ba8-a2e132c841de",
       "playerName": "DesignReview",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "presence": {
@@ -2980,12 +3100,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "7b2bf022-c2ec-4d41-a7a0-c9e0d40a60f9",
       "playerName": "DesignReview",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "presence": {
@@ -3073,12 +3199,18 @@
             ]
           }
         }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
+        }
       }
     },
     {
       "id": "09810794-57c0-43b1-86ad-fcbe46d2bcc2",
       "playerName": "DesignReview",
-      "wallet": 25,
+      "wallet": 125,
       "stake": 5,
       "history": [],
       "presence": {
@@ -3165,6 +3297,12 @@
               "pulse"
             ]
           }
+        }
+      },
+      "creditGrants": {
+        "beta-september-2026": {
+          "amount": 100,
+          "at": "2026-09-09T09:37:18.397Z"
         }
       }
     }

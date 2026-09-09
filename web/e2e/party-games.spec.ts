@@ -28,13 +28,30 @@ test('signature home is usable, has three games and no horizontal overflow', asy
     await expect(page.getByRole('button', { name: 'Challenge a friend', exact: true })).toHaveCount(3);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('signature-home.png'), fullPage: true });
-    await page.getByRole('button', { name: 'Play solo: One Second', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 3, name: 'One Second' })).toBeVisible();
+    await page.getByRole('button', { name: 'Play solo: Blind Clock', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 3, name: 'Blind Clock' })).toBeVisible();
 });
 
-for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond', label: 'One Second' }, { id: 'onemore', label: 'One More' }]) {
+test('French clock countdown is readable and the touch target is unobstructed', async ({ page, request }, info) => {
+    await identify(page, await player(request, 'ChronoFrancais'), 'onesecond');
+    await page.addInitScript(() => localStorage.setItem('slaptax_lang', 'fr'));
+    await page.goto('/?tab=training');
+    await expect(page.getByRole('heading', { level: 3, name: 'Pile Chrono' })).toBeVisible();
+    await page.getByRole('button', { name: 'Entrer dans l arene' }).click();
+    const button = page.getByTestId('clock-button');
+    await expect(page.getByTestId('party-arena')).toHaveAttribute('data-phase', 'prepare');
+    await button.scrollIntoViewIfNeeded();
+    expect(await button.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+    })).toBe(true);
+    await page.screenshot({ path: info.outputPath('chrono-fr.png'), fullPage: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond', label: 'Blind Clock' }, { id: 'onemore', label: 'One More' }]) {
     test(`two friends play ${game.label} and export their real result`, async ({ browser, request }, info) => {
-        test.setTimeout(90000);
+        test.setTimeout(120000);
         const a = await player(request, `A-${game.id}`);
         const b = await player(request, `B-${game.id}`);
         const created = await post(request, '/api/duels', { challengerId: a.userId, opponentId: b.userId, stake: 2, bestOf: 1,
@@ -54,7 +71,7 @@ for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond
                 await page.getByRole('button', { name: 'Enter the arena' }).click();
             }
             const arena = first.getByTestId('party-arena');
-            await expect(arena).toHaveAttribute('data-phase', game.id === 'falsestart' ? 'wait' : game.id === 'onesecond' ? 'hold' : 'stack');
+            await expect(arena).toHaveAttribute('data-phase', game.id === 'falsestart' ? 'wait' : game.id === 'onesecond' ? 'prepare' : 'stack');
             await first.screenshot({ path: info.outputPath(`${game.id}-playing.png`), fullPage: true });
             if (game.id === 'falsestart') {
                 for (let attempt = 0; attempt < 3; attempt++) {
@@ -64,21 +81,24 @@ for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond
                 }
             } else if (game.id === 'onesecond') {
                 for (let attempt = 0; attempt < 3; attempt++) {
-                    for (const [page, duration] of [[first, 1000], [second, 1550]] as const) {
-                        const button = page.getByTestId('hold-button');
-                        await expect(button).toBeEnabled();
-                        const box = (await button.boundingBox())!;
-                        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-                        await page.mouse.down(); await page.waitForTimeout(duration); await page.mouse.up();
-                        await expect(button).toBeDisabled();
-                    }
+                    await expect(arena).toHaveAttribute('data-phase', 'prepare');
+                    await expect(first.getByTestId('clock-button')).toBeDisabled();
+                    const target = Number(await first.getByTestId('clock-target').getAttribute('data-ms'));
+                    expect(target).toBeGreaterThanOrEqual(2000); expect(target).toBeLessThanOrEqual(10000);
+                    await expect(second.getByTestId('clock-target')).toHaveAttribute('data-ms', String(target));
+                    await expect(arena).toHaveAttribute('data-phase', 'timing');
+                    await first.waitForTimeout(target);
+                    await first.getByTestId('clock-button').click();
+                    await expect(first.getByTestId('clock-button')).toBeDisabled();
+                    await second.waitForTimeout(500);
+                    await second.getByTestId('clock-button').click();
                     await expect(arena).toHaveAttribute('data-phase', 'reveal');
                 }
             } else {
                 async function drop(page: Page, level: number) {
                     await page.waitForFunction(() => {
                         const canvas = document.querySelector('[data-testid="stack-canvas"]') as HTMLCanvasElement;
-                        if (!canvas) return false;
+                        if (!canvas || (canvas.parentElement as HTMLButtonElement).disabled) return false;
                         const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
                         let sum = 0, count = 0;
                         for (let y = 0; y < canvas.height; y += 4) for (let x = 0; x < canvas.width; x += 4) {
@@ -136,17 +156,20 @@ for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond
 }
 
 test('solo precision uses the same engine without changing competitive balance', async ({ page, request }) => {
-    test.setTimeout(45000);
+    test.setTimeout(75000);
     const identity = await player(request, 'SoloPrecision');
     const before = await (await request.get(`/api/state?userId=${identity.userId}`)).json();
     await identify(page, identity, 'onesecond');
     await page.goto('/?tab=training');
     await page.getByRole('button', { name: 'Enter the arena' }).click();
     for (let attempt = 0; attempt < 3; attempt++) {
-        const button = page.getByTestId('hold-button'); await expect(button).toBeEnabled();
-        const box = (await button.boundingBox())!;
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        await page.mouse.down(); await page.waitForTimeout(1000); await page.mouse.up();
+        const button = page.getByTestId('clock-button');
+        await expect(page.getByTestId('party-arena')).toHaveAttribute('data-phase', 'prepare');
+        await expect(button).toBeDisabled();
+        const target = Number(await page.getByTestId('clock-target').getAttribute('data-ms'));
+        await expect(button).toBeEnabled();
+        await page.waitForTimeout(target);
+        await button.focus(); await page.keyboard.press('Space');
         await expect(page.getByTestId('party-arena')).toHaveAttribute('data-phase', 'reveal');
     }
     await expect(page.getByRole('button', { name: 'Replay', exact: true })).toBeVisible();
