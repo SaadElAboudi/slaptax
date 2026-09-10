@@ -156,7 +156,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             <span>{isFr ? 'TOI' : 'YOU'} <b>{Math.abs(party?.scores[identity] || 0)}{gameId === 'onesecond' ? ' ms' : ''}</b></span>
             {rival && <><i>VS</i><span>{isFr ? 'RIVAL' : 'RIVAL'} <b>{Math.abs(party?.scores[rival] || 0)}{gameId === 'onesecond' ? ' ms' : ''}</b></span></>}
         </div>
-        {status && <div className={styles.notice} role="status">{status}</div>}
+        {status && <div className={event?.phase === 'countdown' || event?.phase === 'waiting' ? styles.countIn : styles.notice} role="status"><span>{event?.phase === 'countdown' ? (isFr ? 'ENTREE DANS L ARENE' : 'ENTERING THE ARENA') : ''}</span><strong key={status}>{status}</strong></div>}
         {party?.phase === 'draw' ? <div className={styles.draw}>
             <h3>{isFr ? 'Egalite parfaite.' : 'An exact tie.'}</h3>
             <button type="button" disabled={!active || party.ready.includes(identity)} onClick={() => send('retry')}><RotateCcw size={18} />{party.ready.includes(identity) ? (isFr ? 'En attente du rival' : 'Waiting for rival') : (isFr ? 'Rejouer la manche' : 'Replay this round')}</button>

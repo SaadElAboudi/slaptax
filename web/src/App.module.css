@@ -1,4 +1,5 @@
 .tapeBg {
+    display:none;
     position: fixed;
     inset: 0;
     background: repeating-linear-gradient(-55deg,
@@ -102,8 +103,12 @@
 
 .panelArea > section {
     min-height: min(720px, calc(100dvh - 165px));
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+    box-shadow:none;
 }
+
+.container:has([data-focus="true"]) { padding-top:12px; padding-bottom:24px; max-width:1040px; }
+.container:has([data-focus="true"]) .matchHeader { display:none; }
+.container:has([data-focus="true"]) .panelArea { animation:none; }
 
 @keyframes panelEnter {
     from {

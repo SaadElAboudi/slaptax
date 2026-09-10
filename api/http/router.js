@@ -158,6 +158,22 @@ function createRequestHandler(service) {
             return;
         }
 
+        const leaveMatch = url.pathname.match(/^\/api\/(duels|arena-tournaments)\/([^/]+)\/leave$/);
+        if (req.method === 'POST' && leaveMatch) {
+            const body = await parseBody(req);
+            const result = leaveMatch[1] === 'duels' ? service.cancelPendingDuel(leaveMatch[2],body.userId) : service.leaveTournamentRoom(leaveMatch[2],body.userId);
+            json(res,result.code || 200,result); return;
+        }
+        const vetoMatch = url.pathname.match(/^\/api\/(duels|arena-tournaments)\/([^/]+)\/ban$/);
+        if (req.method === 'POST' && vetoMatch) {
+            const body = await parseBody(req);
+            const result = vetoMatch[1] === 'duels'
+                ? service.banDuelGame(vetoMatch[2], body.userId, body.gameId)
+                : service.banTournamentGame(vetoMatch[2], body.userId, body.gameId);
+            json(res, result.code || 200, result);
+            return;
+        }
+
         const readyArenaTournamentMatch = url.pathname.match(/^\/api\/arena-tournaments\/([^/]+)\/ready$/);
         if (req.method === "POST" && readyArenaTournamentMatch) {
             const body = await parseBody(req);

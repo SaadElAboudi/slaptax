@@ -52,6 +52,19 @@ async function withWebServer(run) {
 }
 
 async function jfetch(baseUrl, method, pathName, body) {
+    // Gameplay fixtures enter an already-drafted room. Veto authorization and
+    // readiness gates are exercised separately in veto.test.js.
+    const readyRoom = pathName.match(/^\/api\/(duels|arena-tournaments)\/([^/]+)\/ready$/);
+    if (method === 'POST' && readyRoom && body?.ready) {
+        const [,kind,id] = readyRoom;
+        const read = await fetch(`${baseUrl}/api/${kind}/${id}${kind === 'duels' ? '/room' : ''}?userId=${body.userId}`);
+        const snapshot = await read.json();
+        const room = snapshot.room || snapshot.tournament;
+        if (room?.veto && !room.veto.complete) {
+            const players = kind === 'duels' ? [room.challengerId,room.opponentId] : room.entrants.map((entry) => entry.id);
+            for (const userId of players) if (!room.veto.votes[userId]) await fetch(`${baseUrl}/api/${kind}/${id}/ban`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId,gameId:'falsestart' }) });
+        }
+    }
     const res = await fetch(baseUrl + pathName, {
         method,
         headers: { "Content-Type": "application/json" },

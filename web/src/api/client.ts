@@ -174,7 +174,7 @@ export interface P2PDuel {
     challengerId: string;
     opponentId: string;
     stake: number;
-    status: 'pending' | 'playing' | 'done';
+    status: 'pending' | 'playing' | 'done' | 'cancelled';
     createdAt: string;
     playedAt?: string;
     winnerId?: string;
@@ -238,10 +238,17 @@ export interface PlayP2PResponse {
     draftSummary?: string;
 }
 
+export interface GameVeto {
+    votes: Record<string, string>;
+    banned: string[];
+    complete: boolean;
+}
+
 export interface DuelRoomState {
+    veto?: GameVeto | null;
     duelId: string;
     seriesId: string;
-    status: 'pending' | 'playing' | 'done';
+    status: 'pending' | 'playing' | 'done' | 'cancelled';
     challengerId: string;
     opponentId: string;
     readyBy: Record<string, boolean>;
@@ -267,7 +274,7 @@ export interface LiveDuelRound {
 export interface LiveDuelMatch {
     bestOf: number;
     duelId: string;
-    status: 'pending' | 'playing' | 'done';
+    status: 'pending' | 'playing' | 'done' | 'cancelled';
     challengerId: string;
     opponentId: string;
     opponentName: string;
@@ -340,6 +347,7 @@ export interface MultiplayerTournamentMatch {
 }
 
 export interface MultiplayerTournament {
+    veto?: GameVeto;
     id: string;
     inviteToken?: string;
     kind: 'multiplayer';
@@ -585,6 +593,17 @@ export const api = {
 
     getDuelRoom: (duelId: string, userId: string) =>
         req<DuelRoomResponse>('GET', `/api/duels/${encodeURIComponent(duelId)}/room?userId=${encodeURIComponent(userId)}`),
+
+    leaveDuelRoom: (duelId: string, userId: string) =>
+        req<{ ok:boolean }>('POST', `/api/duels/${encodeURIComponent(duelId)}/leave`, { userId }),
+    leaveTournamentRoom: (tournamentId: string, userId: string) =>
+        req<{ ok:boolean }>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/leave`, { userId }),
+
+    banDuelGame: (duelId: string, userId: string, gameId: string) =>
+        req<DuelRoomResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/ban`, { userId, gameId }),
+
+    banTournamentGame: (tournamentId: string, userId: string, gameId: string) =>
+        req<{ ok: boolean }>('POST', `/api/arena-tournaments/${encodeURIComponent(tournamentId)}/ban`, { userId, gameId }),
 
     setDuelReady: (duelId: string, userId: string, ready: boolean) =>
         req<DuelRoomResponse>('POST', `/api/duels/${encodeURIComponent(duelId)}/ready`, { userId, ready }),

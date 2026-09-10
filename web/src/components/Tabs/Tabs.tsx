@@ -1,12 +1,13 @@
 import styles from './Tabs.module.css';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
+import { Play, Swords, Trophy, ChartNoAxesColumnIncreasing, History, type LucideIcon } from 'lucide-react';
 
-const ALL_TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: 'training', label: 'Training', icon: '↗' },
-    { id: 'defy', label: 'Friend Duel', icon: 'VS' },
-    { id: 'tournament', label: 'Tournament', icon: '◆' },
-    { id: 'leaderboard', label: 'Leaderboard', icon: '↑' },
-    { id: 'stats', label: 'History', icon: '≡' },
+const ALL_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+    { id: 'training', label: 'Training', icon: Play },
+    { id: 'defy', label: 'Friend Duel', icon: Swords },
+    { id: 'tournament', label: 'Tournament', icon: Trophy },
+    { id: 'leaderboard', label: 'Leaderboard', icon: ChartNoAxesColumnIncreasing },
+    { id: 'stats', label: 'History', icon: History },
 ];
 
 const TAB_LABELS_FR: Record<Tab, string> = {
@@ -32,7 +33,7 @@ export function Tabs() {
                     }}
                     aria-current={activeTab === t.id ? 'page' : undefined}
                 >
-                    <span aria-hidden>{t.icon}</span>
+                    <span aria-hidden><t.icon size={19} strokeWidth={1.8} /></span>
                     <b>{isFr ? TAB_LABELS_FR[t.id] : t.label}</b>
                 </button>
             ))}

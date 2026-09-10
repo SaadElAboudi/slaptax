@@ -11,6 +11,7 @@ const { toMoney2 } = require("../shared/money");
 const { SCHEMA_VERSION } = require("../infrastructure/db");
 const crypto = require("crypto");
 const { PARTY_IDS } = require('../games/partyGames');
+const { GAME_POOL, newVeto, tournamentVeto, pruneQueue } = require('../domain/veto');
 
 const ALLOWED_STAKES = [2, 5, 10, 20];
 const ALLOWED_TOURNAMENT_SIZES = [4, 8, 16];
@@ -432,6 +433,7 @@ function duelRoomSnapshot(duel) {
         challengerId: duel.challengerId,
         opponentId: duel.opponentId,
         readyBy: duel.room.readyBy,
+        veto: duel.veto || null,
         readyCountdownAt: duel.room.readyCountdownAt,
         games: duel.games || [],
         currentRound: duel.currentRound || 1,
@@ -937,6 +939,8 @@ function createService(store) {
                 status: "waiting",
                 entrants: [hostId],
                 readyBy: { [hostId]: false },
+                veto: newVeto(),
+                requestedGames: tournamentGames(),
                 games: tournamentGames(),
                 bracket: [],
                 currentRound: 0,
@@ -970,6 +974,7 @@ function createService(store) {
                 tournament.entrants.push(userId);
                 if (!tournament.readyBy || typeof tournament.readyBy !== "object") tournament.readyBy = {};
                 tournament.readyBy[userId] = false;
+                if (tournament.veto) { tournament.veto.complete = false; tournament.readyBy = {}; }
             }
             store.write(db);
             return { ok: true, tournament };
@@ -984,6 +989,7 @@ function createService(store) {
             if (!tournament) return { error: "Tournament not found", code: 404 };
             if (tournament.status !== "waiting") return { error: "Tournament already started", code: 409 };
             if (!tournament.entrants.includes(userId)) return { error: "Join the room first", code: 403 };
+            if (ready && tournament.veto && !tournament.veto.votes[userId]) return { error: 'Choose a game to ban first', code: 409 };
             if (!tournament.readyBy || typeof tournament.readyBy !== "object") tournament.readyBy = {};
             tournament.readyBy[userId] = !!ready;
             store.write(db);
@@ -1006,6 +1012,13 @@ function createService(store) {
                 return { error: "Choose exactly three different games", code: 400 };
             }
             tournament.games = normalizedGames;
+            tournament.requestedGames = normalizedGames;
+            tournament.readyBy = {};
+            if (tournament.veto) {
+                const selection = tournamentVeto(tournament.veto.votes, tournament.entrants, normalizedGames);
+                Object.assign(tournament.veto, { banned: selection.banned, complete: selection.complete });
+                tournament.games = selection.games;
+            }
             store.write(db);
             return { ok: true, games: tournament.games };
         },
@@ -1025,6 +1038,7 @@ function createService(store) {
             if (!tournament.entrants.every((entrantId) => tournament.readyBy?.[entrantId])) {
                 return { error: "Every player must be ready", code: 409 };
             }
+            if (tournament.veto && !tournament.entrants.every((id) => tournament.veto.votes[id])) return { error: 'Every player must vote on a ban', code: 409 };
             const seeded = shuffled(tournament.entrants);
             tournament.status = "playing";
             tournament.startedAt = new Date().toISOString();
@@ -1566,6 +1580,7 @@ function createService(store) {
                 status: "pending",
                 bestOf: normalizedBestOf,
                 draft: normalizedDraft,
+                veto: newVeto(),
                 room: { readyBy: {}, readyCountdownAt: null },
                 createdAt: new Date().toISOString(),
             };
@@ -1581,6 +1596,8 @@ function createService(store) {
             if (!user) return { error: "User not found", code: 404 };
             const numericStake = Number(stake);
             if (!ALLOWED_STAKES.includes(numericStake)) return { error: "Invalid stake", code: 400 };
+            if (user.wallet < numericStake) return { error: 'Insufficient wallet balance', code: 400 };
+            pruneQueue(db);
             const active = db.duels.find(
                 (duel) => isDuelParticipant(duel, userId) && ["pending", "playing"].includes(duel.status)
             );
@@ -1590,21 +1607,20 @@ function createService(store) {
                 (entry) => entry.userId !== userId && entry.stake === numericStake
             );
             if (!rival) {
+                const previous = db.matchmakingQueue.find((entry) => entry.userId === userId && entry.stake === numericStake);
                 db.matchmakingQueue = db.matchmakingQueue.filter((entry) => entry.userId !== userId);
-                db.matchmakingQueue.push({ userId, stake: numericStake, joinedAt: new Date().toISOString() });
+                db.matchmakingQueue.push({ userId, stake: numericStake, joinedAt: previous?.joinedAt || new Date().toISOString(), lastSeenAt: new Date().toISOString() });
                 recordProductEvent(db, "matchmaking_joined", userId, { stake: numericStake });
                 store.write(db);
                 return { ok: true, status: "waiting" };
             }
 
-            db.matchmakingQueue = db.matchmakingQueue.filter(
-                (entry) => entry.userId !== userId && entry.userId !== rival.userId
-            );
             store.write(db);
             const created = this.createDuel(rival.userId, userId, numericStake, null, 3);
             if (!created.ok) return created;
             const persisted = store.read();
             ensureCollections(persisted);
+            persisted.matchmakingQueue = persisted.matchmakingQueue.filter((entry) => entry.userId !== userId && entry.userId !== rival.userId);
             recordProductEvent(persisted, "matchmaking_matched", rival.userId, {
                 duelId: created.duel.id,
                 stake: numericStake,
@@ -1622,6 +1638,11 @@ function createService(store) {
             ensureCollections(db);
             const user = db.users.find((entry) => entry.id === userId);
             if (!user) return { error: "User not found", code: 404 };
+            const previousSize = db.matchmakingQueue.length;
+            pruneQueue(db);
+            const lease = db.matchmakingQueue.find((entry) => entry.userId === userId);
+            if (lease) lease.lastSeenAt = new Date().toISOString();
+            if (lease || previousSize !== db.matchmakingQueue.length) store.write(db);
             const duel = [...db.duels]
                 .reverse()
                 .find((entry) => isDuelParticipant(entry, userId) && ["pending", "playing"].includes(entry.status));
@@ -1978,6 +1999,78 @@ function createService(store) {
             };
         },
 
+        cancelPendingDuel(duelId, userId) {
+            const db = store.read(); ensureCollections(db);
+            const duel = db.duels.find((entry) => entry.id === duelId);
+            if (!duel) return { error:'Duel not found',code:404 };
+            if (!isDuelParticipant(duel,userId)) return { error:'User is not part of duel',code:403 };
+            if (duel.status === 'cancelled') return { ok:true };
+            if (duel.status !== 'pending' || duel.tournamentId) return { error:'Only a pending friend duel can be cancelled',code:409 };
+            duel.status = 'cancelled'; duel.cancelledBy = userId;
+            store.write(db);
+            return { ok:true };
+        },
+
+        leaveTournamentRoom(tournamentId, userId) {
+            const db = store.read(); ensureCollections(db);
+            const tournament = db.tournaments.find((entry) => entry.id === tournamentId && entry.kind === 'multiplayer');
+            if (!tournament) return { error:'Tournament not found',code:404 };
+            if (!tournament.entrants.includes(userId)) return { error:'Join the room first',code:403 };
+            if (tournament.status !== 'waiting') return { error:'Tournament already started',code:409 };
+            tournament.entrants = tournament.entrants.filter((id) => id !== userId);
+            tournament.readyBy = {};
+            if (!tournament.entrants.length) db.tournaments = db.tournaments.filter((entry) => entry.id !== tournamentId);
+            else {
+                if (tournament.hostId === userId) tournament.hostId = tournament.entrants[0];
+                if (tournament.veto) {
+                    delete tournament.veto.votes[userId];
+                    const selection = tournamentVeto(tournament.veto.votes,tournament.entrants,tournament.requestedGames || tournament.games);
+                    Object.assign(tournament.veto,{ banned:selection.banned,complete:selection.complete });
+                    tournament.games = selection.games;
+                }
+            }
+            store.write(db); return { ok:true };
+        },
+
+        banDuelGame(duelId, userId, gameId) {
+            const db = store.read(); ensureCollections(db);
+            const duel = db.duels.find((entry) => entry.id === duelId);
+            if (!duel) return { error: 'Duel not found', code: 404 };
+            if (!isDuelParticipant(duel, userId)) return { error: 'User is not part of duel', code: 403 };
+            if (duel.status !== 'pending' || duel.tournamentId) return { error: 'Draft is closed', code: 409 };
+            if (!GAME_POOL.includes(gameId)) return { error: 'Unknown game', code: 400 };
+            duel.veto ||= newVeto();
+            if (duel.veto.votes[userId] === gameId) return { ok: true, room: duelRoomSnapshot(duel) };
+            duel.veto.votes[userId] = gameId;
+            duel.veto.banned = [...new Set(Object.values(duel.veto.votes))];
+            duel.veto.complete = [duel.challengerId, duel.opponentId].every((id) => duel.veto.votes[id]);
+            normalizeDuelRoomState(duel);
+            duel.room.readyBy = {}; duel.room.readyCountdownAt = null;
+            duel.games = duel.veto.complete ? resolveP2PGames({
+                challenger: { ...duel.draft?.challenger, ban: duel.veto.votes[duel.challengerId] },
+                opponent: { ...duel.draft?.opponent, ban: duel.veto.votes[duel.opponentId] },
+            }) : [];
+            store.write(db);
+            return { ok: true, room: duelRoomSnapshot(duel) };
+        },
+
+        banTournamentGame(tournamentId, userId, gameId) {
+            const db = store.read(); ensureCollections(db);
+            const tournament = db.tournaments.find((entry) => entry.id === tournamentId && entry.kind === 'multiplayer');
+            if (!tournament) return { error: 'Tournament not found', code: 404 };
+            if (!tournament.entrants.includes(userId)) return { error: 'Join the room first', code: 403 };
+            if (tournament.status !== 'waiting') return { error: 'Draft is closed', code: 409 };
+            if (!GAME_POOL.includes(gameId)) return { error: 'Unknown game', code: 400 };
+            tournament.veto ||= newVeto();
+            if (tournament.veto.votes[userId] === gameId) return { ok: true };
+            tournament.veto.votes[userId] = gameId;
+            const selection = tournamentVeto(tournament.veto.votes, tournament.entrants, tournament.requestedGames || tournament.games);
+            Object.assign(tournament.veto, { banned: selection.banned, complete: selection.complete });
+            tournament.games = selection.games; tournament.readyBy = {};
+            store.write(db);
+            return { ok: true };
+        },
+
         getDuelRoomStatus(duelId, userId) {
             const duelKey = String(duelId || "").trim();
             const actorId = String(userId || "").trim();
@@ -2010,6 +2103,7 @@ function createService(store) {
             }
 
             normalizeDuelRoomState(duel);
+            if (ready && duel.veto && !duel.veto.votes[actorId]) return { error: 'Choose a game to ban first', code: 409 };
             duel.room.readyBy[actorId] = !!ready;
 
             const challengerReady = !!duel.room.readyBy[duel.challengerId];
@@ -2038,8 +2132,11 @@ function createService(store) {
             if (duel.status === "playing" || duel.status === "done") {
                 return { ok: true, match: publicDuelMatch(duel, userId, db) };
             }
+            if (duel.status !== 'pending') return { error:'Duel is closed',code:409 };
 
             normalizeDuelRoomState(duel);
+            if (duel.veto && !duel.veto.complete) return { error: 'Both players must ban a game first', code: 409 };
+            if (db.duels.some((entry) => entry.id !== duel.id && entry.status === 'playing' && (isDuelParticipant(entry, duel.challengerId) || isDuelParticipant(entry, duel.opponentId)))) return { error: 'A player is already in another match', code: 409 };
             if (!duel.room.readyBy[duel.challengerId] || !duel.room.readyBy[duel.opponentId]) {
                 return { error: "Both players must be ready", code: 400 };
             }
@@ -2053,7 +2150,7 @@ function createService(store) {
             challenger.wallet = toMoney2(challenger.wallet - duel.stake);
             opponent.wallet = toMoney2(opponent.wallet - duel.stake);
             duel.status = "playing";
-            const resolvedGames = duel.tournamentId && Array.isArray(duel.games)
+            const resolvedGames = (duel.tournamentId || duel.veto) && Array.isArray(duel.games)
                 ? duel.games
                 : resolveP2PGames(duel.draft);
             duel.games = Array.from(

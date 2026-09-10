@@ -89,6 +89,12 @@ export function getCompetitiveGame(id: string): CompetitiveGame | undefined {
 }
 
 export const SIGNATURE_GAMES = COMPETITIVE_GAMES.slice(0, 3);
+export const GAME_CATEGORIES = [
+    { id: 'reflex', fr: 'Reflexes', en: 'Reflexes', games: ['falsestart', 'bounce'] },
+    { id: 'precision', fr: 'Precision', en: 'Precision', games: ['onesecond', 'cupshuffle'] },
+    { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['symbolrush', 'duelnumeric'] },
+    { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
+] as const;
 export const isPartyGame = (id: string) => SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {

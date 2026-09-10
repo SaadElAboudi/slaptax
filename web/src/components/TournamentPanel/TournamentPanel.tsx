@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     api,
     type DuelRoomState,
@@ -10,6 +10,8 @@ import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
+import { GameVeto } from '../GameVeto/GameVeto';
+import { RoundRecap } from '../LiveGameArena/RoundRecap';
 import styles from './TournamentPanel.module.css';
 
 const SIZES = [4, 8, 16] as const;
@@ -26,6 +28,11 @@ export function TournamentPanel() {
     const [tournament, setTournament] = useState<MultiplayerTournament | null>(null);
     const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
+    const [recap, setRecap] = useState<LiveDuelMatch | null>(null);
+    const seenRounds = useRef(new Map<string, number>());
+    const currentMatch = useRef<LiveDuelMatch | null>(null);
+    currentMatch.current = match;
+    const dismissed = useRef(false);
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [spectatorMatch, setSpectatorMatch] = useState<MultiplayerTournamentResponse['spectatorMatch']>(null);
     const [spectating, setSpectating] = useState(false);
@@ -41,6 +48,10 @@ export function TournamentPanel() {
             setTick((value) => value + 1);
         }
     });
+    useEffect(() => {
+        const fallback = window.setInterval(() => { if (!document.hidden) setTick((value) => value + 1); }, 5000);
+        return () => clearInterval(fallback);
+    }, []);
 
     const loadList = useCallback(async () => {
         if (!userId) return;
@@ -49,13 +60,18 @@ export function TournamentPanel() {
         const active = data.tournaments.find(
             (entry) => entry.entrants.some((entrant) => entrant.id === userId) && entry.status !== 'done'
         );
-        if (active && !tournament) setTournament(active);
+        if (active && !tournament && !dismissed.current) setTournament(active);
     }, [tournament, userId]);
 
     const loadTournament = useCallback(async () => {
         if (!userId || !tournament) return;
         const params = new URLSearchParams(window.location.search);
         const data = await api.getMultiplayerTournament(tournament.id, userId, params.get('token') || undefined);
+        const previous = currentMatch.current;
+        if (previous && previous.duelId !== data.activeDuelId && previous.status === 'playing') {
+            const resolved = await api.getLiveDuel(previous.duelId, userId);
+            acceptMatch(resolved.match);
+        }
         setTournament(data.tournament);
         setRoomReady(Boolean(data.tournament.readyBy?.[userId]));
         setSelectedGames(data.tournament.games || ['bounce', 'symbolrush', 'bombpass']);
@@ -105,7 +121,7 @@ export function TournamentPanel() {
         }
         void api.getLiveDuel(activeDuelId, userId)
             .then(async (data) => {
-                setMatch(data.match);
+                acceptMatch(data.match);
                 if (data.match.status === 'pending') {
                     setRoom((await api.getDuelRoom(activeDuelId, userId)).room);
                 }
@@ -183,7 +199,13 @@ export function TournamentPanel() {
         }
     }
 
-    function leaveRoom() {
+    async function leaveRoom() {
+        if (tournament?.status === 'waiting' && userId && tournament.entrants.some((entry) => entry.id === userId)) {
+            try { await api.leaveTournamentRoom(tournament.id,userId); }
+            catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to leave'); return; }
+        }
+        dismissed.current = true;
+        setRecap(null);
         setTournament(null);
         setActiveDuelId(null);
         setMatch(null);
@@ -239,7 +261,7 @@ export function TournamentPanel() {
                 );
             }
             const duel = await api.getLiveDuel(activeDuelId, userId);
-            setMatch(duel.match);
+            acceptMatch(duel.match);
             await loadTournament();
             await refreshLiveState();
         } catch (cause) {
@@ -247,12 +269,22 @@ export function TournamentPanel() {
         }
     }
 
+    function acceptMatch(next: LiveDuelMatch) {
+        const previous = seenRounds.current.get(next.duelId);
+        if (previous !== undefined && next.rounds.length > previous) setRecap(next);
+        seenRounds.current.set(next.duelId, next.rounds.length);
+        currentMatch.current = next;
+        setMatch(next);
+    }
+
     const myMatch = useMemo(() => {
         if (!tournament || !userId) return null;
         return tournament.bracket
             .flatMap((round) => round.matches)
-            .find((entry) => entry.playerAId === userId || entry.playerBId === userId) || null;
+            .reverse().find((entry) => entry.playerAId === userId || entry.playerBId === userId) || null;
     }, [tournament, userId]);
+
+    if (recap && userId) return <RoundRecap match={recap} round={recap.rounds[recap.rounds.length - 1]} userId={userId} isFr={isFr} onContinue={() => setRecap(null)} />;
 
     if (spectating && spectatorMatch && userId) {
         return (
@@ -321,7 +353,7 @@ export function TournamentPanel() {
                         <h2>{tournament.name}</h2>
                         <p>{tournament.entrants.length}/{tournament.size} {isFr ? 'joueurs humains' : 'human players'}</p>
                     </div>
-                    <button type="button" onClick={leaveRoom}>{isFr ? 'Retour' : 'Back'}</button>
+                    <button type="button" onClick={() => void leaveRoom()}>{tournament.status === 'waiting' ? (isFr ? 'Quitter le salon' : 'Leave room') : (isFr ? 'Retour' : 'Back')}</button>
                 </header>
 
                 {tournament.status === 'waiting' && (
@@ -365,9 +397,13 @@ export function TournamentPanel() {
                                 ))}
                             </div>
                         </div>
+                        {joined && tournament.veto && userId && <GameVeto veto={tournament.veto} tournament userId={userId} isFr={isFr} busy={busy} games={tournament.games} onBan={(gameId) => {
+                            setBusy(true); setError('');
+                            void api.banTournamentGame(tournament.id, userId, gameId).then(loadTournament).catch((cause) => setError(cause.message)).finally(() => setBusy(false));
+                        }} />}
                         {!joined && <button type="button" onClick={() => joinTournament(tournament)} disabled={busy}>{isFr ? 'Rejoindre' : 'Join tournament'}</button>}
                         {joined && (
-                            <button type="button" className={roomReady ? styles.cancelReady : ''} onClick={toggleRoomReady} disabled={busy}>
+                            <button type="button" className={roomReady ? styles.cancelReady : ''} onClick={toggleRoomReady} disabled={busy || Boolean(tournament.veto && !tournament.veto.complete)}>
                                 {roomReady ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
                             </button>
                         )}

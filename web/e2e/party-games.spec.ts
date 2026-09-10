@@ -57,6 +57,7 @@ for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond
         const created = await post(request, '/api/duels', { challengerId: a.userId, opponentId: b.userId, stake: 2, bestOf: 1,
             draft: { challenger: { ban: 'bounce', pick: game.id }, opponent: { ban: 'symbolrush', pick: game.id } } });
         const id = created.duel.id;
+        for (const user of [a,b]) await post(request, `/api/duels/${id}/ban`, { userId:user.userId, gameId:'bounce' });
         for (const user of [a, b]) await post(request, `/api/duels/${id}/ready`, { userId: user.userId, ready: true });
         await post(request, `/api/duels/${id}/start`, { userId: a.userId });
         const contexts = await Promise.all([browser.newContext(info.project.use), browser.newContext(info.project.use)]);

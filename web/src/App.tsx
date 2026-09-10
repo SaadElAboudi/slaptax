@@ -11,10 +11,18 @@ import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
 import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
 import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
 import { useRealtime } from './api/realtime';
+import { api } from './api/client';
 
 function App() {
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
     const isFr = language === 'fr';
+    useEffect(() => {
+        if (!userId) return;
+        const heartbeat = window.setInterval(() => {
+            if (!document.hidden) void api.getMatchmakingStatus(userId).catch(() => undefined);
+        }, 20000);
+        return () => clearInterval(heartbeat);
+    }, [userId]);
     const [arenaOpen, setArenaOpen] = useState(() => {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
         return Boolean(requestedTab);

@@ -39,6 +39,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function post(request: APIRequestContext, path: string, body: unknown) {
+    const ready = path.match(/^\/api\/(duels|arena-tournaments)\/([^/]+)\/ready$/);
+    const actor = body as { userId?: string; ready?: boolean };
+    if (ready && actor.ready) {
+        const [,kind,id] = ready;
+        const response = await request.get(`/api/${kind}/${id}${kind === 'duels' ? '/room' : ''}?userId=${actor.userId}`);
+        const data = await response.json(); const room = data.room || data.tournament;
+        if (room?.veto && !room.veto.complete) {
+            const players = kind === 'duels' ? [room.challengerId,room.opponentId] : room.entrants.map((entry: { id:string }) => entry.id);
+            for (const userId of players) if (!room.veto.votes[userId]) await post(request, `/api/${kind}/${id}/ban`, { userId,gameId:'falsestart' });
+        }
+    }
     const response = await request.post(path, { data: body });
     expect(response.ok(), `${path}: ${await response.text()}`).toBeTruthy();
     return response.json();
@@ -498,8 +509,10 @@ test('private room link joins a live four-player lobby', async ({ browser, reque
     await expect(guestPage.getByRole('heading', { name: 'Friends Arena' })).toBeVisible();
     await expect(hostPage.getByText('4/4 human players')).toBeVisible();
 
-    await hostPage.getByRole('button', { name: 'Cup Shuffle' }).click();
-    await expect(guestPage.getByRole('button', { name: 'Cup Shuffle' })).toHaveClass(/active/);
+    await hostPage.getByRole('button', { name: 'Cup Shuffle', exact: true }).click();
+    await expect(guestPage.getByRole('button', { name: 'Cup Shuffle', exact: true })).toHaveClass(/active/);
+    await guestPage.getByRole('button', { name:'Ban False Start', exact:true }).click();
+    for (const player of players.slice(2)) await post(request, `/api/arena-tournaments/${roomId}/ready`, { userId:player.userId,ready:true });
     await Promise.all([
         hostPage.getByRole('button', { name: 'I am READY' }).click(),
         guestPage.getByRole('button', { name: 'I am READY' }).click(),

@@ -1,0 +1,16 @@
+.recap { --result:#bceb93; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:610px; padding:30px; color:#eef3ed; background:#151c1b; animation:recapEnter .4s cubic-bezier(.2,.7,.2,1) both; }
+.recap[data-won="false"] { --result:#ffacaa; background:#211b1e; }
+.meta { width:100%; display:flex; justify-content:space-between; gap:16px; font:650 11px monospace; color:#b2bfbc; padding-bottom:28px; border-bottom:1px solid #39413e; }
+.medal { color:var(--result); width:86px; height:86px; display:grid; place-items:center; margin-top:26px; border:1px solid var(--result); border-radius:50%; animation:medalIn .55s .05s both; }
+.recap > p { margin:24px 0 10px; color:var(--result); font:700 11px monospace; }
+.recap h2 { margin:0; font:750 36px/1.12 system-ui,sans-serif; text-align:center; max-width:600px; }
+.score { display:grid; grid-template-columns:minmax(0,1fr) 50px minmax(0,1fr); align-items:center; width:min(450px,100%); gap:16px; margin:28px 0; text-align:center; }
+.score > div { display:grid; gap:10px; min-width:0; }.score span { font:650 11px monospace; color:#aebcb6; overflow-wrap:anywhere; }.score strong { font:800 76px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums; animation:scoreIn .4s .12s both; }.score > div:first-child strong { color:var(--result); }
+.marks { display:flex; justify-content:center; gap:6px; }.marks i { display:block; width:22px; height:5px; background:#47504b; }.marks i[data-filled="true"] { background:var(--result); }
+.next { display:flex; align-items:center; gap:14px; padding:15px 0; border-top:1px solid #46504a; margin-bottom:18px; }.next span { color:#99aaa1; font:650 10px monospace; }.next strong { font-size:15px; }
+.recap > button { display:flex; align-items:center; justify-content:center; gap:25px; min-height:52px; padding:14px 24px; width:min(320px,100%); border:0; border-radius:6px; background:var(--result); color:#171c19; font:700 15px system-ui,sans-serif; cursor:pointer; }
+@keyframes recapEnter { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+@keyframes medalIn { from { opacity:0; transform:scale(.85); } to { opacity:1; transform:scale(1); } }
+@keyframes scoreIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@media(max-width:600px) { .recap { min-height:calc(100svh - 150px); padding:24px 20px; }.recap h2 { font-size:29px; }.score strong { font-size:64px; }.score { gap:10px; margin:24px 0; }.medal { margin-top:20px; width:70px; height:70px; } }
+@media(prefers-reduced-motion:reduce) { .recap,.medal,.score strong { animation:none; } }

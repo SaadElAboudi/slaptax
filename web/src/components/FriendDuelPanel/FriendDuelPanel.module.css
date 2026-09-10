@@ -32,7 +32,7 @@
 .shareLink input { min-height: 38px; border: 1px solid var(--line-soft); border-radius: 4px; background: #080b0f; color: var(--muted); padding: 0 10px; font-size: .68rem; }
 .inviteBanner { margin-inline: 24px; grid-template-columns: 1fr auto; align-items: center; }
 .inviteBanner span { grid-column: 1/-1; }.inviteBanner small { color: var(--accent); }
-.readyRoom { padding: 20px; border: 1px solid var(--line-soft); background: #090c10; display: grid; gap: 20px; }
+.readyRoom { padding: 20px 0; display: grid; gap: 20px; }
 .readyTitle { display: flex; justify-content: space-between; }
 .queueRoom { min-height: 280px; margin-inline: 24px; padding: 28px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; border: 1px solid rgba(255,212,0,.42); border-left: 4px solid var(--accent); background: #090c10; }
 .queueRoom > div { display: grid; gap: 6px; }

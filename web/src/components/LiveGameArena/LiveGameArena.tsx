@@ -6,6 +6,8 @@ import { useSfx } from '../../hooks/useSfx';
 import { startAdaptiveMusic, stopAdaptiveMusic } from '../../hooks/useAdaptiveAudio';
 import { useGameStore } from '../../hooks/useGameStore';
 import styles from './LiveGameArena.module.css';
+import { GamePoster } from './GamePoster';
+import { ArrowRight, X } from 'lucide-react';
 
 interface DuelSession {
     duelId: string;
@@ -96,7 +98,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     }, [playLoss, playWin, round]);
 
     return (
-        <section className={styles.arena} data-game={gameId} data-phase={phase}>
+        <section className={styles.arena} data-game={gameId} data-phase={phase} data-focus={phase === 'playing' || phase === 'countdown'}>
             <header className={styles.header}>
                 <div>
                     <span>{isFr ? `MANCHE ${round}` : `ROUND ${round}`}</span>
@@ -111,6 +113,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                         <div><i data-avatar="rival" /><strong>{opponentName}</strong></div>
                     </div>
                 )}
+                {mode === 'training' && phase === 'playing' && <button type="button" className={styles.exitPractice} onClick={() => setPhase('briefing')} aria-label={isFr ? 'Quitter l exercice' : 'Exit practice'} title={isFr ? 'Quitter l exercice' : 'Exit practice'}><X size={20} /></button>}
             </header>
 
             <div className={`${styles.series} ${mode === 'training' ? styles.trainingSeries : ''}`}>
@@ -123,7 +126,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'briefing' && (
                 <div className={styles.briefing}>
-                    <div className={styles.gameMark}>{gameGlyph(gameId)}</div>
+                    <div className={styles.poster}><GamePoster gameId={gameId} /></div>
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <h3>{gameLabel(gameId, isFr)}</h3>
                     <p>{gameRule(gameId, isFr)}</p>
@@ -131,7 +134,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                         <span>{gameId === 'falsestart' ? '3 POINTS' : gameId === 'onesecond' ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
-                    <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}</button>
+                    <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
                 </div>
             )}
 
@@ -1166,10 +1169,6 @@ function NumericRound({ round, isFr, finish }: RoundProps) {
             </div>
         </div>
     );
-}
-
-function gameGlyph(gameId: CompetitiveGameId) {
-    return { falsestart: 'GO', onesecond: '1.000', onemore: '+1', bounce: '●', symbolrush: '◆▲', bombpass: '●', cupshuffle: '▰', duelnumeric: '42' }[gameId];
 }
 
 function gameRule(gameId: CompetitiveGameId, isFr: boolean) {

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronRight, Play, Swords, Trophy, Zap, Timer, Layers3 } from 'lucide-react';
 import { api, type RivalryResponse } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
-import { SIGNATURE_GAMES, COMPETITIVE_GAMES, type CompetitiveGameId } from '../../gameplay/catalog';
+import { SIGNATURE_GAMES, COMPETITIVE_GAMES, GAME_CATEGORIES, type CompetitiveGameId } from '../../gameplay/catalog';
+import { GamePoster } from '../LiveGameArena/GamePoster';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import styles from './ArenaHome.module.css';
 
@@ -22,6 +23,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const [incoming, setIncoming] = useState(0);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const [category, setCategory] = useState('all');
     const [tick, setTick] = useState(0);
     const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
     const rival = history.find((entry) => entry.opponentId === favoriteRivalId && entry.opponentName)
@@ -76,11 +78,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             {SIGNATURE_GAMES.map((game, index) => {
                 const Icon = MARKS[index];
                 return <article key={game.id} className={styles.game} data-game={game.id}>
-                    <div className={styles.gameArt} aria-hidden="true">
-                        {index === 0 ? <div className={styles.signalArt}><span>WAIT</span><b>GO</b><i>NOPE</i></div>
-                            : index === 1 ? <div className={styles.dialArt}><Timer size={38} /><b>2–10<span>s</span></b></div>
-                                : <div className={styles.stackArt}>{[0,1,2,3,4].map((n) => <i key={n} />)}<span>+1</span></div>}
-                    </div>
+                    <div className={styles.gameArt}><GamePoster gameId={game.id} /></div>
                     <div className={styles.cardHeading}><Icon size={19} /><span>0{index + 1}</span><small>{index === 0 ? 'REFLEX' : index === 1 ? 'PRECISION' : 'RISK'}</small></div>
                     <h2>{isFr ? game.labelFr : game.labelEn}</h2>
                     <p>{HOOKS[isFr ? 'fr' : 'en'][index]}</p>
@@ -101,9 +99,21 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <button type="button" disabled={!userId || busy} onClick={() => void quickPlay()}>{busy ? '…' : queued ? (isFr ? 'Entrer dans le salon' : 'Enter the room') : (isFr ? 'Trouver un rival' : 'Find a rival')}<ArrowRight size={18} /></button>
         </div>
         {error && <p role="alert" className={styles.error}>{error}</p>}
-        <details className={styles.classics}><summary>{isFr ? 'Les classiques' : 'The classics'} <span>05</span></summary>
-            <div>{COMPETITIVE_GAMES.slice(3).map((game) => <button type="button" key={game.id} onClick={() => enter(game.id, 'training')}>{isFr ? game.labelFr : game.labelEn}<Play size={14} /></button>)}</div>
-        </details>
+        <section className={styles.library}>
+            <header><h2>{isFr ? 'Choisis ton terrain.' : 'Pick your playground.'}</h2><span>08 {isFr ? 'JEUX' : 'GAMES'}</span></header>
+            <div className={styles.categories} role="tablist" aria-label={isFr ? 'Categories de jeux' : 'Game categories'}>
+                {[{ id: 'all', fr: 'Tous', en: 'All games' }, ...GAME_CATEGORIES].map((entry) => <button type="button" role="tab" aria-selected={category === entry.id} key={entry.id} onClick={() => setCategory(entry.id)}>{isFr ? entry.fr : entry.en}</button>)}
+            </div>
+            <div className={styles.libraryGrid} role="tabpanel">
+                {COMPETITIVE_GAMES.filter((game) => category === 'all' || GAME_CATEGORIES.find((entry) => entry.id === category)?.games.some((id) => id === game.id)).map((game) => <article key={game.id}>
+                    <GamePoster gameId={game.id} />
+                    <div><span>{isFr ? game.skillFr : game.skillEn}</span><h3>{isFr ? game.labelFr : game.labelEn}</h3><div className={styles.libraryActions}>
+                        <button type="button" onClick={() => enter(game.id, 'training')}><Play size={16} />{isFr ? 'Jouer' : 'Play'}</button>
+                        <button type="button" title={isFr ? 'Defier un ami' : 'Challenge a friend'} aria-label={`${isFr ? 'Defier' : 'Challenge'}: ${isFr ? game.labelFr : game.labelEn}`} onClick={() => enter(game.id, 'defy')}><Swords size={17} /></button>
+                    </div></div>
+                </article>)}
+            </div>
+        </section>
         <nav className={styles.footer}><button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Classement' : 'Leaderboard'}</button><button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Historique' : 'History'}</button></nav>
     </section>;
 }

@@ -7,6 +7,14 @@
 .series > div { min-width: 0; padding: 7px 9px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; border: 1px solid var(--line-soft); color: var(--muted); }
 .series span { font-size: .6rem; }.series strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .7rem; }.seriesActive { border-color: var(--accent)!important; color: var(--text)!important; background: rgba(255,212,0,.06); }.seriesDone { border-color: rgba(54,211,153,.35)!important; color: var(--success)!important; }
 .trainingSeries { grid-template-columns: 1fr; }
+.poster { width:min(560px,100%); margin-bottom:18px; border-radius:8px; overflow:hidden; }
+.exitPractice { display:grid; place-items:center; height:36px; width:36px; border:1px solid #48504b; border-radius:6px; background:transparent; color:#c5d3ca; cursor:pointer; }
+.arena[data-phase="briefing"] .briefing { padding:28px; background:#171e1c; }
+.arena[data-phase="briefing"] .briefing h3 { font:750 32px/1.1 system-ui,sans-serif; }
+.arena[data-phase="briefing"] .briefing button { display:flex; align-items:center; justify-content:center; gap:20px; font:700 14px system-ui,sans-serif; }
+.arena[data-phase="playing"] .stage { animation:arenaReveal .3s ease-out both; }
+.arena[data-phase="complete"] .complete { animation:arenaReveal .35s ease-out both; background:#1a2721; }
+@keyframes arenaReveal { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .arena[data-phase="playing"]:has(.series > div:only-child) { grid-template-rows:auto 1fr; }
 .arena[data-phase="playing"] .series:has(> div:only-child) { display:none; }
 .header { flex-wrap:wrap; }
@@ -114,6 +122,7 @@
     .trainingSeries { grid-template-columns: minmax(0,1fr); }
 }
 @media (prefers-reduced-motion:reduce) {
+    .arena[data-phase="playing"] .stage,.arena[data-phase="complete"] .complete { animation:none; }
     .countdown,.bombCritical > .bombOrb,.impactLines i { animation: none; }
     .symbolFlash { transform: none; box-shadow: none; }
 }

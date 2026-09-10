@@ -13,6 +13,7 @@
     top: 66px;
     z-index: 24;
 }
+:global(main:has([data-focus="true"])) .tabs { display:none; }
 
 .tabs::before,
 .tabs::after {
@@ -43,7 +44,7 @@
     color: var(--muted);
     padding: 8px 18px;
     border-radius: 5px;
-    font-family: 'Space Mono', monospace;
+    font-family: inherit;
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0;
@@ -62,7 +63,7 @@
     background: var(--accent);
     border-color: var(--accent);
     color: #111;
-    box-shadow: 0 0 12px rgba(255, 212, 0, 0.22), inset 0 -1px 0 rgba(255, 122, 0, 0.4);
+    box-shadow: none;
 }
 
 /* Mobile */

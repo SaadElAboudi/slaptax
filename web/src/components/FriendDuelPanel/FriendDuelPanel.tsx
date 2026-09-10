@@ -6,6 +6,8 @@ import { getRiskStakeCap } from '../../gameplay/difficulty';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import { MomentReplay } from '../LiveGameArena/MomentReplay';
+import { GameVeto } from '../GameVeto/GameVeto';
+import { RoundRecap } from '../LiveGameArena/RoundRecap';
 import styles from './FriendDuelPanel.module.css';
 
 const STAKES = [2, 5, 10, 20];
@@ -157,6 +159,12 @@ export function FriendDuelPanel() {
         }
     });
 
+    useEffect(() => {
+        if (!userId) return;
+        const fallback = window.setInterval(() => { if (!document.hidden) setRealtimeTick((value) => value + 1); }, 5000);
+        return () => clearInterval(fallback);
+    }, [userId]);
+
     const opponents = useMemo(() => users.filter((user) => user.id !== userId), [users, userId]);
     const incoming = challenges.filter((challenge) => challenge.direction === 'incoming' && challenge.status === 'pending');
     const outgoing = challenges.filter((challenge) => challenge.direction === 'outgoing' && challenge.status === 'pending');
@@ -242,6 +250,10 @@ export function FriendDuelPanel() {
             try {
                 const data = await api.getLiveDuel(duelId as string, userId as string);
                 if (cancelled) return;
+                if (data.match.status === 'cancelled') {
+                    setDuelId(null); setMatch(null); setRoom(null); setPendingChallengeId(null); seenRoundsRef.current = null;
+                    setError(isFr ? 'Le salon a ete ferme.' : 'The room was closed.'); return;
+                }
                 const previousCount = seenRoundsRef.current;
                 if (previousCount == null) {
                     seenRoundsRef.current = data.match.rounds.length;
@@ -262,8 +274,12 @@ export function FriendDuelPanel() {
                 }
                 if (data.match.status === 'done') await refreshLiveState();
             } catch {
-                const roomData = await api.getDuelRoom(duelId as string, userId as string);
-                if (!cancelled) setRoom(roomData.room);
+                try {
+                    const roomData = await api.getDuelRoom(duelId as string, userId as string);
+                    if (!cancelled) setRoom(roomData.room);
+                } catch (cause) {
+                    if (!cancelled) setError(cause instanceof Error ? cause.message : 'Room unavailable');
+                }
             }
         }
 
@@ -431,22 +447,7 @@ export function FriendDuelPanel() {
     }
 
     if (intermission && match) {
-        const wonRound = intermission.winnerId === userId;
-        const myRoundScore = match.challengerId === userId ? intermission.challengerScore : intermission.opponentScore;
-        const rivalRoundScore = match.challengerId === userId ? intermission.opponentScore : intermission.challengerScore;
-        return (
-            <section className={`${styles.intermission} ${wonRound ? styles.intermissionWin : styles.intermissionLoss}`}>
-                <span>{wonRound ? (isFr ? 'MANCHE GAGNEE' : 'ROUND WON') : (isFr ? 'MANCHE PERDUE' : 'ROUND LOST')}</span>
-                <h2>{myRoundScore} - {rivalRoundScore}</h2>
-                <p>{gameLabel(intermission.gameId, isFr)}</p>
-                <div className={styles.scoreboard}>
-                    <strong>{match.score[myRole]}</strong><span>BO{match.bestOf}</span><strong>{match.score[rivalRole]}</strong>
-                </div>
-                <button type="button" onClick={() => setIntermission(null)}>
-                    {match.status === 'done' ? (isFr ? 'Voir le resultat' : 'See result') : (isFr ? 'Manche suivante' : 'Next round')}
-                </button>
-            </section>
-        );
+        return <RoundRecap match={match} round={intermission} userId={userId || ''} isFr={isFr} onContinue={() => setIntermission(null)} />;
     }
 
     async function handleRematch(action: 'request' | 'accept' | 'decline') {
@@ -479,8 +480,10 @@ export function FriendDuelPanel() {
 
     async function react(reaction: string) {
         if (!duelId || !userId) return;
-        const data = await api.reactToDuel(duelId, userId, reaction);
-        setMatch((current) => current ? { ...current, reactions: data.reactions } : current);
+        try {
+            const data = await api.reactToDuel(duelId, userId, reaction);
+            setMatch((current) => current ? { ...current, reactions: data.reactions } : current);
+        } catch (cause) { setError(cause instanceof Error ? cause.message : 'Reaction unavailable'); }
     }
 
     async function ensureShareLink(moment: ShareMoment) {
@@ -775,14 +778,14 @@ export function FriendDuelPanel() {
 
     return (
         <section className={styles.panel}>
-            <header className={styles.hero}>
+            {!duelId && <header className={styles.hero}>
                 <div>
                     <span>LIVE 1V1</span>
                     <h2>{isFr ? 'Duel entre amis' : 'Friend Duel'}</h2>
-                    <p>{isFr ? 'Trois jeux. Deux victoires. Aucun resultat simule.' : 'Three games. Two wins. No simulated outcome.'}</p>
+                    <p>{isFr ? 'Choisis ton terrain. Bannis le sien. Affrontez-vous en direct.' : 'Pick your ground. Ban theirs. Face off live.'}</p>
                 </div>
                 <strong>SLAP$ {Number(wallet).toFixed(2)}</strong>
-            </header>
+            </header>}
 
             {linkInvite && !duelId && linkInvite.challengerId !== userId && (
                 <div className={styles.inviteBanner}>
@@ -803,9 +806,18 @@ export function FriendDuelPanel() {
                         <b>VS</b>
                         <div className={rivalReady ? styles.isReady : ''}><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? 'READY' : 'WAITING'}</span></div>
                     </div>
-                    <button className={styles.primary} type="button" onClick={toggleReady} disabled={busy}>
+                    {room?.veto && userId && <GameVeto veto={room.veto} userId={userId} isFr={isFr} busy={busy} games={room.games} onBan={(gameId) => {
+                        setBusy(true); setError('');
+                        void api.banDuelGame(duelId, userId, gameId).then((data) => setRoom(data.room)).catch((cause) => setError(cause.message)).finally(() => setBusy(false));
+                    }} />}
+                    <button className={styles.primary} type="button" onClick={toggleReady} disabled={busy || Boolean(room?.veto && !room.veto.complete)}>
                         {ready ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
                     </button>
+                    <button className={styles.secondary} type="button" disabled={busy} onClick={() => {
+                        if (!userId) return;
+                        setBusy(true);
+                        void api.leaveDuelRoom(duelId,userId).then(() => { setDuelId(null); setMatch(null); setRoom(null); setPendingChallengeId(null); seenRoundsRef.current = null; }).catch((cause) => setError(cause.message)).finally(() => setBusy(false));
+                    }}>{isFr ? 'Quitter le salon' : 'Leave room'}</button>
                 </div>
             ) : matchmaking ? (
                 <div className={styles.queueRoom}>
@@ -813,7 +825,7 @@ export function FriendDuelPanel() {
                     <div>
                         <small>{isFr ? 'MATCHMAKING LIVE' : 'LIVE MATCHMAKING'}</small>
                         <strong>{isFr ? 'Recherche d’un rival humain' : 'Finding a human rival'}</strong>
-                        <p>{isFr ? 'Ta place est conservée même si tu quittes cet écran.' : 'Your place is saved even if you leave this screen.'}</p>
+                        <p>{isFr ? 'File active tant que l’application reste ouverte.' : 'Your queue stays active while the app is open.'}</p>
                     </div>
                     <button className={styles.secondary} type="button" onClick={toggleMatchmaking} disabled={busy}>
                         {busy ? (isFr ? 'Annulation...' : 'Cancelling...') : (isFr ? 'Quitter la file' : 'Leave queue')}
@@ -823,7 +835,7 @@ export function FriendDuelPanel() {
                 <div className={styles.setup}>
                     <div className={styles.setupIntro}>
                         <strong>{isFr ? '1. Configure la partie' : '1. Set up the match'}</strong>
-                        <span>{isFr ? 'Ton épreuve favorite sera incluse dans la rotation BO3.' : 'Your preferred event will be included in the BO3 rotation.'}</span>
+                        <span>{isFr ? 'Ton épreuve favorite entre dans la rotation, sauf si elle est bannie.' : 'Your preferred event joins the rotation unless it is banned.'}</span>
                     </div>
                     <div className={styles.fields}>
                         <label>{isFr ? 'Mise' : 'Stake'}

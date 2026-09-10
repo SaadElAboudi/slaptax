@@ -1,28 +1,28 @@
 /* ─── Design Tokens ─────────────────────────────────────── */
 :root {
-    --bg: #0b0f14;
-    --panel: #151b22;
-    --panel-hover: #1a2130;
-    --line: #263241;
-    --text: #e6edf3;
-    --muted: #91a3b8;
-    --accent: #ffd400;
-    --accent2: #ff7a00;
+    --bg: #101514;
+    --panel: #1b2321;
+    --panel-hover: #252f2c;
+    --line: #37423d;
+    --text: #eff3ee;
+    --muted: #a1b0a9;
+    --accent: #d4ef82;
+    --accent2: #99dbec;
     --ok: #4bd47b;
     --bad: #ff5a68;
     --info: #60a5fa;
-    --surface-0: #090c10;
-    --surface-1: #0f141b;
-    --surface-2: #151c25;
+    --surface-0: #101514;
+    --surface-1: #171e1c;
+    --surface-2: #202824;
     --line-soft: rgba(230, 237, 243, 0.11);
     --line-strong: rgba(230, 237, 243, 0.2);
     --success: #36d399;
     --danger: #ef476f;
     --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-    --shadow-panel: 0 20px 60px rgba(0, 0, 0, 0.38);
+    --radius-md: 8px;
+    --radius-lg: 8px;
+    --radius-xl: 8px;
+    --shadow-panel: none;
     --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.42), 0 4px 12px rgba(255, 212, 0, 0.08);
     --transition: 180ms ease;
     --arena-accent: #ffd400;
@@ -61,12 +61,8 @@ html {
 }
 
 body {
-    font-family: 'Space Mono', monospace;
-    background:
-        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
-        var(--surface-0);
-    background-size: 48px 48px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--surface-0);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
@@ -89,9 +85,7 @@ body::before {
     position: fixed;
     inset: 0;
     pointer-events: none;
-    background:
-        linear-gradient(180deg, var(--arena-haze), transparent 28%),
-        linear-gradient(115deg, transparent 60%, color-mix(in srgb, var(--arena-secondary) 5%, transparent));
+    background: none;
 }
 
 :root[data-trail="ember"] body::after,
