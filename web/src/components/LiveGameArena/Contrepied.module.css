@@ -1,0 +1,49 @@
+.game { width:100%; max-width:520px; display:grid; gap:12px; margin:auto; }
+.game header {display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.game header span {font-size:10px;color:var(--muted);font-weight:700;}
+.game header b {min-width:48px;text-align:right;font-size:25px;font-variant-numeric:tabular-nums;}
+.game header small {font-size:12px;}
+.rewards {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;list-style:none;margin:0;padding:0;}
+.rewards li {display:flex;justify-content:space-between;align-items:center;gap:3px;border-bottom:2px solid var(--line);padding:8px 4px;color:var(--muted);}
+.rewards small {font-size:9px;}
+.rewards span {display:flex;align-items:center;gap:4px;font-weight:800;}
+.rewards [data-current=true] {border-color:#b9eaff;color:#b9eaff;}
+.rewards [data-past=true] {opacity:.4;}
+.scores {display:flex;justify-content:space-between;gap:12px;}
+.scores span {display:flex;align-items:center;gap:9px;font-size:10px;color:var(--muted);}
+.scores b {font-size:24px;color:#d7f48b;font-variant-numeric:tabular-nums;}
+.scores span:last-child b {color:#ff929d;}
+.table {display:grid;grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr);align-items:center;gap:18px;padding:8px 12px;}
+.played {display:grid;justify-items:center;gap:8px;min-width:0;}
+.played>span {font-size:9px;text-align:center;color:var(--muted);min-height:22px;}
+.played[data-expired=true] .card {opacity:.45;}
+.played[data-expired=true] .card strong {text-decoration:line-through;}
+.card {height:138px;width:100%;max-width:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px solid #d7f48b66;border-radius:6px;background:#d7f48b;color:#17231a;position:relative;}
+.card small {position:absolute;left:8px;top:6px;font-size:11px;font-weight:800;}
+.card strong {font-size:45px;line-height:1;}
+[data-side=rival] .card {background:#ff929d;border-color:#ff929d66;}
+.card[data-hidden=true] {background:repeating-linear-gradient(45deg,#20322f,#20322f 8px,#243833 8px,#243833 10px);color:#80978d;border-color:#496457;}
+.prize {display:grid;justify-items:center;gap:5px;color:#b9eaff;}
+.prize strong {font-size:46px;line-height:1;font-variant-numeric:tabular-nums;}
+.prize span {font-size:9px;font-weight:700;}
+.outcome {margin:0;min-height:38px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);}
+.hand {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding-top:6px;}
+.hand button {height:94px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px;border:1px solid #829584;border-radius:5px;background:#e7eddf;color:#19251c;cursor:pointer;transition:transform .16s,border-color .16s;}
+.hand small {position:absolute;top:5px;left:6px;font-size:10px;}
+.hand strong {font-size:28px;line-height:1;}
+.hand [data-selected=true] {transform:translateY(-6px);background:#d7f48b;border-color:#d7f48b;box-shadow:0 0 0 2px #d7f48b33;}
+.hand [data-used=true] {background:transparent;color:#667369;border-color:#384239;opacity:.45;}
+.hand button:disabled {cursor:default;}
+.commit {min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;background:#d7f48b;border:0;border-radius:5px;color:#19251c;font-family:inherit;font-weight:800;cursor:pointer;}
+.commit:disabled {opacity:.45;cursor:default;}
+.opponentHand {display:flex;justify-content:center;align-items:center;gap:12px;font-size:11px;}
+.opponentHand span {color:var(--muted);font-size:9px;}
+.opponentHand [data-used=true] {opacity:.3;text-decoration:line-through;}
+.history {list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0;padding:10px 0;border-top:1px solid var(--line);}
+.history li {display:grid;justify-items:center;gap:4px;font-size:11px;}
+.history small {font-size:9px;color:var(--muted);}
+.history span {color:#b9eaff;font-variant-numeric:tabular-nums;}
+[data-reveal=true] .card {animation:cardReveal .3s ease-out;}
+@keyframes cardReveal {from{transform:rotateY(90deg);opacity:.3;}to{transform:rotateY(0);opacity:1;}}
+@media(max-width:480px) {.game{gap:9px;}.table{gap:10px;padding:3px 8px;grid-template-columns:minmax(0,1fr) 65px minmax(0,1fr);}.card{height:110px;}.hand{gap:6px;}.hand button{height:76px;}.card strong{font-size:38px;}.prize strong{font-size:38px;}}
+@media(prefers-reduced-motion:reduce){[data-reveal=true] .card{animation:none;}.hand button{transition:none;}}

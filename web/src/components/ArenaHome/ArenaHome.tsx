@@ -74,9 +74,9 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <span>{incoming ? `${incoming} ${isFr ? 'defi en attente' : 'pending challenge'}` : (isFr ? 'Une partie est en cours.' : 'A match is in progress.')}</span>
             <button type="button" onClick={() => onEnter(activeTournament && !activeDuel ? 'tournament' : 'defy')}>{isFr ? 'Reprendre' : 'Resume'}<ArrowRight size={17} /></button>
         </div>}
-        {(['ricochet','chroma'] as const).map((id)=><section className={styles.chromaFeature} key={id}>
+        {(['contrepied','ricochet','chroma'] as const).map((id)=><section className={styles.chromaFeature} key={id}>
             <div className={styles.chromaArt}><GamePoster gameId={id} /></div>
-            <div><span>{isFr ? 'NOUVELLE EPREUVE' : 'NEW EVENT'}</span><h2>{id.toUpperCase()}</h2><p>{id==='ricochet' ? (isFr ? 'Ton beau tir ne tient qu a un choc.' : 'One collision changes everything.') : (isFr ? 'Tu crois avoir l oeil ?' : 'Think you have an eye for color?')}</p></div>
+            <div><span>{isFr ? 'NOUVELLE EPREUVE' : 'NEW EVENT'}</span><h2>{id.toUpperCase()}</h2><p>{id==='contrepied' ? (isFr ? 'Ta meilleure carte. Mais au bon moment.' : 'Your best card. At the right moment.') : id==='ricochet' ? (isFr ? 'Ton beau tir ne tient qu a un choc.' : 'One collision changes everything.') : (isFr ? 'Tu crois avoir l oeil ?' : 'Think you have an eye for color?')}</p></div>
             <button type="button" onClick={() => enter(id,'training')}><Play size={18}/>{isFr ? 'Jouer':'Play'} {id.toUpperCase()}</button>
             <button type="button" onClick={() => enter(id,'defy')} aria-label={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`} title={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`}><Swords size={18}/></button>
         </section>)}
@@ -106,7 +106,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
         </div>
         {error && <p role="alert" className={styles.error}>{error}</p>}
         <section className={styles.library}>
-            <header><h2>{isFr ? 'Choisis ton terrain.' : 'Pick your playground.'}</h2><span>08 {isFr ? 'JEUX' : 'GAMES'}</span></header>
+            <header><h2>{isFr ? 'Choisis ton terrain.' : 'Pick your playground.'}</h2><span>{COMPETITIVE_GAMES.length} {isFr ? 'JEUX' : 'GAMES'}</span></header>
             <div className={styles.categories} role="tablist" aria-label={isFr ? 'Categories de jeux' : 'Game categories'}>
                 {[{ id: 'all', fr: 'Tous', en: 'All games' }, ...GAME_CATEGORIES].map((entry) => <button type="button" role="tab" aria-selected={category === entry.id} key={entry.id} onClick={() => setCategory(entry.id)}>{isFr ? entry.fr : entry.en}</button>)}
             </div>

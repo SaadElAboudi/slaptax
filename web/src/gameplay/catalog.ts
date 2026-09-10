@@ -1,6 +1,7 @@
 export type CompetitiveGameId =
     | 'chroma'
     | 'ricochet'
+    | 'contrepied'
     | 'falsestart'
     | 'onesecond'
     | 'onemore'
@@ -21,6 +22,11 @@ export interface CompetitiveGame {
 }
 
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
+    {
+        id:'contrepied',labelFr:'CONTREPIED',labelEn:'CONTREPIED',skillFr:'Bluff + tactique',skillEn:'Bluff + tactics',
+        ruleFr:'Cinq cartes, chacune utilisable une fois. Engage une carte en sept secondes : la plus forte gagne la recompense, une egalite la defausse. A expiration, la plus petite carte est consommee sans pouvoir gagner. Le total des recompenses decide.',
+        ruleEn:'Five cards, each used once. Commit within seven seconds: the highest wins the reward; ties discard it. On timeout, your lowest card is consumed and cannot win. Total rewards decide the match.',
+    },
     {
         id:'ricochet',labelFr:'RICOCHET',labelEn:'RICOCHET',skillFr:'Adresse + tactique',skillEn:'Aim + tactics',
         ruleFr:'Trois salves simultanees. Vise, dose et verrouille ton tir en dix secondes. Le palet restant le plus proche du centre gagne. Les sorties laterales eliminent les palets.',
@@ -107,8 +113,9 @@ export const GAME_CATEGORIES = [
     { id: 'precision', fr: 'Precision', en: 'Precision', games: ['ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
     { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['symbolrush', 'duelnumeric'] },
     { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
+    { id: 'tactics', fr: 'Tactique', en: 'Tactics', games: ['contrepied','ricochet'] },
 ] as const;
-export const isPartyGame = (id: string) => ['chroma','ricochet'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
+export const isPartyGame = (id: string) => ['chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

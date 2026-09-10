@@ -131,7 +131,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <h3>{gameLabel(gameId, isFr)}</h3>
                     <p>{gameRule(gameId, isFr)}</p>
                     <div className={styles.briefStats}>
-                        <span>{gameId === 'falsestart' ? '3 POINTS' : gameId === 'onesecond' ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onesecond' ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
                     <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>

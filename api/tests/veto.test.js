@@ -112,6 +112,21 @@ test('matchmaking preserves join time on retry and cannot enqueue a player witho
     assert.equal(s.getMatchmakingStatus(a).status,'waiting');
 });
 
+test('CONTREPIED enters tournament rotations and respects the shared veto', () => {
+    for (const ban of ['bounce', 'contrepied']) {
+        const { service:s, ids, store } = setup();
+        const { tournament:t } = s.createMultiplayerTournament(ids[0],4,'public');
+        for (const id of ids.slice(1)) s.joinMultiplayerTournament(t.id,id);
+        assert.equal(s.configureMultiplayerTournament(t.id,ids[0],['contrepied','chroma','ricochet']).ok,true);
+        for (const id of ids) s.banTournamentGame(t.id,id,ban);
+        for (const id of ids) s.setMultiplayerTournamentReady(t.id,id,true);
+        assert.equal(s.startMultiplayerTournament(t.id,ids[0]).ok,true);
+        const duels=store.read().duels.filter((d)=>d.tournamentId===t.id);
+        assert.equal(duels.length,2);
+        assert.ok(duels.every((d)=>d.games.includes('contrepied')===(ban!=='contrepied')));
+    }
+});
+
 test('leaving a pending duel releases matchmaking without charging either player', () => {
     const { service:s,ids:[a,b,c] } = setup();
     const { duel } = s.createDuel(a,b,2);

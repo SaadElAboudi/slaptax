@@ -28,7 +28,25 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
         ctx.fillText(`${moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (moment.gameId === 'ricochet') {
+    if (moment.gameId === 'contrepied') {
+        for (const [index, entry] of (state?.contrepied?.history || []).entries()) {
+            const x = 63 + index * 120;
+            ctx.fillStyle = '#b9eaff'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(`+${entry.reward}`, x + 55, 370);
+            players.forEach((id, side) => {
+                ctx.fillStyle = side ? '#ff929d' : '#d7f48b'; ctx.fillRect(x + 10, 392 + side * 108, 90, 90);
+                ctx.fillStyle = '#17231a'; ctx.font = 'bold 42px sans-serif';
+                ctx.fillText(String(entry.cards[id] || '-'), x + 55, 453 + side * 108);
+                if (entry.expired.includes(id)) {
+                    ctx.strokeStyle = '#17231a'; ctx.lineWidth = 2; ctx.beginPath();
+                    ctx.moveTo(x + 34, 439 + side * 108); ctx.lineTo(x + 76, 439 + side * 108); ctx.stroke();
+                    ctx.font = 'bold 10px sans-serif'; ctx.fillText(isFr ? 'EXPIRE' : 'EXPIRED', x + 55, 474 + side * 108);
+                }
+            });
+            ctx.fillStyle = '#dce7dc'; ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(entry.winnerId === null ? '0' : entry.winnerId === players[0] ? `+${entry.reward}` : `-${entry.reward}`, x + 55, 642);
+        }
+    } else if (moment.gameId === 'ricochet') {
         const surface=document.createElement('canvas');surface.width=360;surface.height=360;
         const c=surface.getContext('2d');if(c)paintRicochet(c,state?.board,players[0],360,360);
         ctx.drawImage(surface,180,330);

@@ -3,6 +3,7 @@ const { toMoney2 } = require("../shared/money");
 const P2P_GAME_LIBRARY = {
     chroma: { label: 'CHROMA', metric: [0, 440], elite: 20, hard: 80 },
     ricochet: { label: 'RICOCHET', metric: [0, 420], elite: 20, hard: 80 },
+    contrepied: { label: 'CONTREPIED', metric: [0, 15], elite: 13, hard: 10 },
     falsestart: { label: 'False Start', metric: [180, 720], elite: 250, hard: 450 },
     onesecond: { label: 'Blind Clock', metric: [900, 1300], elite: 1020, hard: 1100 },
     onemore: { label: 'One More', metric: [1000, 30000], elite: 10000, hard: 20000 },

@@ -1,5 +1,40 @@
 # Gameplay v4
 
+## CONTREPIED
+
+Onzieme jeu, disponible en solo, defi et tournoi, avec acces direct a l'accueil
+et categorie Tactique. Chaque joueur dispose des cartes 1 a 5, utilisables une
+seule fois. Les cinq recompenses 1 a 5 sont melangees une fois, puis leur ordre
+complet est affiche aux deux joueurs. Chaque echange dure au maximum sept
+secondes, suivi d'une revelation simultanee de 2,3 secondes.
+
+La carte la plus forte remporte la recompense ; une egalite la defausse. Apres
+cinq echanges, le plus grand total gagne un point dans la rotation du match.
+Une egalite finale attend le consentement des deux joueurs pour rejouer.
+Un joueur qui expire consomme sa plus petite carte restante, mais sa force est
+nulle pour cet echange. Deux expirations defaussent la recompense. Aucun bonus
+de vitesse ni choix aleatoire du vainqueur.
+
+Le serveur valide carte disponible, numero de tour et appartenance au duel.
+Il ne retire les cartes des mains publiques qu'a la revelation : les retirer
+au verrouillage permettrait de deduire le choix secret. Le joueur retrouve son
+propre choix apres reconnexion ; le rival et les spectateurs ne le recoivent
+pas avant la revelation. Une pause conserve les choix et le temps restant.
+L'historique des cinq echanges figure dans le resultat partage.
+
+Le solo utilise un bot explicitement identifie, jamais presente comme humain.
+Il choisit avant le joueur, selon la valeur relative de la recompense et une
+variation aleatoire. Le solo ne modifie ni portefeuille ni classement competitif.
+Le score d'entrainement normalise les points remportes sur les quinze possibles.
+Les limites existantes de session sans authentification, de stockage et de
+validation Safari/iOS restent applicables. Aucun deploiement public ici.
+
+Validation CONTREPIED : build de production reussi, 86 tests serveur et 12
+parcours navigateur cibles reussis sur Chromium ordinateur/mobile. Couverture
+des cinq echanges solo et duel, des choix secrets, des expirations, du veto
+en tournoi et des parcours existants de matchmaking et d'entree dans l'arene.
+La suite historique complete des navigateurs n'a pas ete rejouee.
+
 ## RICOCHET
 
 Dixieme jeu, disponible en solo, defi et tournoi, avec acces direct a l'accueil.

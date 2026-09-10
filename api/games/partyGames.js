@@ -1,7 +1,8 @@
 const { randomInt } = require('node:crypto');
 const {prepareRicochet,actRicochet,tickRicochet,publicRicochet} = require('./ricochet');
+const {beginContrepied,prepareContrepied,actContrepied,tickContrepied,publicContrepied} = require('./contrepied');
 
-const PARTY_IDS = ['falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet'];
+const PARTY_IDS = ['falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 function createParty(id, players, random = (min, max) => randomInt(min, max)) {
@@ -18,6 +19,7 @@ function beginParty(g, now) {
     g.scores = Object.fromEntries(g.players.map((p) => [p, 0]));
     g.feints = Object.fromEntries(g.players.map((p) => [p, 1]));
     g.targets = [];
+    if (g.id === 'contrepied') beginContrepied(g);
     if(g.id === 'ricochet') {g.pucks=[];g.frames=[];}
     g.runs = Object.fromEntries(g.players.map((p) => [p, { errors: [], durations: [], layers: [{ x: .19, width: .62 }], status: 'playing', level: 0, bank: 0, perfects: 0, motionAt: now }]));
     nextAttempt(g, now);
@@ -29,7 +31,9 @@ function nextAttempt(g, now) {
     g.responses = {};
     g.traps = {};
     g.feedback = {};
-    if (g.id === 'ricochet') {
+    if (g.id === 'contrepied') {
+        prepareContrepied(g,now);
+    } else if (g.id === 'ricochet') {
         prepareRicochet(g,now);
     } else if (g.id === 'falsestart') {
         g.phase = 'wait';
@@ -115,6 +119,7 @@ function actParty(g, id, action, now) {
     if (['done', 'ready', 'reveal', 'prepare'].includes(g.phase)) return false;
     if (now >= g.deadline) { tickParty(g, now); return false; }
     if(g.id === 'ricochet') return actRicochet(g,id,action,now);
+    if(g.id === 'contrepied') return actContrepied(g,id,action,now);
     if (g.id === 'falsestart') {
         if (action.action === 'feint' && g.feints[id] && now < g.goAt - 600) {
             const rival = g.players.find((p) => p !== id);
@@ -188,6 +193,7 @@ function settleSecond(g, now) {
 function tickParty(g, now) {
     if (['done', 'draw', 'ready'].includes(g.phase)) return;
     if(g.id === 'ricochet') {tickRicochet(g,now,conclude,nextAttempt);return;}
+    if(g.id === 'contrepied') {tickContrepied(g,now,conclude,nextAttempt);return;}
     if (g.id === 'falsestart' && g.phase === 'wait' && now >= g.goAt) g.phase = 'go';
     if (g.id === 'onesecond' && g.phase === 'prepare' && now >= g.clockAt) {
         g.phase = 'timing';
@@ -234,6 +240,7 @@ function publicParty(g, viewer, now) {
         state.draft = g.drafts?.[viewer] ? [...g.drafts[viewer]] : undefined;
     }
     if(g.id === 'ricochet') state.board=publicRicochet(g);
+    if(g.id === 'contrepied') state.contrepied=publicContrepied(g,viewer);
     for (const id of g.players) {
         const run = g.runs[id];
         if (!run) continue;

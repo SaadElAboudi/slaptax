@@ -48,6 +48,7 @@ const PATTERNS: Record<CompetitiveGameId, number[]> = {
     onesecond: [0],
     chroma: [0],
     ricochet: [0],
+    contrepied: [0],
     onemore: [130, 165, 196, 220, 247, 220, 196, 165],
     bounce: [110, 165, 220, 165, 132, 198, 247, 198],
     symbolrush: [196, 247, 294, 370, 294, 247, 220, 247],

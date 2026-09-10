@@ -19,3 +19,7 @@
 .ricochet i,.ricochet b,.ricochet span {position:absolute;width:30px;height:30px;border-radius:50%;background:#d7f48b;border:3px solid #566e31;left:45px;top:55px;}
 .ricochet b {background:#ff929d;border-color:#9a4454;left:85px;top:75px;}
 .ricochet span {width:6px;height:6px;left:65px;top:65px;border:0;background:#e4e7c5;}
+.contrepied {position:relative;width:180px;height:135px;}
+.contrepied>* {position:absolute;display:grid;place-items:center;width:70px;height:105px;border-radius:5px;background:#e7eddf;color:#243222;font:800 42px sans-serif;left:5px;top:20px;transform:rotate(-14deg);border:2px solid #95ac91;}
+.contrepied>b {left:55px;top:0;background:#d7f48b;transform:rotate(0);z-index:1;}
+.contrepied>i {left:105px;transform:rotate(14deg);background:#ff929d;border-color:#c76c77;}

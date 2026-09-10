@@ -26,6 +26,7 @@ const DRAFT_GAMES = [
     { id: 'onemore', label: 'One More' },
     { id: 'chroma', label: 'CHROMA' },
     { id: 'ricochet', label: 'RICOCHET' },
+    { id: 'contrepied', label: 'CONTREPIED' },
     { id: "bounce", label: "Bounce Panic" },
     { id: "symbolrush", label: "Symbol Sprint" },
     { id: "bombpass", label: "Bomb Pass" },
