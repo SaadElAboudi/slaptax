@@ -1,4 +1,6 @@
 export type CompetitiveGameId =
+    | 'chroma'
+    | 'ricochet'
     | 'falsestart'
     | 'onesecond'
     | 'onemore'
@@ -19,6 +21,17 @@ export interface CompetitiveGame {
 }
 
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
+    {
+        id:'ricochet',labelFr:'RICOCHET',labelEn:'RICOCHET',skillFr:'Adresse + tactique',skillEn:'Aim + tactics',
+        ruleFr:'Trois salves simultanees. Vise, dose et verrouille ton tir en dix secondes. Le palet restant le plus proche du centre gagne. Les sorties laterales eliminent les palets.',
+        ruleEn:'Three simultaneous volleys. Aim, set power and lock your shot in ten seconds. The remaining puck nearest the center wins. Side exits eliminate pucks.',
+    },
+    {
+        id: 'chroma', labelFr: 'CHROMA', labelEn: 'CHROMA',
+        skillFr: 'Couleur + memoire', skillEn: 'Color + memory',
+        ruleFr: 'Observe deux secondes. Recree la couleur en dix secondes. Trois couleurs, la plus petite distance RVB totale gagne.',
+        ruleEn: 'Look for two seconds. Recreate the color in ten. Three colors, lowest total RGB distance wins.',
+    },
     {
         id: 'falsestart', labelFr: 'Faux Depart', labelEn: 'False Start',
         skillFr: 'Reflexe + bluff', skillEn: 'Reflex + bluff',
@@ -88,14 +101,14 @@ export function getCompetitiveGame(id: string): CompetitiveGame | undefined {
     return COMPETITIVE_GAMES.find((game) => game.id === id);
 }
 
-export const SIGNATURE_GAMES = COMPETITIVE_GAMES.slice(0, 3);
+export const SIGNATURE_GAMES = COMPETITIVE_GAMES.filter((game) => ['falsestart', 'onesecond', 'onemore'].includes(game.id));
 export const GAME_CATEGORIES = [
     { id: 'reflex', fr: 'Reflexes', en: 'Reflexes', games: ['falsestart', 'bounce'] },
-    { id: 'precision', fr: 'Precision', en: 'Precision', games: ['onesecond', 'cupshuffle'] },
+    { id: 'precision', fr: 'Precision', en: 'Precision', games: ['ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
     { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['symbolrush', 'duelnumeric'] },
     { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
 ] as const;
-export const isPartyGame = (id: string) => SIGNATURE_GAMES.some((game) => game.id === id);
+export const isPartyGame = (id: string) => ['chroma','ricochet'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

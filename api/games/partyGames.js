@@ -1,6 +1,7 @@
 const { randomInt } = require('node:crypto');
+const {prepareRicochet,actRicochet,tickRicochet,publicRicochet} = require('./ricochet');
 
-const PARTY_IDS = ['falsestart', 'onesecond', 'onemore'];
+const PARTY_IDS = ['falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 function createParty(id, players, random = (min, max) => randomInt(min, max)) {
@@ -17,6 +18,7 @@ function beginParty(g, now) {
     g.scores = Object.fromEntries(g.players.map((p) => [p, 0]));
     g.feints = Object.fromEntries(g.players.map((p) => [p, 1]));
     g.targets = [];
+    if(g.id === 'ricochet') {g.pucks=[];g.frames=[];}
     g.runs = Object.fromEntries(g.players.map((p) => [p, { errors: [], durations: [], layers: [{ x: .19, width: .62 }], status: 'playing', level: 0, bank: 0, perfects: 0, motionAt: now }]));
     nextAttempt(g, now);
 }
@@ -27,7 +29,9 @@ function nextAttempt(g, now) {
     g.responses = {};
     g.traps = {};
     g.feedback = {};
-    if (g.id === 'falsestart') {
+    if (g.id === 'ricochet') {
+        prepareRicochet(g,now);
+    } else if (g.id === 'falsestart') {
         g.phase = 'wait';
         g.goAt = now + g.random(1800, 4200);
         g.decoyAt = now + 750;
@@ -36,6 +40,9 @@ function nextAttempt(g, now) {
         g.targetMs = g.random(2, 11) * 1000;
         g.targets.push(g.targetMs);
         prepareClock(g, now);
+    } else if (g.id === 'chroma') {
+        g.color = [g.random(24, 232), g.random(24, 232), g.random(24, 232)];
+        prepareChroma(g, now);
     } else {
         g.phase = 'stack';
         g.deadline = now + 30000;
@@ -47,6 +54,26 @@ function prepareClock(g, now) {
     g.responses = {};
     g.clockAt = now + 3000;
     g.deadline = g.clockAt;
+}
+
+function prepareChroma(g, now) {
+    g.phase = 'prepare';
+    g.responses = {};
+    g.drafts = Object.fromEntries(g.players.map((p) => [p, [128, 128, 128]]));
+    g.deadline = now + 3000;
+}
+
+function settleChroma(g, now) {
+    const colors = {};
+    for (const p of g.players) {
+        colors[p] = [...(g.responses[p] || g.drafts[p])];
+        const error = Math.round(Math.hypot(...g.color.map((c, i) => c - colors[p][i])) * 1000);
+        g.runs[p].errors.push(error);
+        g.scores[p] -= error;
+    }
+    g.feedback = { color: [...g.color], colors };
+    endAttempt(g, now);
+    g.deadline = now + 3500;
 }
 
 function endAttempt(g, now) {
@@ -87,6 +114,7 @@ function actParty(g, id, action, now) {
     }
     if (['done', 'ready', 'reveal', 'prepare'].includes(g.phase)) return false;
     if (now >= g.deadline) { tickParty(g, now); return false; }
+    if(g.id === 'ricochet') return actRicochet(g,id,action,now);
     if (g.id === 'falsestart') {
         if (action.action === 'feint' && g.feints[id] && now < g.goAt - 600) {
             const rival = g.players.find((p) => p !== id);
@@ -107,6 +135,13 @@ function actParty(g, id, action, now) {
         else if (action.action === 'cancel') g.responses[id] = null;
         else return false;
         if (g.players.every((p) => g.responses[p] !== undefined)) settleSecond(g, now);
+    } else if (g.id === 'chroma') {
+        if (g.phase !== 'mix' || g.responses[id] !== undefined) return false;
+        if (!['color', 'lock'].includes(action.action) || !Array.isArray(action.rgb)
+            || action.rgb.length !== 3 || !action.rgb.every((v) => Number.isInteger(v) && v >= 0 && v <= 255)) return false;
+        g.drafts[id] = [...action.rgb];
+        if (action.action === 'lock') g.responses[id] = [...action.rgb];
+        if (g.players.every((p) => g.responses[p] !== undefined)) settleChroma(g, now);
     } else {
         const run = g.runs[id];
         if (run.status !== 'playing') return false;
@@ -152,17 +187,25 @@ function settleSecond(g, now) {
 
 function tickParty(g, now) {
     if (['done', 'draw', 'ready'].includes(g.phase)) return;
+    if(g.id === 'ricochet') {tickRicochet(g,now,conclude,nextAttempt);return;}
     if (g.id === 'falsestart' && g.phase === 'wait' && now >= g.goAt) g.phase = 'go';
     if (g.id === 'onesecond' && g.phase === 'prepare' && now >= g.clockAt) {
         g.phase = 'timing';
         g.deadline = g.clockAt + g.targetMs + 5000;
     }
     if (now >= g.deadline) {
+        if (g.id === 'chroma' && g.phase === 'prepare') {
+            g.phase = 'observe'; g.deadline = now + 2000; return;
+        }
+        if (g.id === 'chroma' && g.phase === 'observe') {
+            g.phase = 'mix'; g.deadline = now + 10000; return;
+        }
         if (g.phase === 'reveal') {
-            if (g.id === 'onesecond' && g.attempt >= 3) conclude(g, 'precision-three-attempts');
+            if (['onesecond', 'chroma'].includes(g.id) && g.attempt >= 3) conclude(g, 'precision-three-attempts');
             else if (g.id === 'falsestart' && (Math.max(...Object.values(g.scores)) >= 3 || g.attempt >= 7)) conclude(g, 'reaction-first-to-three');
             else nextAttempt(g, now);
-        } else if (g.id === 'onesecond') settleSecond(g, now);
+        } else if (g.id === 'chroma') settleChroma(g, now);
+        else if (g.id === 'onesecond') settleSecond(g, now);
         else if (g.id === 'falsestart') { g.feedback = { timeout: true }; endAttempt(g, now); }
         else {
             for (const id of g.players) {
@@ -186,6 +229,11 @@ function publicParty(g, viewer, now) {
         answered: Object.keys(g.responses || {}),
         runs: {}, winnerId: g.winnerId, summary: g.summary,
     };
+    if (g.id === 'chroma') {
+        state.color = g.phase === 'observe' ? [...g.color] : undefined;
+        state.draft = g.drafts?.[viewer] ? [...g.drafts[viewer]] : undefined;
+    }
+    if(g.id === 'ricochet') state.board=publicRicochet(g);
     for (const id of g.players) {
         const run = g.runs[id];
         if (!run) continue;
@@ -202,10 +250,16 @@ function recordParty(g, now, force = false) {
     const state = publicParty(g, g.players[0], now);
     // Copy snapshots before later actions mutate scores, towers or result arrays.
     g.replay.push(JSON.parse(JSON.stringify({ at: now, state })));
-    g.replay = g.replay.filter((frame) => now - frame.at <= 3000).slice(-31);
+    g.replay = g.replay.filter((frame) => now - frame.at <= (g.id === 'ricochet' ? 8000 : 3000)).slice(g.id === 'ricochet' ? -81 : -31);
 }
 
 function pauseParty(g, delta, now = Date.now()) {
+    if(g.id === 'ricochet' && g.shotAt) g.shotAt+=delta;
+    if (g.id === 'chroma' && ['prepare', 'observe', 'mix'].includes(g.phase)) {
+        g.turn++;
+        prepareChroma(g, now);
+        return;
+    }
     // A hidden clock cannot be resumed fairly after a disconnect. Replay only
     // the unfinished attempt, with the same target and a fresh countdown.
     if (g.id === 'onesecond' && ['prepare', 'timing'].includes(g.phase)) {

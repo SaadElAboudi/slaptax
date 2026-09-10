@@ -18,12 +18,15 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 
 export interface PartyState {
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw';
+    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight';
+    board?: RicochetBoard;
+    color?: number[];
+    draft?: number[];
     turn: number;
     attempt: number;
     remaining: number;
     scores: Record<string, number>;
-    feedback: { actor?: string; falseStart?: boolean; reaction?: number; trapped?: boolean; timeout?: boolean; durations?: Record<string, number | null> };
+    feedback: { color?: number[]; colors?: Record<string, number[]>; actor?: string; falseStart?: boolean; reaction?: number; trapped?: boolean; timeout?: boolean; durations?: Record<string, number | null> };
     feints: Record<string, number>;
     ready: string[];
     signal: 'go' | 'trap' | 'wait';
@@ -34,6 +37,12 @@ export interface PartyState {
     runs: Record<string, PartyRun>;
     winnerId: string | null;
     summary: string;
+}
+
+export interface RicochetBoard {
+    size:number;
+    pucks:Array<{id:string;owner:string;x:number;y:number}>;
+    origins:Record<string,{x:number;y:number}>;
 }
 
 export interface PartyMoment {

@@ -5,6 +5,8 @@ import { useGameStore } from '../../hooks/useGameStore';
 import { useSfx } from '../../hooks/useSfx';
 import { interpolateTower, paintTower, type PartyState } from '../../gameplay/party';
 import styles from './PartyArena.module.css';
+import { Chroma } from './Chroma';
+import { Ricochet } from './Ricochet';
 
 interface Props {
     gameId: string;
@@ -66,9 +68,11 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                     const party: PartyState = data.party;
                     const raw = party.scores[identity] || 0;
                     const score = session ? (data.winnerId === identity ? 1000 : 0)
+                        : gameId === 'ricochet' ? raw / 10
+                        : gameId === 'chroma' ? Math.max(0, 1000 + raw / (3 * 255 * Math.sqrt(3)))
                         : gameId === 'onesecond' ? Math.max(0, 1000 + raw / 3)
                             : gameId === 'onemore' ? raw * 50 : raw * 1000 / 3;
-                    const detail = gameId === 'onesecond' ? `${Math.abs(raw)} ms ${isFr ? "d'ecart cumule" : 'total error'}`
+                    const detail = gameId === 'ricochet' ? raw ? `${((10000-raw)/10).toFixed(1)} ${isFr ? 'du centre' : 'from center'}` : (isFr ? 'Aucun palet restant' : 'No remaining puck') : gameId === 'chroma' ? `${(Math.abs(raw)/1000).toFixed(1)} ${isFr ? 'de distance RVB cumulee' : 'total RGB distance'}` : gameId === 'onesecond' ? `${Math.abs(raw)} ms ${isFr ? "d'ecart cumule" : 'total error'}`
                         : gameId === 'onemore' ? `${raw} ${isFr ? 'blocs securises' : 'blocks banked'}` : `${raw} ${isFr ? 'points' : 'points'}`;
                     finishRef.current(score, detail, Boolean(session));
                 }
@@ -90,10 +94,10 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const submitted = party?.answered.includes(identity);
     const revealing = party?.phase === 'reveal';
 
-    function send(action: string) {
+    function send(action: string, data?: { rgb: number[] } | { angle: number; power: number }) {
         const ws = socket.current;
         if (!active || !ws || ws.readyState !== WebSocket.OPEN) return;
-        ws.send(JSON.stringify({ type: 'arena.action', action, turn: latest.current?.party.turn }));
+        ws.send(JSON.stringify({ type: 'arena.action', action, turn: latest.current?.party.turn, ...data }));
     }
     function stopClock() {
         if (!active || submitted || party?.phase !== 'timing') return;
@@ -113,7 +117,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         const cue = `${party.turn}:${party.phase}`;
         if (cue === soundTurn.current) return;
         soundTurn.current = cue;
-        if (party.phase === 'go' || party.phase === 'timing') playDraw();
+        if (party.phase === 'go' || party.phase === 'timing' || party.phase === 'flight') playDraw();
         if (party.phase === 'reveal' && party.feedback.falseStart) playFalseStart();
     }, [party?.turn, party?.phase, playDraw, playFalseStart]);
     useEffect(() => {
@@ -150,17 +154,17 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     return <div className={styles.arena} data-testid="party-arena" data-game={gameId} data-phase={party?.phase || 'ready'}>
         <div className={styles.hud}>
             <span>{session ? (isFr ? 'FACE A FACE' : 'HEAD TO HEAD') : 'SOLO'}</span>
-            <strong>{gameId === 'onemore' ? `${Math.ceil((party?.remaining || 30000) / 1000)} s` : `${party?.attempt || 1} / ${gameId === 'onesecond' ? '3' : '7 MAX'}`}</strong>
+            <strong>{gameId === 'onemore' ? `${Math.ceil((party?.remaining || 30000) / 1000)} s` : `${party?.attempt || 1} / ${['onesecond','chroma','ricochet'].includes(gameId) ? '3' : '7 MAX'}`}</strong>
         </div>
-        <div className={styles.score}>
-            <span>{isFr ? 'TOI' : 'YOU'} <b>{Math.abs(party?.scores[identity] || 0)}{gameId === 'onesecond' ? ' ms' : ''}</b></span>
-            {rival && <><i>VS</i><span>{isFr ? 'RIVAL' : 'RIVAL'} <b>{Math.abs(party?.scores[rival] || 0)}{gameId === 'onesecond' ? ' ms' : ''}</b></span></>}
-        </div>
+        {gameId !== 'ricochet' && <div className={styles.score}>
+            <span>{isFr ? 'TOI' : 'YOU'} <b>{gameId === 'chroma' ? (Math.abs(party?.scores[identity] || 0)/1000).toFixed(1) : Math.abs(party?.scores[identity] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span>
+            {rival && <><i>VS</i><span>RIVAL <b>{gameId === 'chroma' ? (Math.abs(party?.scores[rival] || 0)/1000).toFixed(1) : Math.abs(party?.scores[rival] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span></>}
+        </div>}
         {status && <div className={event?.phase === 'countdown' || event?.phase === 'waiting' ? styles.countIn : styles.notice} role="status"><span>{event?.phase === 'countdown' ? (isFr ? 'ENTREE DANS L ARENE' : 'ENTERING THE ARENA') : ''}</span><strong key={status}>{status}</strong></div>}
         {party?.phase === 'draw' ? <div className={styles.draw}>
             <h3>{isFr ? 'Egalite parfaite.' : 'An exact tie.'}</h3>
             <button type="button" disabled={!active || party.ready.includes(identity)} onClick={() => send('retry')}><RotateCcw size={18} />{party.ready.includes(identity) ? (isFr ? 'En attente du rival' : 'Waiting for rival') : (isFr ? 'Rejouer la manche' : 'Replay this round')}</button>
-        </div> : gameId === 'falsestart' ? <>
+        </div> : gameId === 'ricochet' ? party && <Ricochet key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'chroma' ? party && <Chroma key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'falsestart' ? <>
             <button type="button" className={styles.signal} data-signal={party?.signal || 'wait'} data-testid="signal-button"
                 disabled={!active || revealing || party?.phase === 'ready'} onClick={() => send('hit')}>
                 <Zap size={42} />

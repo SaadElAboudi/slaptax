@@ -3,6 +3,7 @@ import { Download, ImageDown, Pause, Play, Share2 } from 'lucide-react';
 import { gameLabel } from '../../gameplay/catalog';
 import { paintTower, type PartyMoment, type PartyState } from '../../gameplay/party';
 import styles from './MomentReplay.module.css';
+import {paintRicochet} from '../../gameplay/ricochet';
 
 interface Props { moment: PartyMoment; userId: string; playerName: string; rivalName: string; isFr: boolean }
 
@@ -25,14 +26,26 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         ctx.fillText(name, x, 214);
         const score = state?.scores[id] ?? moment.scores[id] ?? 0;
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
-        ctx.fillText(`${Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : ''}`, x, 274);
+        ctx.fillText(`${moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (moment.gameId === 'onemore') {
+    if (moment.gameId === 'ricochet') {
+        const surface=document.createElement('canvas');surface.width=360;surface.height=360;
+        const c=surface.getContext('2d');if(c)paintRicochet(c,state?.board,players[0],360,360);
+        ctx.drawImage(surface,180,330);
+    } else if (moment.gameId === 'onemore') {
         players.forEach((id, index) => {
             const offscreen = document.createElement('canvas'); offscreen.width = 270; offscreen.height = 350;
             const c = offscreen.getContext('2d')!;
             paintTower(c, state?.runs[id], 270, 350, index ? '#ffa49c' : accent);
             ctx.drawImage(offscreen, index ? 392 : 58, 334);
+        });
+    } else if (moment.gameId === 'chroma') {
+        const colors = [state?.feedback.color, ...players.map((id) => state?.feedback.colors?.[id])];
+        colors.forEach((rgb,i) => {
+            ctx.fillStyle = rgb ? `rgb(${rgb.join(',')})` : '#383d40';
+            ctx.fillRect(55+i*210,370,190,230);
+            ctx.fillStyle = '#f2f5ef'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(i === 0 ? (isFr ? 'CIBLE' : 'TARGET') : `PLAYER ${i}`,150+i*210,634);
         });
     } else if (moment.gameId === 'falsestart') {
         const signal = state?.signal || 'wait';

@@ -1,5 +1,72 @@
 # Gameplay v4
 
+## RICOCHET
+
+Dixieme jeu, disponible en solo, defi et tournoi, avec acces direct a l'accueil.
+Trois salves : chaque joueur verrouille angle et puissance dans une fenetre de
+dix secondes. Les deux tirs sont lances ensemble. Un joueur qui ne valide pas
+perd son tir, sans proposition automatique. Chaque salve conserve les palets
+precedents. Les deux sorties laterales eliminent les palets qui les traversent.
+Le palet restant le plus proche du centre apres la troisieme salve gagne
+l'epreuve ; les distances sont arrondies au dixieme d'unite du plateau 600 x 600.
+Une egalite exacte attend l'accord des deux joueurs pour recommencer.
+
+Matter.js arbitre les collisions cote serveur, sans gravite. Chaque salve est
+simulee en 720 pas fixes de 1/120 seconde, puis restituee sur six secondes.
+Le navigateur interpole les positions recues, sans determiner les collisions
+ou le vainqueur. Le plateau est tourne de 180 degres pour le second joueur ;
+angles, puissance, dimensions et positions de depart sont symetriques.
+La visee adverse n'est pas envoyee avant le tir. Une pause conserve les tirs
+verrouilles et la position dans la simulation. Le replay conserve la derniere
+salve, huit secondes et 81 instantanes maximum ; les autres jeux restent a 31.
+
+La simulation est bornee a six palets et reste executee dans le processus
+serveur. Les essais de charge, la calibration du gameplay avec de vrais joueurs
+et Safari/iOS restent necessaires avant une ouverture massive. Pas de physique
+persistante entre redemarrages, ni de nouvelle garantie anti-usurpation.
+
+Validation RICOCHET : 77 tests serveur reussis et 12 parcours navigateur cibles
+reussis sur Chromium ordinateur/mobile. Les tests incluent trois salves solo
+et duel, canvas non uniforme et pixels en mouvement, tirs secrets, entree/sortie
+de salon, matchmaking, catalogue et tournoi. L'audit npm des dependances serveur
+de production ne signale aucune vulnerabilite connue. La suite historique
+complete des navigateurs n'a pas ete rejouee ; aucun deploiement public ici.
+
+## CHROMA
+
+Neuvieme jeu, disponible dans Precision, en solo, defi et tournoi, avec acces
+direct depuis l'accueil. Trois essais par epreuve : preparation 3-2-1,
+observation de la cible pendant deux secondes, reconstruction pendant dix
+secondes maximum, puis revelation simultanee pendant 3,5 secondes.
+
+La distance euclidienne entre les trois canaux RVB est calculee sur le serveur,
+arrondie au millieme puis additionnee sur les trois essais. La plus petite
+erreur totale gagne un point dans la rotation du match. Aucun bonus de vitesse.
+Ce format ne constitue pas un BO3 interne : le BO du duel englobant est conserve.
+Les egalites exactes attendent le consentement des deux joueurs pour rejouer.
+
+Les canaux cibles sont tires entre 24 et 231 pour eviter les extremes dans cette
+premiere version. Le nuancier combine un carre saturation/luminosite et trois
+curseurs utilisables au clavier. La validation verrouille la proposition ; a
+expiration, le serveur prend la derniere couleur recue (gris neutre par defaut).
+Les propositions adverses ne sont diffusees qu'a la revelation. La cible cesse
+d'etre envoyee pendant la reconstruction ; un client modifie peut toutefois
+conserver la couleur recue pendant l'observation. Ce n'est pas un dispositif
+anti-triche contre les clients modifies ou les captures d'ecran.
+
+Une reconnexion rejoue uniquement l'essai inacheve, meme cible et nouveau numero
+de tour, pour les deux joueurs. Les essais termines et leur score sont conserves.
+Le resultat partage montre la cible et les deux propositions du dernier essai.
+Les differences d'ecrans, filtres nocturnes et perception des couleurs restent
+une limite d'equite : aucune calibration perceptuelle n'est revendiquee.
+
+Validation CHROMA : 70 tests serveur reussis, dont confidentialite des couleurs,
+validation des canaux, verrouillage, expiration, egalite, reprise et integration
+au veto des tournois. Douze parcours Playwright reussis sur Chromium ordinateur
+et mobile : CHROMA solo/duel et regressions catalogue, salons, matchmaking et
+tournoi. La suite historique complete des navigateurs n'a pas ete rejouee pour
+cet ajout. Aucun nouveau jeu TRACE ni deploiement public dans cette livraison.
+
 ## Experience et preparation des parties
 
 Le catalogue propose huit jeux filtres par Reflexes, Precision, Reflexion et

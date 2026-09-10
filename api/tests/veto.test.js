@@ -60,6 +60,21 @@ test('tournament vote ties have a stable catalogue-order outcome and exactly thr
     assert.equal(result.games.length,3); assert.equal(new Set(result.games).size,3);
 });
 
+test('CHROMA is selectable for a tournament and can be excluded by its veto', () => {
+    for (const ban of ['bounce','chroma']) {
+        const {service:s,ids,store}=setup();
+        const {tournament:t}=s.createMultiplayerTournament(ids[0],4,'public');
+        for(const id of ids.slice(1)) s.joinMultiplayerTournament(t.id,id);
+        assert.equal(s.configureMultiplayerTournament(t.id,ids[0],['chroma','cupshuffle','duelnumeric']).ok,true);
+        for(const id of ids) s.banTournamentGame(t.id,id,ban);
+        for(const id of ids) s.setMultiplayerTournamentReady(t.id,id,true);
+        assert.equal(s.startMultiplayerTournament(t.id,ids[0]).ok,true);
+        const duels=store.read().duels.filter((d)=>d.tournamentId===t.id);
+        assert.equal(duels.length,2);
+        assert.ok(duels.every((d)=>d.games.includes('chroma')===(ban!=='chroma')));
+    }
+});
+
 test('matchmaking drops stale, duplicate, busy and insolvent entries', () => {
     const now = Date.now();
     const recent = new Date(now).toISOString();
@@ -70,6 +85,20 @@ test('matchmaking drops stale, duplicate, busy and insolvent entries', () => {
     ] };
     pruneQueue(db,now);
     assert.deepEqual(db.matchmakingQueue.map((entry) => entry.userId),['a']);
+});
+
+test('RICOCHET is inherited by tournament duels and its veto replaces it', () => {
+    for(const ban of ['bounce','ricochet']) {
+        const {service:s,ids,store}=setup();
+        const {tournament:t}=s.createMultiplayerTournament(ids[0],4,'public');
+        for(const id of ids.slice(1))s.joinMultiplayerTournament(t.id,id);
+        assert.equal(s.configureMultiplayerTournament(t.id,ids[0],['ricochet','chroma','cupshuffle']).ok,true);
+        for(const id of ids)s.banTournamentGame(t.id,id,ban);
+        for(const id of ids)s.setMultiplayerTournamentReady(t.id,id,true);
+        assert.equal(s.startMultiplayerTournament(t.id,ids[0]).ok,true);
+        const duels=store.read().duels.filter((d)=>d.tournamentId===t.id);
+        assert.equal(duels.length,2);assert.ok(duels.every((d)=>d.games.includes('ricochet')===(ban!=='ricochet')));
+    }
 });
 
 test('matchmaking preserves join time on retry and cannot enqueue a player without funds', () => {

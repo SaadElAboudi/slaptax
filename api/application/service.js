@@ -24,6 +24,8 @@ const DRAFT_GAMES = [
     { id: 'falsestart', label: 'False Start' },
     { id: 'onesecond', label: 'Blind Clock' },
     { id: 'onemore', label: 'One More' },
+    { id: 'chroma', label: 'CHROMA' },
+    { id: 'ricochet', label: 'RICOCHET' },
     { id: "bounce", label: "Bounce Panic" },
     { id: "symbolrush", label: "Symbol Sprint" },
     { id: "bombpass", label: "Bomb Pass" },

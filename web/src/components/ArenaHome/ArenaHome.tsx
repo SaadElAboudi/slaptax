@@ -74,6 +74,12 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <span>{incoming ? `${incoming} ${isFr ? 'defi en attente' : 'pending challenge'}` : (isFr ? 'Une partie est en cours.' : 'A match is in progress.')}</span>
             <button type="button" onClick={() => onEnter(activeTournament && !activeDuel ? 'tournament' : 'defy')}>{isFr ? 'Reprendre' : 'Resume'}<ArrowRight size={17} /></button>
         </div>}
+        {(['ricochet','chroma'] as const).map((id)=><section className={styles.chromaFeature} key={id}>
+            <div className={styles.chromaArt}><GamePoster gameId={id} /></div>
+            <div><span>{isFr ? 'NOUVELLE EPREUVE' : 'NEW EVENT'}</span><h2>{id.toUpperCase()}</h2><p>{id==='ricochet' ? (isFr ? 'Ton beau tir ne tient qu a un choc.' : 'One collision changes everything.') : (isFr ? 'Tu crois avoir l oeil ?' : 'Think you have an eye for color?')}</p></div>
+            <button type="button" onClick={() => enter(id,'training')}><Play size={18}/>{isFr ? 'Jouer':'Play'} {id.toUpperCase()}</button>
+            <button type="button" onClick={() => enter(id,'defy')} aria-label={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`} title={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`}><Swords size={18}/></button>
+        </section>)}
         <div className={styles.games}>
             {SIGNATURE_GAMES.map((game, index) => {
                 const Icon = MARKS[index];

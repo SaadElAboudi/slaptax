@@ -52,8 +52,8 @@ function getShareMoment(match: LiveDuelMatch, userId: string | null, myRole: 'ch
         const moment = finalRound.moment;
         const gap = Math.abs((moment.scores[match.challengerId] || 0) - (moment.scores[match.opponentId] || 0));
         return { kind: won ? 'clutch' : 'revenge', labelFr: won ? 'BIEN JOUE' : 'REVANCHE', labelEn: won ? 'WELL PLAYED' : 'REMATCH',
-            headlineFr: moment.gameId === 'onesecond' ? `${gap} ms d'ecart sur trois essais.` : moment.gameId === 'onemore' ? 'Il fallait savoir s arreter.' : 'Le sang-froid a fait la difference.',
-            headlineEn: moment.gameId === 'onesecond' ? `${gap} ms apart over three attempts.` : moment.gameId === 'onemore' ? 'Knowing when to stop makes the difference.' : 'Composure made the difference.' };
+            headlineFr: moment.gameId === 'chroma' ? `${(gap/1000).toFixed(1)} de distance RVB vous separent.` : moment.gameId === 'onesecond' ? `${gap} ms d'ecart sur trois essais.` : moment.gameId === 'onemore' ? 'Il fallait savoir s arreter.' : 'Le sang-froid a fait la difference.',
+            headlineEn: moment.gameId === 'chroma' ? `${(gap/1000).toFixed(1)} RGB distance apart.` : moment.gameId === 'onesecond' ? `${gap} ms apart over three attempts.` : moment.gameId === 'onemore' ? 'Knowing when to stop makes the difference.' : 'Composure made the difference.' };
     }
 
     if (won && lostFirst) {
