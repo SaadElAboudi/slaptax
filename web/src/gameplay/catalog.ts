@@ -1,4 +1,6 @@
 export type CompetitiveGameId =
+    | 'trace'
+    | 'decoupe'
     | 'chroma'
     | 'ricochet'
     | 'contrepied'
@@ -22,6 +24,16 @@ export interface CompetitiveGame {
 }
 
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
+    {
+        id:'trace',labelFr:'TRACE',labelEn:'TRACE',skillFr:'Memoire + geste',skillEn:'Memory + touch',
+        ruleFr:'Observe deux secondes. Redessine la forme en un seul trait, en six secondes. Lever le doigt valide. Trois formes : le total de fidelite le plus eleve gagne. Aucun bonus de vitesse.',
+        ruleEn:'Look for two seconds. Redraw in one stroke within six seconds. Lift to commit. Three shapes: the highest total accuracy wins. No speed bonus.',
+    },
+    {
+        id:'decoupe',labelFr:'DECOUPE',labelEn:'DECOUPE',skillFr:'Estimation + precision',skillEn:'Estimation + precision',
+        ruleFr:'Trace une ligne de coupe, touche le cote a garder puis valide en huit secondes. Trois silhouettes : approche la proportion cible. La plus petite erreur totale gagne.',
+        ruleEn:'Draw a cutting line, tap the side to keep and lock within eight seconds. Three silhouettes: match the target percentage. Lowest total error wins.',
+    },
     {
         id:'contrepied',labelFr:'CONTREPIED',labelEn:'CONTREPIED',skillFr:'Bluff + tactique',skillEn:'Bluff + tactics',
         ruleFr:'Cinq cartes, chacune utilisable une fois. Engage une carte en sept secondes : la plus forte gagne la recompense, une egalite la defausse. A expiration, la plus petite carte est consommee sans pouvoir gagner. Le total des recompenses decide.',
@@ -110,12 +122,12 @@ export function getCompetitiveGame(id: string): CompetitiveGame | undefined {
 export const SIGNATURE_GAMES = COMPETITIVE_GAMES.filter((game) => ['falsestart', 'onesecond', 'onemore'].includes(game.id));
 export const GAME_CATEGORIES = [
     { id: 'reflex', fr: 'Reflexes', en: 'Reflexes', games: ['falsestart', 'bounce'] },
-    { id: 'precision', fr: 'Precision', en: 'Precision', games: ['ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
-    { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['symbolrush', 'duelnumeric'] },
+    { id: 'precision', fr: 'Precision', en: 'Precision', games: ['decoupe', 'ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
+    { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['trace', 'symbolrush', 'duelnumeric'] },
     { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
     { id: 'tactics', fr: 'Tactique', en: 'Tactics', games: ['contrepied','ricochet'] },
 ] as const;
-export const isPartyGame = (id: string) => ['chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
+export const isPartyGame = (id: string) => ['trace','decoupe','chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

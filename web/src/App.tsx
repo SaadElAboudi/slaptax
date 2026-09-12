@@ -12,10 +12,12 @@ import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
 import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
 import { useRealtime } from './api/realtime';
 import { api } from './api/client';
+import { LinkChallenge } from './components/TrainingPanel/LinkChallenge';
 
 function App() {
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
     const isFr = language === 'fr';
+    const [linkChallenge] = useState(() => new URLSearchParams(window.location.search).get('link'));
     useEffect(() => {
         if (!userId) return;
         const heartbeat = window.setInterval(() => {
@@ -121,7 +123,7 @@ function App() {
             <TopBar />
 
             <main className={`${styles.container} ${arenaOpen ? styles.arenaMode : styles.homeMode}`}>
-                {!arenaOpen ? (
+                {linkChallenge ? <LinkChallenge id={linkChallenge}/> : !arenaOpen ? (
                     <ArenaHome onEnter={enterArena} />
                 ) : (
                     <>

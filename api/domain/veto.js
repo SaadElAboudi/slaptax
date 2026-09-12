@@ -1,4 +1,4 @@
-const GAME_POOL = ['falsestart', 'onesecond', 'onemore', 'bounce', 'symbolrush', 'bombpass', 'cupshuffle', 'duelnumeric', 'chroma', 'ricochet', 'contrepied'];
+const GAME_POOL = ['falsestart', 'onesecond', 'onemore', 'bounce', 'symbolrush', 'bombpass', 'cupshuffle', 'duelnumeric', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe'];
 
 function newVeto() { return { votes: {}, banned: [], complete: false }; }
 

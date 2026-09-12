@@ -1,5 +1,64 @@
 # Gameplay v4
 
+## TRACE, resultats, defis par lien et DECOUPE
+
+Le catalogue compte treize jeux. TRACE et DECOUPE sont disponibles en solo,
+duel et tournoi, et peuvent etre bannis avant la rotation.
+
+TRACE : deux secondes de preparation, deux secondes d'observation puis six
+secondes pour dessiner un trait unique. Lever le doigt ou la souris engage
+le trace. Trois formes communes, 2800 ms de revelation par essai. Le serveur
+reechantillonne les traces par longueur d'arc, compare les deux sens de parcours,
+tolere les petits tremblements et penalise les longueurs excessives. Pas de
+bonus de vitesse. Les coordonnees sont normalisees et limitees a 128 points ;
+le client les arrondit a quatre decimales pour respecter les messages de 4 Ko.
+
+DECOUPE : trois polygones convexes, proportions cibles de 25 a 75 %, huit
+secondes pour tracer une ligne, choisir le demi-plan conserve et valider.
+La droite de coupe est prolongee jusqu'aux bords. Matter.js calcule les aires
+des morceaux decoupes. Les pourcentages sont arrondis au dixieme ; l'erreur
+totale minimale gagne. Une coupe qui ne traverse pas la forme est invalide.
+
+Les reponses restent privees jusqu'a la revelation. Une expiration vaut zero
+(equivalent a 100 points d'erreur pour DECOUPE). Une egalite exacte en duel
+attend les deux consentements. En direct, une reconnexion recommence seulement
+l'essai inacheve, avec la meme cible et un nouveau numero de tour. Le serveur
+ne pretend pas pouvoir prouver qu'un trace a ete dessine par un humain.
+
+Les recaps affichent les trois dessins/coupes compares, les couleurs CHROMA,
+les ecarts de Pile Chrono ou les cinq echanges de CONTREPIED. Les images de
+resultat incluent les trois essais des nouveaux jeux. La revanche conserve
+mise et BO ; les preferences de draft suivent desormais leurs joueurs lorsque
+les cotes sont inverses, avec consentement et veto toujours requis.
+
+Les defis par lien sont proposes pour TRACE et DECOUPE, depuis l'entrainement.
+Le createur joue une nouvelle epreuve avant de partager. Chaque ami joue les
+memes trois cibles, une seule participation par session. Aucun score client
+n'est accepte et le score du createur n'est communique qu'apres la participation.
+Le resultat et les delais sont conserves dans le store existant : recharger ou
+redemarrer le serveur ne remet pas le chronometre a zero. Un abandon consomme
+les essais restants. Aucun debit, gain, classement ou bonus competitif.
+Liens valables sept jours ; creation limitee a vingt par session sur 24 h,
+cinq mille liens actifs et mille participations par lien maximum. Partage natif,
+copie et champ de lien selectionnable ; images exportables avec noms optionnels.
+
+Limites avant ouverture massive : la session anonyme n'empeche ni multi-comptes
+ni automatisation. Le stockage JSON/PostgreSQL global reste mono-processus,
+et PostgreSQL acquitte ses ecritures en arriere-plan. Pas de nouvelle garantie
+transactionnelle multi-instance. Aucun test de charge, Safari/iOS reel ou
+calibrage doigt/souris avec un panel humain ici. Aucun deploiement public.
+
+Validation finale : build TypeScript/Vite reussi et 103 tests serveur reussis.
+Vingt parcours Chromium ordinateur/mobile valides : dix-huit au premier passage,
+puis les deux tests de catalogue rejoues avec leur attente mise a jour pour TRACE.
+Les parcours incluent solo, duel, veto, matchmaking, tournoi et defi asynchrone
+createur/ami avec rechargement du resultat. Les tests mobiles des dessins utilisent
+des evenements tactiles. Controle complementaire du build final en francais a
+1280 x 900 et 320 x 740 : aucun debordement horizontal, aucune erreur JavaScript,
+bouton de coupe visible et non masque, trace dense accepte (1784 octets, sous
+la limite WebSocket de 4096). La suite navigateur historique complete n'a pas
+ete rejouee. Apercu local : http://127.0.0.1:8789.
+
 ## CONTREPIED
 
 Onzieme jeu, disponible en solo, defi et tournoi, avec acces direct a l'accueil

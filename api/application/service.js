@@ -12,6 +12,7 @@ const { SCHEMA_VERSION } = require("../infrastructure/db");
 const crypto = require("crypto");
 const { PARTY_IDS } = require('../games/partyGames');
 const { GAME_POOL, newVeto, tournamentVeto, pruneQueue } = require('../domain/veto');
+const { createLinkChallenges } = require('./linkChallenges');
 
 const ALLOWED_STAKES = [2, 5, 10, 20];
 const ALLOWED_TOURNAMENT_SIZES = [4, 8, 16];
@@ -27,6 +28,8 @@ const DRAFT_GAMES = [
     { id: 'chroma', label: 'CHROMA' },
     { id: 'ricochet', label: 'RICOCHET' },
     { id: 'contrepied', label: 'CONTREPIED' },
+    { id: 'trace', label: 'TRACE' },
+    { id: 'decoupe', label: 'DECOUPE' },
     { id: "bounce", label: "Bounce Panic" },
     { id: "symbolrush", label: "Symbol Sprint" },
     { id: "bombpass", label: "Bomb Pass" },
@@ -728,6 +731,7 @@ function statePayload(db, userId, clientId) {
 
 function createService(store) {
     return {
+        ...createLinkChallenges(store),
         getHealth() {
             return { ok: true, service: "slaptax-mvp-api", schemaVersion: SCHEMA_VERSION };
         },
@@ -2413,7 +2417,7 @@ function createService(store) {
                 original.rematch.stake || original.stake,
                 original.rematch.preferredGame
                     ? buildPreferredDraft(original.rematch.preferredGame)
-                    : original.draft,
+                    : original.draft ? { challenger: original.draft.opponent, opponent: original.draft.challenger } : null,
                 original.bestOf || 3
             );
             if (!created.ok) return created;

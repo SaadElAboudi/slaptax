@@ -66,7 +66,7 @@ function createServer(options = {}) {
             await store.ready;
             const url = new URL(req.url, "http://localhost");
             if (url.pathname.startsWith("/api/")) {
-                if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+                if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS" && !url.pathname.startsWith('/api/link-challenges')) {
                     res.once("finish", () => {
                         if (res.statusCode < 400) {
                             server.realtime.broadcast({

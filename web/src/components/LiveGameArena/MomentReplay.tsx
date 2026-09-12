@@ -4,6 +4,7 @@ import { gameLabel } from '../../gameplay/catalog';
 import { paintTower, type PartyMoment, type PartyState } from '../../gameplay/party';
 import styles from './MomentReplay.module.css';
 import {paintRicochet} from '../../gameplay/ricochet';
+import {paintDrawing} from '../../gameplay/drawing';
 
 interface Props { moment: PartyMoment; userId: string; playerName: string; rivalName: string; isFr: boolean }
 
@@ -14,21 +15,33 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
     const accent = moment.gameId === 'falsestart' ? '#f4d26a' : moment.gameId === 'onesecond' ? '#9ad9fa' : '#aff2b4';
     ctx.fillStyle = '#151a17'; ctx.fillRect(0, 0, w, 900);
     ctx.fillStyle = accent; ctx.textAlign = 'left'; ctx.font = '900 30px sans-serif'; ctx.fillText('SLAP$TAX', 42, 64);
-    ctx.fillStyle = '#a5b1a8'; ctx.textAlign = 'right'; ctx.font = '14px monospace'; ctx.fillText(isFr ? 'FACE A FACE' : 'HEAD TO HEAD', w - 42, 58);
+    ctx.fillStyle = '#a5b1a8'; ctx.textAlign = 'right'; ctx.font = '14px monospace'; ctx.fillText(moment.players.length===1?'SOLO':isFr ? 'FACE A FACE' : 'HEAD TO HEAD', w - 42, 58);
     ctx.textAlign = 'left'; ctx.font = 'bold 44px sans-serif'; ctx.fillStyle = '#f2f5ef'; ctx.fillText(gameLabel(moment.gameId, isFr), 42, 136);
     ctx.fillStyle = '#364a3a'; ctx.fillRect(42, 164, w - 84, 2);
     const players = moment.players;
     players.forEach((id, index) => {
-        const x = index ? 520 : 200;
+        const x = players.length===1 ? 360 : index ? 520 : 200;
         ctx.textAlign = 'center'; ctx.fillStyle = '#bdc8bf'; ctx.font = 'bold 18px sans-serif';
         let name = names[index] || (index ? 'RIVAL' : 'PLAYER');
         while (ctx.measureText(name).width > 240 && name.length > 2) name = name.slice(0, -2) + '…';
         ctx.fillText(name, x, 214);
         const score = state?.scores[id] ?? moment.scores[id] ?? 0;
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
-        ctx.fillText(`${moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
+        ctx.fillText(`${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (moment.gameId === 'contrepied') {
+    if (['trace','decoupe'].includes(moment.gameId)) {
+        for (const [index, entry] of (state?.drawing?.history || []).entries()) {
+            const surface=document.createElement('canvas');surface.width=190;surface.height=190;
+            const c=surface.getContext('2d');if(c)paintDrawing(c,{history:[entry]},players[0],190,'done');
+            ctx.drawImage(surface,55+index*210,360);
+            ctx.textAlign='center';ctx.fillStyle='#f5cc73';ctx.font='bold 15px sans-serif';
+            ctx.fillText(entry.target.percent ? `${entry.target.percent}%` : `0${index+1}`,150+index*210,340);
+            players.forEach((id,side)=>{
+                const result=entry.results[id];ctx.fillStyle=side?'#ff91a7':'#bdf182';ctx.font='bold 19px monospace';
+                ctx.fillText(result?.expired?'--':moment.gameId==='trace'?`${((result?.score||0)/10).toFixed(1)}%`:`${result?.percent??'--'}%`,150+index*210,585+side*32);
+            });
+        }
+    } else if (moment.gameId === 'contrepied') {
         for (const [index, entry] of (state?.contrepied?.history || []).entries()) {
             const x = 63 + index * 120;
             ctx.fillStyle = '#b9eaff'; ctx.font = 'bold 18px sans-serif'; ctx.textAlign = 'center';

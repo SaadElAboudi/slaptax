@@ -12,6 +12,32 @@ function setup() {
     return { service, ids, store };
 }
 
+for (const game of ['trace','decoupe']) test(`${game} is included in tournament rotations unless banned`, () => {
+    for (const ban of ['bounce',game]) {
+        const {service:s,ids,store}=setup();
+        const {tournament:t}=s.createMultiplayerTournament(ids[0],4,'public');
+        for(const id of ids.slice(1))s.joinMultiplayerTournament(t.id,id);
+        assert.equal(s.configureMultiplayerTournament(t.id,ids[0],[game,'chroma','contrepied']).ok,true);
+        for(const id of ids)s.banTournamentGame(t.id,id,ban);
+        for(const id of ids)s.setMultiplayerTournamentReady(t.id,id,true);
+        assert.equal(s.startMultiplayerTournament(t.id,ids[0]).ok,true);
+        const duels=store.read().duels.filter(d=>d.tournamentId===t.id);
+        assert.equal(duels.length,2);assert.ok(duels.every(d=>d.games.includes(game)===(ban!==game)));
+    }
+});
+
+test('rematch preserves stake and best-of, and draft preferences follow their original players',()=>{
+    const {service:s,ids:[a,b],store}=setup();
+    const draft={challenger:{pick:'trace',ban:'bounce'},opponent:{pick:'decoupe',ban:'bombpass'}};
+    const {duel}=s.createDuel(a,b,5,draft,5);
+    const db=store.read();db.duels.find(d=>d.id===duel.id).status='done';store.write(db);
+    assert.equal(s.rematch(duel.id,a,'request').ok,true);
+    const created=s.rematch(duel.id,b,'accept');assert.equal(created.ok,true);
+    const next=store.read().duels.find(d=>d.id===created.duel.id);
+    assert.equal(next.challengerId,b);assert.equal(next.opponentId,a);assert.equal(next.bestOf,5);assert.equal(next.stake,5);
+    assert.deepEqual(next.draft,{challenger:draft.opponent,opponent:draft.challenger});
+});
+
 test('each duel participant must ban a game, and the persisted rotation excludes both bans', () => {
     const { service: s, ids: [a,b,c] } = setup();
     const { duel } = s.createDuel(a,b,2);

@@ -18,7 +18,8 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 
 export interface PartyState {
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose';
+    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath';
+    drawing?: DrawingState;
     contrepied?: ContrepiedState;
     board?: RicochetBoard;
     color?: number[];
@@ -63,6 +64,14 @@ export interface PartyMoment {
     runs: Record<string, PartyRun>;
     replay: Array<{ at: number; state: PartyState }>;
     summary: string;
+}
+
+export type Point = [number, number];
+export interface DrawingTarget { path?: Point[]; polygon?: Point[]; percent?: number }
+export interface DrawingResult { points?: Point[]; piece?: Point[]; side?: number; percent?: number; error?: number; score: number; expired?: boolean }
+export interface DrawingState {
+    target?: DrawingTarget;
+    history: Array<{ attempt: number; target: DrawingTarget; results: Record<string, DrawingResult> }>;
 }
 
 export function paintTower(ctx: CanvasRenderingContext2D, run: PartyRun | undefined, width: number, height: number, color = '#93f1b5') {

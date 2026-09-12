@@ -31,7 +31,8 @@ test('catalogue categories filter real games and remain usable on a narrow scree
     await page.goto('/');
     await page.getByRole('tab',{name:'Brainpower'}).click();
     const panel=page.getByRole('tabpanel');
-    await expect(panel.getByRole('heading')).toHaveCount(2);
+    await expect(panel.getByRole('heading')).toHaveCount(3);
+    await expect(panel.getByRole('heading',{name:'TRACE',exact:true})).toBeVisible();
     await expect(panel.getByRole('heading',{name:'Duel Numeric'})).toBeVisible();
     await page.screenshot({path:info.outputPath('catalogue.png'),fullPage:true});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

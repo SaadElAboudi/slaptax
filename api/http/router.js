@@ -9,6 +9,17 @@ function createRequestHandler(service) {
 
         const url = new URL(req.url, "http://localhost");
 
+        if (req.method === 'POST' && url.pathname === '/api/link-challenges') {
+            const result = service.createLinkChallenge(await parseBody(req));
+            json(res, result.code || 200, result); return;
+        }
+        const link = url.pathname.match(/^\/api\/link-challenges\/([a-zA-Z0-9-]+)(?:\/(start|state|action))?$/);
+        if (link && ((req.method === 'GET' && !link[2]) || (req.method === 'POST' && link[2]))) {
+            const result = link[2] ? service.playLinkChallenge(link[1], link[2], await parseBody(req)) : service.getLinkChallenge(link[1]);
+            res.setHeader('Cache-Control', 'no-store');
+            json(res, result.code || 200, result); return;
+        }
+
         if (req.method === "GET" && url.pathname === "/api/health") {
             json(res, 200, service.getHealth());
             return;

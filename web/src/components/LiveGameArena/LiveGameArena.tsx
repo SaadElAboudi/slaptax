@@ -131,7 +131,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <h3>{gameLabel(gameId, isFr)}</h3>
                     <p>{gameRule(gameId, isFr)}</p>
                     <div className={styles.briefStats}>
-                        <span>{gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onesecond' ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
                     <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
@@ -158,7 +158,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                 <div className={`${styles.complete} ${result.score >= 500 ? styles.completeWin : styles.completeLoss}`}>
                     <div className={styles.impactLines} aria-hidden><i /><i /><i /><i /></div>
                     <span>
-                        {result.score >= 500
+                        {['trace','decoupe'].includes(gameId) ? (isFr ? 'TROIS FORMES. TON RESULTAT.' : 'THREE SHAPES. YOUR RESULT.') : result.score >= 500
                             ? (isFr ? 'MANCHE DOMINEE' : 'ROUND DOMINATED')
                             : (isFr ? 'IMPACT ENREGISTRE' : 'IMPACT RECORDED')}
                     </span>

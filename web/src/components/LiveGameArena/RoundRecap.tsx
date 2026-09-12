@@ -2,6 +2,7 @@ import { ArrowRight, Swords, Trophy } from 'lucide-react';
 import type { LiveDuelMatch, LiveDuelRound } from '../../api/client';
 import { gameLabel } from '../../gameplay/catalog';
 import styles from './RoundRecap.module.css';
+import { RoundEvidence } from './RoundEvidence';
 
 export function RoundRecap({ match, round, userId, isFr, onContinue }: { match: LiveDuelMatch; round: LiveDuelRound; userId: string; isFr: boolean; onContinue: () => void }) {
     const own = match.challengerId === userId ? 'challenger' : 'opponent';
@@ -19,6 +20,7 @@ export function RoundRecap({ match, round, userId, isFr, onContinue }: { match: 
             <span>BO{match.bestOf}</span>
             <div><span>{match.opponentName}</span><strong>{match.score[rival]}</strong><div className={styles.marks}>{Array.from({ length: target }, (_, i) => <i key={i} data-filled={i < match.score[rival]} />)}</div></div>
         </div>
+        {round.moment && <RoundEvidence moment={round.moment} userId={userId} isFr={isFr}/>}
         {!final && <div className={styles.next}><span>{isFr ? 'A SUIVRE' : 'UP NEXT'}</span><strong>{gameLabel(match.games[match.currentRound - 1], isFr)}</strong></div>}
         <button type="button" onClick={onContinue}>{final ? (isFr ? 'Voir le resultat' : 'See result') : (isFr ? 'Manche suivante' : 'Next round')}<ArrowRight size={20} /></button>
     </section>;
