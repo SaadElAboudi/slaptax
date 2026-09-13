@@ -5,6 +5,7 @@ import { paintTower, type PartyMoment, type PartyState } from '../../gameplay/pa
 import styles from './MomentReplay.module.css';
 import {paintRicochet} from '../../gameplay/ricochet';
 import {paintDrawing} from '../../gameplay/drawing';
+import {gardeLabel} from './Garde';
 
 interface Props { moment: PartyMoment; userId: string; playerName: string; rivalName: string; isFr: boolean }
 
@@ -29,7 +30,14 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
         ctx.fillText(`${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (['trace','decoupe'].includes(moment.gameId)) {
+    if (moment.gameId === 'garde') {
+        ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#bdc8bf';
+        ctx.fillText(isFr?'TOUR':'TURN',55,330);ctx.fillText(isFr?'CHOIX / PV':'PICK / HP',150,330);ctx.fillText(isFr?'CHOIX / PV':'PICK / HP',430,330);
+        for(const [index,entry] of (state?.garde?.history||[]).entries()) {
+            const y=368+index*36;ctx.fillStyle='#bdc8bf';ctx.font='16px monospace';ctx.fillText(String(entry.exchange),60,y);
+            players.forEach((id,side)=>{ctx.fillStyle=side?'#ff91a7':'#bdf182';ctx.fillText(`${gardeLabel(entry.actions[id],isFr)}${entry.actions[id]==='attack'&&entry.chargedBefore[id]?' x2':''} / ${entry.hp[id]}`,side?430:150,y);});
+        }
+    } else if (['trace','decoupe'].includes(moment.gameId)) {
         for (const [index, entry] of (state?.drawing?.history || []).entries()) {
             const surface=document.createElement('canvas');surface.width=190;surface.height=190;
             const c=surface.getContext('2d');if(c)paintDrawing(c,{history:[entry]},players[0],190,'done');

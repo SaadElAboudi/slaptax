@@ -1,4 +1,5 @@
 export type CompetitiveGameId =
+    | 'garde'
     | 'trace'
     | 'decoupe'
     | 'chroma'
@@ -24,6 +25,11 @@ export interface CompetitiveGame {
 }
 
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
+    {
+        id:'garde',labelFr:'GARDE',labelEn:'GARDE',skillFr:'Lecture + combat',skillEn:'Reads + combat',
+        ruleFr:'6 PV, 8 tours maximum. Choisis en trois secondes. Attaque : 1 degat, ou 2 apres une charge. Defense : bloque tout, jamais deux fois de suite. Charge acquise meme sous attaque, valable un tour. Expiration : ni attaque ni protection. Le plus de PV gagne ; egalite a rejouer ensemble.',
+        ruleEn:'6 HP, 8 turns max. Pick within three seconds. Attack: 1 damage, or 2 after charging. Defend: blocks everything, never twice in a row. Charge survives a hit and lasts one turn. Timeout: no attack or protection. Highest HP wins; tied duels require a mutual replay.',
+    },
     {
         id:'trace',labelFr:'TRACE',labelEn:'TRACE',skillFr:'Memoire + geste',skillEn:'Memory + touch',
         ruleFr:'Observe deux secondes. Redessine la forme en un seul trait, en six secondes. Lever le doigt valide. Trois formes : le total de fidelite le plus eleve gagne. Aucun bonus de vitesse.',
@@ -125,9 +131,9 @@ export const GAME_CATEGORIES = [
     { id: 'precision', fr: 'Precision', en: 'Precision', games: ['decoupe', 'ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
     { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['trace', 'symbolrush', 'duelnumeric'] },
     { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
-    { id: 'tactics', fr: 'Tactique', en: 'Tactics', games: ['contrepied','ricochet'] },
+    { id: 'tactics', fr: 'Tactique', en: 'Tactics', games: ['garde','contrepied','ricochet'] },
 ] as const;
-export const isPartyGame = (id: string) => ['trace','decoupe','chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
+export const isPartyGame = (id: string) => ['garde','trace','decoupe','chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { PartyMoment } from '../../gameplay/party';
 import { paintDrawing } from '../../gameplay/drawing';
 import styles from './RoundEvidence.module.css';
+import { GardeHistory } from './Garde';
 
 export function RoundEvidence({moment,userId,isFr}:{moment:PartyMoment;userId:string;isFr:boolean}) {
     const canvas=useRef<HTMLCanvasElement>(null),state=moment.replay[moment.replay.length-1]?.state;
@@ -9,6 +10,7 @@ export function RoundEvidence({moment,userId,isFr}:{moment:PartyMoment;userId:st
         const c=canvas.current?.getContext('2d');if(!c)return;
         (state?.drawing?.history||[]).forEach((entry,i)=>{c.save();c.translate(i*200,0);paintDrawing(c,{history:[entry]},userId,190,'done');c.restore();});
     },[moment,userId]);
+    if(moment.gameId==='garde' && state?.garde)return <div className={styles.evidence} data-testid="round-evidence"><GardeHistory game={state.garde} identity={userId} isFr={isFr}/></div>;
     if(['trace','decoupe'].includes(moment.gameId))return <div className={styles.evidence} data-testid="round-evidence">
         <canvas ref={canvas} width={600} height={190} aria-label={isFr?'Les trois essais compares':'Three attempts compared'}/>
         <div className={styles.legend}><span>{isFr?'TOI':'YOU'}</span><span>RIVAL</span><span>{isFr?'CIBLE':'TARGET'}</span></div>

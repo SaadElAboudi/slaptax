@@ -2,8 +2,9 @@ const { randomInt } = require('node:crypto');
 const {prepareRicochet,actRicochet,tickRicochet,publicRicochet} = require('./ricochet');
 const {beginContrepied,prepareContrepied,actContrepied,tickContrepied,publicContrepied} = require('./contrepied');
 const {prepareDrawing,actDrawing,tickDrawing,publicDrawing} = require('./drawing');
+const {beginGarde,prepareGarde,actGarde,tickGarde,publicGarde} = require('./garde');
 
-const PARTY_IDS = ['falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe'];
+const PARTY_IDS = ['falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 function createParty(id, players, random = (min, max) => randomInt(min, max)) {
@@ -22,6 +23,7 @@ function beginParty(g, now) {
     g.targets = [];
     if (['trace','decoupe'].includes(g.id)) g.drawing = { history: [] };
     if (g.id === 'contrepied') beginContrepied(g);
+    if (g.id === 'garde') beginGarde(g);
     if(g.id === 'ricochet') {g.pucks=[];g.frames=[];}
     g.runs = Object.fromEntries(g.players.map((p) => [p, { errors: [], durations: [], layers: [{ x: .19, width: .62 }], status: 'playing', level: 0, bank: 0, perfects: 0, motionAt: now }]));
     nextAttempt(g, now);
@@ -33,7 +35,9 @@ function nextAttempt(g, now) {
     g.responses = {};
     g.traps = {};
     g.feedback = {};
-    if (['trace','decoupe'].includes(g.id)) {
+    if (g.id === 'garde') {
+        prepareGarde(g,now);
+    } else if (['trace','decoupe'].includes(g.id)) {
         prepareDrawing(g,now);
     } else if (g.id === 'contrepied') {
         prepareContrepied(g,now);
@@ -124,6 +128,7 @@ function actParty(g, id, action, now) {
     if (now >= g.deadline) { tickParty(g, now); return false; }
     if(g.id === 'ricochet') return actRicochet(g,id,action,now);
     if(g.id === 'contrepied') return actContrepied(g,id,action,now);
+    if(g.id === 'garde') return actGarde(g,id,action,now);
     if(['trace','decoupe'].includes(g.id)) return actDrawing(g,id,action,now);
     if (g.id === 'falsestart') {
         if (action.action === 'feint' && g.feints[id] && now < g.goAt - 600) {
@@ -199,6 +204,7 @@ function tickParty(g, now) {
     if (['done', 'draw', 'ready'].includes(g.phase)) return;
     if(g.id === 'ricochet') {tickRicochet(g,now,conclude,nextAttempt);return;}
     if(g.id === 'contrepied') {tickContrepied(g,now,conclude,nextAttempt);return;}
+    if(g.id === 'garde') {tickGarde(g,now,conclude,nextAttempt);return;}
     if(['trace','decoupe'].includes(g.id)) {tickDrawing(g,now,conclude,nextAttempt);return;}
     if (g.id === 'falsestart' && g.phase === 'wait' && now >= g.goAt) g.phase = 'go';
     if (g.id === 'onesecond' && g.phase === 'prepare' && now >= g.clockAt) {
@@ -247,6 +253,7 @@ function publicParty(g, viewer, now) {
     }
     if(g.id === 'ricochet') state.board=publicRicochet(g);
     if(g.id === 'contrepied') state.contrepied=publicContrepied(g,viewer);
+    if(g.id === 'garde') state.garde=publicGarde(g,viewer);
     if(['trace','decoupe'].includes(g.id)) state.drawing=publicDrawing(g);
     for (const id of g.players) {
         const run = g.runs[id];
@@ -268,6 +275,9 @@ function recordParty(g, now, force = false) {
 }
 
 function pauseParty(g, delta, now = Date.now()) {
+    if (g.id === 'garde' && g.phase === 'choose') {
+        g.turn++; g.responses = {}; prepareGarde(g,now); return;
+    }
     if (['trace','decoupe'].includes(g.id) && ['prepare','observe','drawpath'].includes(g.phase)) {
         g.turn++; g.responses = {}; g.phase = 'prepare'; g.deadline = now + 2000; return;
     }

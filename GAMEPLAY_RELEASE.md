@@ -1,5 +1,45 @@
 # Gameplay v4
 
+## GARDE
+
+Quatorzieme jeu : un affrontement par epreuve du BO existant, sans BO3 interne.
+Six PV, huit tours maximum. Trois secondes pour choisir attaque, charge ou
+defense ; revelation simultanee de 1200 ms. Une attaque inflige un degat, deux
+si le joueur etait charge. La defense bloque entierement mais ne peut pas etre
+jouee deux tours consecutifs. Une charge est acquise meme sous attaque, ne se
+cumule pas et expire au tour suivant. Recharger renouvelle la charge sans bonus
+supplementaire ; defendre ou expirer consomme la charge precedente.
+
+Une expiration n'inflige aucun degat et n'offre aucune protection. Le serveur
+calcule les deux impacts a partir de l'etat anterieur, puis met a jour les PV.
+KO ou tour huit : les PV restants decident. Double KO et egalite exacte attendent
+l'accord des deux joueurs pour recommencer. Pas de mort subite ni de tirage au
+sort du vainqueur. La reprise d'une coupure rejoue seulement le tour inacheve,
+avec PV, charge et restriction de defense conserves, et un nouveau numero de tour.
+
+Solo : bot explicitement identifie, decision prise avant celle du joueur a partir
+de l'etat public. Resultat 1000/500/0 pour victoire/egalite/defaite, aucun debit
+ni effet competitif. Defis, tournois, veto, recap et export PNG/video utilisent
+les integrations existantes. Historique complet des actions, attaques chargees
+et PV restants par tour. Les choix verrouilles ne sont visibles que par leur
+proprietaire avant la revelation ; aucun changement de charge ou de defense
+publique ne divulgue un choix secret.
+
+Ce prototype ne constitue pas une preuve d'equilibrage : fenetre de trois
+secondes, strategie de defense alternee et comportement du bot restent a
+calibrer avec des joueurs. Pas de GARDE asynchrone, de deploiement public ni de
+nouvelle garantie d'authentification ou de stockage multi-instance.
+
+Validation GARDE : build TypeScript/Vite reussi, 113 tests serveur et 12 parcours
+navigateur cibles reussis sur Chromium ordinateur/mobile. Matrice complete avec
+les quatre configurations de charge, confidentialite, defense non consecutive,
+expirations, KO/double KO, reprise et historique testes. Parcours tactiles solo
+et duel de huit tours, resultat persiste et export PNG verifies, ainsi que les
+parcours existants de matchmaking/veto/tournoi. Controle du build final en
+francais a 1280 x 900 et 320 x 740 : trois actions visibles, non masquees,
+aucun debordement horizontal ni erreur JavaScript. Suite navigateur historique
+complete, Safari/iOS reel et tests de charge non rejoues.
+
 ## TRACE, resultats, defis par lien et DECOUPE
 
 Le catalogue compte treize jeux. TRACE et DECOUPE sont disponibles en solo,

@@ -21,6 +21,7 @@ export interface PartyState {
     phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath';
     drawing?: DrawingState;
     contrepied?: ContrepiedState;
+    garde?: GardeState;
     board?: RicochetBoard;
     color?: number[];
     draft?: number[];
@@ -54,6 +55,13 @@ export interface ContrepiedState {
     botId: string | null;
     botScore: number;
     history: Array<{ exchange: number; reward: number; cards: Record<string, number>; expired: string[]; winnerId: string | null }>;
+}
+
+export type GardeAction = 'attack' | 'charge' | 'defend' | 'miss';
+export interface GardeState {
+    hp:Record<string,number>; charged:Record<string,boolean>; canDefend:Record<string,boolean>;
+    selected?:GardeAction; botId:string|null; winnerId:string|null; finished:boolean;
+    history:Array<{exchange:number;actions:Record<string,GardeAction>;before:Record<string,number>;hp:Record<string,number>;damage:Record<string,number>;chargedBefore:Record<string,boolean>}>;
 }
 
 export interface PartyMoment {

@@ -28,6 +28,7 @@ const DRAFT_GAMES = [
     { id: 'chroma', label: 'CHROMA' },
     { id: 'ricochet', label: 'RICOCHET' },
     { id: 'contrepied', label: 'CONTREPIED' },
+    { id: 'garde', label: 'GARDE' },
     { id: 'trace', label: 'TRACE' },
     { id: 'decoupe', label: 'DECOUPE' },
     { id: "bounce", label: "Bounce Panic" },
