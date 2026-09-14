@@ -12,7 +12,7 @@ function setup() {
     return { service, ids, store };
 }
 
-for (const game of ['trace','decoupe','garde']) test(`${game} is included in tournament rotations unless banned`, () => {
+for (const game of ['mat','trace','decoupe','garde']) test(`${game} is included in tournament rotations unless banned`, () => {
     for (const ban of ['bounce',game]) {
         const {service:s,ids,store}=setup();
         const {tournament:t}=s.createMultiplayerTournament(ids[0],4,'public');

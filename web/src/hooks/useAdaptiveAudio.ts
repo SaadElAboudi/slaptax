@@ -50,6 +50,7 @@ const PATTERNS: Record<CompetitiveGameId, number[]> = {
     ricochet: [0],
     contrepied: [0],
     garde: [0, 7],
+    mat: [0, 4, 7],
     trace: [0, 7],
     decoupe: [0, 5],
     onemore: [130, 165, 196, 220, 247, 220, 196, 165],

@@ -6,6 +6,7 @@ import styles from './MomentReplay.module.css';
 import {paintRicochet} from '../../gameplay/ricochet';
 import {paintDrawing} from '../../gameplay/drawing';
 import {gardeLabel} from './Garde';
+import { CHESS_PATHS } from '../../gameplay/chessPieces';
 
 interface Props { moment: PartyMoment; userId: string; playerName: string; rivalName: string; isFr: boolean }
 
@@ -28,9 +29,20 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         ctx.fillText(name, x, 214);
         const score = state?.scores[id] ?? moment.scores[id] ?? 0;
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
-        ctx.fillText(`${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
+        const r=state?.mat?.results?.[id];
+        ctx.fillText(moment.gameId==='mat' ? r?.mate?`${((r.ms||0)/1000).toFixed(2)} s`:r?(isFr?'MANQUE':'MISSED'):'--' : `${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (moment.gameId === 'garde') {
+    if (moment.gameId === 'mat' && state?.mat) {
+        const mat=state.mat,files=mat.turn==='w'?'abcdefgh':'hgfedcba',ranks=mat.turn==='w'?'87654321':'12345678';
+        [...ranks].forEach((rank,row)=>[...files].forEach((file,col)=>{
+            const square=file+rank,x=176+col*46,y=312+row*46;
+            ctx.fillStyle=mat.solution?.slice(0,2)===square||mat.solution?.slice(2,4)===square?'#e9ce68':(row+col)%2?'#638777':'#d3dfd7';ctx.fillRect(x,y,46,46);
+            const piece=mat.board.find(p=>p.square===square);if(!piece)return;
+            ctx.save();ctx.translate(x+2,y+2);ctx.scale(42/48,42/48);ctx.fillStyle=piece.color==='w'?'#fffdf3':'#25292d';ctx.strokeStyle=piece.color==='w'?'#393e42':'#e1e6e3';ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.lineCap='round';const path=new Path2D(CHESS_PATHS[piece.type]);ctx.fill(path);ctx.stroke(path);ctx.restore();
+        }));
+        ctx.textAlign='center';ctx.fillStyle='#f1d36e';ctx.font='bold 18px monospace';
+        if(mat.solution)ctx.fillText(`SOLUTION ${mat.solution.slice(0,2)} > ${mat.solution.slice(2,4)}${mat.solution[4]?` = ${mat.solution[4].toUpperCase()}`:''}`,360,710);
+    } else if (moment.gameId === 'garde') {
         ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#bdc8bf';
         ctx.fillText(isFr?'TOUR':'TURN',55,330);ctx.fillText(isFr?'CHOIX / PV':'PICK / HP',150,330);ctx.fillText(isFr?'CHOIX / PV':'PICK / HP',430,330);
         for(const [index,entry] of (state?.garde?.history||[]).entries()) {

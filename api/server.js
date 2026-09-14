@@ -87,6 +87,8 @@ function createServer(options = {}) {
     });
     server.store = store;
     server.realtime = createRealtimeHub(server, store, service);
+    const health=service.getHealth;
+    service.getHealth=()=>({...health(),mat:server.realtime.sharedArena.matPool.health()});
     server.on("close", () => {
         server.realtime.close();
     });
@@ -95,6 +97,7 @@ function createServer(options = {}) {
 
 if (require.main === module) {
     const server = createServer();
+    const stopMatRefresh=require('./infrastructure/matRefresh').startMatRefresh(server.realtime.sharedArena.matPool);
     server.store.ready
         .then(() => {
             server.listen(PORT, HOST, () => {
@@ -107,6 +110,7 @@ if (require.main === module) {
         });
 
     async function shutdown(signal) {
+        stopMatRefresh();
         process.stdout.write(`SLAP$TAX received ${signal}, shutting down\n`);
         await new Promise((resolve) => server.close(resolve));
         await server.store.close();

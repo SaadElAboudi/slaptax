@@ -1,5 +1,6 @@
 const { WebSocket } = require("ws");
 const { createRace, nextStage, publicRace, answerRace, tickRace } = require('./challengeRace');
+const {createMatPool}=require('../infrastructure/matPool');
 const { PARTY_IDS, createParty, beginParty, actParty, tickParty, publicParty, recordParty, pauseParty, partyMoment } = require('./partyGames');
 
 const TICK_MS = 1000 / 30;
@@ -24,6 +25,7 @@ function shuffled(values) {
 }
 
 function createSharedArenaManager(store, service, emitGlobal = () => {}) {
+    const matPool=createMatPool(store);
     const sessions = new Map();
     const clients = new Map();
 
@@ -164,6 +166,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         };
         if (PARTY_IDS.includes(gameId)) session.game = createParty(gameId, duel.practice ? [duel.challengerId] : [duel.challengerId, duel.opponentId]);
         else if (!session.game) session.game = createRace(session);
+        if(gameId==='mat')session.game.pickMatPuzzle=()=>matPool.pick(session.game.players,duel.tournamentId);
         sessions.set(session.key, session);
         return session;
     }
@@ -730,7 +733,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         clients.clear();
     }
 
-    return { attach, close, sessions };
+    return { attach, close, sessions, matPool };
 }
 
 module.exports = { createSharedArenaManager };

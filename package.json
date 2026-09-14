@@ -8,12 +8,16 @@
         "build": "npm --prefix web ci && npm --prefix web run build",
         "start": "node api/server.js",
         "dev": "node api/server.js",
+        "mat:refresh": "node api/scripts/importMatPuzzles.js",
         "test": "node --test api/tests"
     },
     "engines": {
         "node": ">=18"
     },
     "dependencies": {
+        "chess.js": "^1.4.0",
+        "csv-parse": "^7.0.2",
+        "fzstd": "^0.1.1",
         "matter-js": "^0.20.0",
         "pg": "^8.21.0",
         "ws": "^8.21.0"

@@ -972,7 +972,7 @@ test("playing a P2P duel updates both wallets and history", async () => {
         assert.equal(new Set(played.data.games).size, played.data.games.length);
         const expectedWinnerRole = played.data.winnerId === played.data.duel.challengerId ? "CHALLENGER" : "OPPONENT";
         assert.equal(played.data.rounds.at(-1).winner, expectedWinnerRole);
-        assert.ok(played.data.rounds.every((round) => ["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric", 'falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde'].includes(round.gameId)));
+        assert.ok(played.data.rounds.every((round) => ["bounce", "symbolrush", "bombpass", "cupshuffle", "duelnumeric", 'falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'].includes(round.gameId)));
 
         const total = played.data.challengerWallet + played.data.opponentWallet;
         // Total wallets should be less than initial 50 (platform fee 15%)

@@ -1,4 +1,5 @@
 export type CompetitiveGameId =
+    | 'mat'
     | 'garde'
     | 'trace'
     | 'decoupe'
@@ -25,6 +26,11 @@ export interface CompetitiveGame {
 }
 
 export const COMPETITIVE_GAMES: CompetitiveGame[] = [
+    {
+        id:'mat',labelFr:'MAT',labelEn:'MAT',skillFr:'Echecs + vitesse',skillEn:'Chess + speed',
+        ruleFr:'Mat en un coup. Une position commune, vingt secondes et un seul coup legal. Toute solution gagnante est acceptee. Le plus rapide gagne ; ecart de 250 ms ou moins : egalite. Deux echecs : nouvelle position a rejouer ensemble.',
+        ruleEn:'Mate in one. One shared position, twenty seconds and one legal move. Any checkmate counts. Fastest wins; within 250 ms is a tie. Both miss: mutually replay a fresh position.',
+    },
     {
         id:'garde',labelFr:'GARDE',labelEn:'GARDE',skillFr:'Lecture + combat',skillEn:'Reads + combat',
         ruleFr:'6 PV, 8 tours maximum. Choisis en trois secondes. Attaque : 1 degat, ou 2 apres une charge. Defense : bloque tout, jamais deux fois de suite. Charge acquise meme sous attaque, valable un tour. Expiration : ni attaque ni protection. Le plus de PV gagne ; egalite a rejouer ensemble.',
@@ -129,11 +135,11 @@ export const SIGNATURE_GAMES = COMPETITIVE_GAMES.filter((game) => ['falsestart',
 export const GAME_CATEGORIES = [
     { id: 'reflex', fr: 'Reflexes', en: 'Reflexes', games: ['falsestart', 'bounce'] },
     { id: 'precision', fr: 'Precision', en: 'Precision', games: ['decoupe', 'ricochet', 'chroma', 'onesecond', 'cupshuffle'] },
-    { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['trace', 'symbolrush', 'duelnumeric'] },
+    { id: 'mind', fr: 'Cerveau', en: 'Brainpower', games: ['mat', 'trace', 'symbolrush', 'duelnumeric'] },
     { id: 'risk', fr: 'Prise de risque', en: 'Risk takers', games: ['onemore', 'bombpass'] },
     { id: 'tactics', fr: 'Tactique', en: 'Tactics', games: ['garde','contrepied','ricochet'] },
 ] as const;
-export const isPartyGame = (id: string) => ['garde','trace','decoupe','chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
+export const isPartyGame = (id: string) => ['mat','garde','trace','decoupe','chroma','ricochet','contrepied'].includes(id) || SIGNATURE_GAMES.some((game) => game.id === id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

@@ -1,4 +1,41 @@
-# Gameplay v4
+# Gameplay v5
+
+## MAT
+
+Quinzieme jeu : un mat en un coup sur vingt secondes, une position commune par
+manche du BO existant. Un seul coup legal par joueur, promotions explicites et
+solutions alternatives acceptees. La resolution et les temps sont calcules sur
+le serveur. Deux mats a 250 ms ou moins donnent une egalite, comme deux echecs ;
+les deux joueurs doivent accepter de rejouer une nouvelle position. Un mat bat
+une erreur ou une expiration. Pas de divulgation de la solution ni du resultat
+avant les deux reponses ou la fin du chrono.
+
+Echiquier tactile et clavier, orientation selon le trait, pieces vectorielles
+originales communes au plateau et a l'export, recap des coups et temps. Solo sans
+bot ni effet sur les credits. Defis en direct, tournois et veto raccordes.
+Reconnexion : remplacement de la position inachevee, nouveau numero de tour.
+
+Reserve locale de 2 000 positions Lichess CC0 verifiees par chess.js. Import
+hebdomadaire borne dans un processus separe, historique recent par joueur et
+tournoi, remplacement atomique et reserve de secours. Verification du nouveau
+catalogue par petits lots pour ne pas bloquer les chronos actifs. Exploitation,
+monitoring et limites : [MAT_OPERATIONS.md](MAT_OPERATIONS.md).
+
+Pas de deploiement public, de protection contre un moteur d'echecs ni de nouvelle
+garantie multi-instance. Les essais de charge et les appareils iOS reels restent
+a verifier avant diffusion massive.
+
+Validation MAT : build TypeScript/Vite reussi, 130 tests serveur reussis et
+14 parcours Chromium ordinateur/mobile cibles reussis. Les deux parcours de
+duel/export ont ete rejoues apres correction des largeurs heritees des boutons
+de replay. Confidentialite, solutions alternatives, promotions, seuil 250 ms,
+expiration, reprise, anti-repetition et renouvellement en echec verifies.
+Plateau francais controle a 1280 x 900 et 320 x 740, selection clavier et tactile,
+canvas de recap non vide et export PNG testes. Import reel sous limite de heap
+256 MB : 200 000 lignes examinees, 13 995 positions admissibles, 2 000 retenues ;
+nouveau cache charge et jouable. Audits npm de l'API et du build web sans
+vulnerabilite signalee. La suite navigateur historique complete n'a pas ete
+rejouee.
 
 ## GARDE
 

@@ -29,6 +29,7 @@ const DRAFT_GAMES = [
     { id: 'ricochet', label: 'RICOCHET' },
     { id: 'contrepied', label: 'CONTREPIED' },
     { id: 'garde', label: 'GARDE' },
+    { id: 'mat', label: 'MAT' },
     { id: 'trace', label: 'TRACE' },
     { id: 'decoupe', label: 'DECOUPE' },
     { id: "bounce", label: "Bounce Panic" },

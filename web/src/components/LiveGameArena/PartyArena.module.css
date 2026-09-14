@@ -1,5 +1,6 @@
 .arena { position:relative; color:#f3f4ed; background:#151719; padding:20px; display:grid; gap:18px; align-content:start; min-height:560px; --ink:#afeeb7; }
 .arena[data-game="falsestart"] { --ink:#f4d26a; }
+.arena[data-game="mat"] { gap:10px; }
 .arena[data-game="onesecond"] { --ink:#9ad9fa; }
 .arena[data-game="trace"],.arena[data-game="decoupe"] { gap:10px; }
 .hud { display:flex; justify-content:space-between; align-items:center; min-height:36px; gap:12px; color:#b8bcb8; font:700 12px monospace; border-bottom:1px solid #414543; }

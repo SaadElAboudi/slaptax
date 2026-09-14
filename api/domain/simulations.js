@@ -5,6 +5,7 @@ const P2P_GAME_LIBRARY = {
     ricochet: { label: 'RICOCHET', metric: [0, 420], elite: 20, hard: 80 },
     contrepied: { label: 'CONTREPIED', metric: [0, 15], elite: 13, hard: 10 },
     garde: { label: 'GARDE', metric: [0, 6], elite: 5, hard: 4 },
+    mat: { label: 'MAT', metric: [0, 20000], elite: 16000, hard: 12000 },
     trace: { label: 'TRACE', metric: [0, 3000], elite: 2700, hard: 2300 },
     decoupe: { label: 'DECOUPE', metric: [0, 3000], elite: 2900, hard: 2600 },
     falsestart: { label: 'False Start', metric: [180, 720], elite: 250, hard: 450 },

@@ -18,7 +18,8 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 
 export interface PartyState {
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath';
+    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve';
+    mat?: MatState;
     drawing?: DrawingState;
     contrepied?: ContrepiedState;
     garde?: GardeState;
@@ -46,6 +47,13 @@ export interface RicochetBoard {
     size:number;
     pucks:Array<{id:string;owner:string;x:number;y:number}>;
     origins:Record<string,{x:number;y:number}>;
+}
+
+export interface ChessPieceState { square:string; type:'p'|'n'|'b'|'r'|'q'|'k'; color:'w'|'b' }
+export interface MatState {
+    fen:string; board:ChessPieceState[]; turn:'w'|'b'; legal:string[]; selected?:string; tieWindowMs:number;
+    solution?:string; puzzleId?:string; rating?:number;
+    results?:Record<string,{move:string|null;ms:number|null;mate:boolean;expired:boolean}>;
 }
 
 export interface ContrepiedState {
