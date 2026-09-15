@@ -9,6 +9,12 @@ function createRequestHandler(service) {
 
         const url = new URL(req.url, "http://localhost");
 
+        if(req.method==='GET' && url.pathname==='/api/link-challenges/mine') {
+            const result=service.listLinkChallenges({userId:url.searchParams.get('userId'),clientId:url.searchParams.get('clientId')});
+            res.setHeader('Cache-Control','no-store');
+            json(res,result.code||200,result);return;
+        }
+
         if (req.method === 'GET' && url.pathname === '/api/presence') {
             res.setHeader('Cache-Control', 'no-store');
             json(res, 200, service.getPresence());

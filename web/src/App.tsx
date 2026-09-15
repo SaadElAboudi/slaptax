@@ -13,6 +13,7 @@ import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
 import { useRealtime } from './api/realtime';
 import { api } from './api/client';
 import { LinkChallenge } from './components/TrainingPanel/LinkChallenge';
+import { MyChallenges } from './components/MyChallenges/MyChallenges';
 
 function App() {
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
@@ -52,7 +53,7 @@ function App() {
     useEffect(() => {
         bootstrap();
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
-        if (requestedTab && ['training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats'].includes(requestedTab)) {
+        if (requestedTab && ['training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats', 'challenges'].includes(requestedTab)) {
             const migratedTab = ['bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric'].includes(requestedTab) ? 'training' : requestedTab;
             setActiveTab(migratedTab as Tab);
             setArenaOpen(true);
@@ -106,6 +107,7 @@ function App() {
         tournament: isFr ? 'Tournoi' : 'Tournament',
         leaderboard: isFr ? 'Classement' : 'Leaderboard',
         stats: isFr ? 'Historique' : 'History',
+        challenges: isFr ? 'Mes defis' : 'My challenges',
     };
     const activeGameName = sectionLabels[activeTab] || (isFr ? 'Entrainement' : 'Training');
     const modeStatus: Record<Tab, { label: string; tone: string }> = {
@@ -114,6 +116,7 @@ function App() {
         tournament: { label: 'RUN', tone: styles.statusTournament },
         leaderboard: { label: 'RANK', tone: styles.statusMeta },
         stats: { label: isFr ? 'BILAN' : 'LOG', tone: styles.statusMeta },
+        challenges: {label:'LINK',tone:styles.statusMeta},
     };
 
     return (
@@ -148,6 +151,7 @@ function App() {
                             {activeTab === 'tournament' && <TournamentPanel />}
                             {activeTab === 'leaderboard' && <LeaderboardPanel />}
                             {activeTab === 'stats' && <HistoryPanel />}
+                            {activeTab === 'challenges' && <MyChallenges />}
                         </div>
                     </>
                 )}

@@ -116,6 +116,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+    .tab[data-tab="leaderboard"] { display:none; }
     .tab.active {
         color: var(--accent);
         background: rgba(255,212,0,.07);

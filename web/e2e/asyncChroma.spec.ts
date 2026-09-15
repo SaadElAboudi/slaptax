@@ -51,10 +51,29 @@ test('CHROMA link supports an offline host, three private rounds, recap and fres
         await guest.reload();await expect(guest.getByLabel('Comparaison des couleurs')).toBeVisible();
         await expect(guest.getByTestId('chroma')).toHaveCount(0);
         await guest.screenshot({path:info.outputPath('chroma-recap.png'),fullPage:true});
+        const hostReturn=await page.context().newPage();
+        await hostReturn.goto('/?tab=challenges');
+        await expect(hostReturn.getByTestId('owned-challenge')).toHaveCount(1);
+        await expect(hostReturn.getByTestId('owned-challenge')).toContainText('2/2');
+        await expect(hostReturn.getByTestId('owned-challenge').locator('ol li')).toHaveCount(2);
+        await expect(hostReturn.getByTestId('owned-challenge')).toContainText('Rival');
+        expect(await hostReturn.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+        await hostReturn.screenshot({path:info.outputPath('my-challenges.png'),fullPage:true,animations:'disabled'});
+        await hostReturn.getByRole('button',{name:'Historique',exact:true}).click();
+        await expect(hostReturn.getByTestId('history-row')).toHaveCount(2);
+        await expect(hostReturn.getByTestId('history-panel')).toContainText('EGALITE');
+        await hostReturn.reload();await expect(hostReturn.getByTestId('history-row')).toHaveCount(2);
+        await expect(hostReturn.getByRole('button',{name:'Historique',exact:true})).toHaveAttribute('aria-current','page');
+        await hostReturn.screenshot({path:info.outputPath('link-history.png'),fullPage:true,animations:'disabled'});
+        await hostReturn.close();
         await guest.getByRole('link',{name:'Revanche, nouvelles couleurs'}).click();
         await guest.getByRole('button',{name:'Creer mon defi'}).click();
         await expect(guest.getByRole('button',{name:'Entrer dans l arene'})).toBeVisible();
         expect(guest.url()).not.toBe(link);expect(errors).toEqual([]);
+        await guest.goto('/?tab=challenges');
+        await guest.getByRole('tab',{name:'Releves',exact:true}).click();
+        await expect(guest.getByTestId('owned-challenge')).toHaveCount(1);
+        await guest.goto('/?tab=stats');await expect(guest.getByTestId('history-row')).toHaveCount(1);
     }finally{await context.close();}
 });
 

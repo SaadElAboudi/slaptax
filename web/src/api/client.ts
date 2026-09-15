@@ -63,7 +63,19 @@ export interface HistoryEntry {
 
 export interface HistoryResponse {
     history: HistoryEntry[];
+    linkHistory?: LinkHistoryEntry[];
 }
+
+export interface LinkHistoryEntry {
+    id:string;challengeId:string;gameId:string;completedAt:number;expiresAt:number;
+    score:number;opponentScore:number|null;opponentName:string|null;outcome:'created'|'win'|'loss'|'draw';
+}
+export interface OwnedLinkChallenge {
+    id:string;gameId:string;hostName:string;createdAt:number;expiresAt:number;published:boolean;
+    isHost:boolean;expired:boolean;status:'draft'|'playing'|'done';participantCount:number;finishedCount:number;
+    standings:{userId:string;name:string;score:number;rank:number;isSelf:boolean;isHost:boolean}[];
+}
+export interface MyChallengesResponse {challenges:OwnedLinkChallenge[];history:LinkHistoryEntry[]}
 
 export interface UserListEntry {
     id: string;
@@ -517,6 +529,7 @@ export const api = {
         return req<GameState>('GET', `/api/state${qs}`);
     },
 
+    getMyChallenges: (userId:string,clientId:string) => req<MyChallengesResponse>('GET',`/api/link-challenges/mine?${new URLSearchParams({userId,clientId})}`),
     getHistory: (userId?: string | null, clientId?: string | null) => {
         const params = new URLSearchParams();
         if (userId) params.set('userId', userId);

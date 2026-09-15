@@ -770,7 +770,7 @@ test("can create and select users", async () => {
     });
 });
 
-test("session join keeps stable id per client and creates new id on name change", async () => {
+test("session join keeps stable id per client even on display-name changes", async () => {
     await withServer(async (baseUrl) => {
         const firstJoin = await jfetch(baseUrl, "POST", "/api/session/join", {
             playerName: "ClientA",
@@ -792,7 +792,8 @@ test("session join keeps stable id per client and creates new id on name change"
             clientId: "client-a",
         });
         assert.equal(renamedJoin.status, 200);
-        assert.notEqual(renamedJoin.data.userId, idA1);
+        assert.equal(renamedJoin.data.userId, idA1);
+        assert.equal(renamedJoin.data.user.playerName, 'ClientA_v2');
         const idA2 = renamedJoin.data.userId;
 
         const otherClientJoin = await jfetch(baseUrl, "POST", "/api/session/join", {

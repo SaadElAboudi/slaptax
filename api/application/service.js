@@ -763,9 +763,8 @@ function createService(store) {
                 user = db.users.find((u) => u.id === mappedUserId) || null;
             }
 
-            // Keep identity stable for this client only if the name is unchanged.
-            // If the client joins with a different name, create a brand new player ID.
-            if (!user || user.playerName !== name) {
+            // A display-name edit must not detach this session from its games or wallet.
+            if (!user) {
                 user = {
                     id: crypto.randomUUID(),
                     playerName: name,
@@ -775,6 +774,8 @@ function createService(store) {
                 };
                 db.users.push(user);
             }
+
+            user.playerName = name;
 
             db.clientSessions[cid] = user.id;
             db.activeUserId = user.id;
@@ -1124,10 +1125,11 @@ function createService(store) {
         },
 
         getHistory(userId, clientId) {
+            const linked=clientId?createLinkChallenges(store).listLinkChallenges({userId,clientId}):null;
             const db = store.read();
             ensureCollections(db);
             const activeUser = resolveUserByIdentity(db, userId, clientId);
-            return { history: activeUser.history };
+            return { history: activeUser?.history || [], linkHistory:linked?.history || [] };
         },
 
         getStats(userId, clientId) {

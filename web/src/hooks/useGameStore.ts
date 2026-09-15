@@ -3,7 +3,7 @@ import { api, type HistoryEntry, type LeaderboardEntry, type PlayerProgression }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats';
+export type Tab = 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
 export type DifficultyMode = 'casual' | 'standard' | 'hardcore';
@@ -113,7 +113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     setProfile: (name) => {
         try { localStorage.setItem('slaptax_player_name', name); } catch { /* ignore */ }
         set({ playerName: name });
-        // Changing name means joining as a distinct online identity.
+        // Update the display name while retaining this anonymous session.
         void get().joinSession(name);
     },
     joinSession: async (name) => {

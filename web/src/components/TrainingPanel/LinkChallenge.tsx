@@ -72,6 +72,7 @@ export function LinkChallenge({id}:{id:string}) {
     return <section className={styles.panel} data-testid="link-challenge">
         <header><a href="/?tab=training" aria-label={isFr?'Retour':'Back'} title={isFr?'Retour':'Back'}><ArrowLeft size={20}/></a><div><span>{isFr?'DEFI PAR LIEN · SANS MISE':'LINK CHALLENGE · NO STAKES'}</span><h2>{gameId.toUpperCase()}</h2></div></header>
         {error&&<p role="alert" className={styles.error}>{error}</p>}
+        {!data?.party||data.party.phase==='done'?<a className={styles.new} href="/?tab=challenges">{isFr?'Mes defis et resultats':'My challenges and results'}<ArrowRight size={18}/></a>:null}
         {result&&party?<>
             <div className={styles.result}><span>{result.isHost?(isFr?'DEFI PRET':'CHALLENGE READY'):result.ownScore===result.hostScore?(isFr?'EGALITE':'TIED'):result.ownScore>result.hostScore?(isFr?'DEFI REMPORTE':'CHALLENGE WON'):(isFr?'BIEN TENTE':'GOOD ATTEMPT')}</span>
                 <h3>{scoreText(result.ownScore)}</h3>

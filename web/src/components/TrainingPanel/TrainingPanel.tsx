@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import {recordPractice} from '../../gameplay/practiceHistory';
 import { COMPETITIVE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
@@ -33,6 +34,7 @@ export function TrainingPanel() {
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
     const [playing, setPlaying] = useState(false);
+    const recorded=useRef('');
     const effectiveLevel = isPartyGame(gameId) ? 1 : level;
     const bestKey = `slaptax_training_${gameId === 'onesecond' ? 'v3' : 'v2'}_best_${gameId}_${effectiveLevel}`;
 
@@ -56,6 +58,8 @@ export function TrainingPanel() {
     }
 
     function complete(next: TrainingResult) {
+        const key=`${gameId}:${level}:${attempt}`;
+        if(recorded.current!==key){recordPractice(useGameStore.getState().userId||'',gameId,next.score);recorded.current=key;}
         setResult(next);
         if (next.score > best) {
             try {

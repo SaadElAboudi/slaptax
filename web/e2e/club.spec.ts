@@ -33,5 +33,27 @@ test('club home keeps the social entry and all games, with usable feedback setti
     }
     await page.screenshot({path:info.outputPath('club-chroma-french.png'),fullPage:false});
     await page.getByRole('button',{name:'Verrouiller',exact:true}).click();await expect(page.getByTestId('chroma')).toHaveAttribute('data-phase','reveal');
+    for(let round=0;round<2;round++){
+        await expect(page.getByTestId('chroma')).toHaveAttribute('data-phase','mix');
+        await page.getByRole('button',{name:'Verrouiller',exact:true}).click();
+        await expect(page.getByTestId('chroma')).toHaveAttribute('data-phase','reveal');
+    }
+    await expect(page.getByRole('button',{name:'Rejouer',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Historique',exact:true}).click();
+    await page.getByRole('tab',{name:'Solo',exact:true}).click();
+    await expect(page.getByTestId('history-row')).toHaveCount(1);
+    await expect(page.getByTestId('history-row')).toContainText('SOLO');
+    await expect(page.getByTestId('history-row')).not.toContainText('VICTOIRE');
+    const identity=await page.evaluate(()=>localStorage.getItem('slaptax_user_id'));
+    const nickname=page.getByRole('textbox',{name:'Nom du joueur'});
+    if(await nickname.isVisible()){
+        await nickname.fill('NouveauPseudo');
+        await Promise.all([page.waitForResponse(r=>r.url().includes('/api/session/join')&&r.ok()),nickname.press('Enter')]);
+        await expect.poll(()=>page.evaluate(()=>localStorage.getItem('slaptax_player_name'))).toBe('NouveauPseudo');
+        expect(await page.evaluate(()=>localStorage.getItem('slaptax_user_id'))).toBe(identity);
+    }
+    await page.reload();await expect(page.getByTestId('history-row')).toHaveCount(1);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.screenshot({path:info.outputPath('solo-history.png'),fullPage:true});
     expect(errors).toEqual([]);
 });

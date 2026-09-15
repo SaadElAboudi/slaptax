@@ -72,6 +72,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <div className={styles.identity}><ClubAvatar variant={progression?.cosmetics.avatar}/><div><span>{isFr?'DANS LE CLUB':'IN THE CLUB'}</span><strong>{playerName}</strong></div></div>
         </header>
         <div className={styles.presence}><OnlinePlayers isFr={isFr} revision={presenceRevision}/></div>
+        <div className={styles.resume}><button type="button" onClick={()=>onEnter('challenges')}><History size={18}/>{isFr?'Mes defis':'My challenges'}<ArrowRight size={18}/></button></div>
         {(activeDuel||activeTournament||incoming>0)&&<div className={styles.resume} role="status"><span>{incoming?`${incoming} ${isFr?'defi(s) en attente':'pending challenge(s)'}`:isFr?'Ta partie t attend.':'Your match is waiting.'}</span><button type="button" onClick={()=>onEnter(activeTournament&&!activeDuel?'tournament':'defy')}>{isFr?'Reprendre':'Resume'}<ArrowRight size={18}/></button></div>}
         <div className={styles.playbar}>
             <button className={styles.primary} type="button" onClick={()=>{location.href='/?tab=training&link=new&game=chroma';}}><Swords size={22}/>{isFr?'Defier un ami':'Challenge a friend'}<ArrowRight size={20}/></button>

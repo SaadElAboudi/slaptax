@@ -111,3 +111,52 @@ test('CHROMA draft survives reconnect, stale actions fail and timeout scores the
     assert.equal(reveal.party.scores[f.host.userId],-Math.round(Math.hypot(...target.map((c,i)=>c-rgb[i]))*1000));
     assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.host,turn:mix.party.turn,action:'lock',rgb:target}).code,409);
 });
+
+test('My challenges is private, hides scores before completion, and ranks ties without exposing targets',()=>{
+    const f=setup(),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'chroma'});
+    assert.equal(f.api.listLinkChallenges({...f.host,clientId:'cb'}).code,403);
+    assert.deepEqual(f.api.listLinkChallenges(f.friend).challenges,[]);
+    finishChroma(f,challenge.id,f.host);
+    f.api.playLinkChallenge(challenge.id,'start',f.friend);
+    const pending=f.api.listLinkChallenges(f.friend);
+    assert.deepEqual(pending.challenges[0].standings,[]);
+    assert.deepEqual(pending.history,[]);
+    finishChroma(f,challenge.id,f.friend);
+    const host=f.api.listLinkChallenges(f.host);
+    assert.equal(host.challenges[0].finishedCount,2);
+    assert.deepEqual(host.challenges[0].standings.map(p=>p.rank),[1,1]);
+    assert.equal(JSON.stringify(host.challenges).includes('targets'),false);
+    assert.equal(JSON.stringify(host.challenges).includes('color'),false);
+    assert.equal(host.history.length,2);
+    assert.equal(host.history.find(h=>h.opponentName==='Friend').outcome,'draw');
+    assert.equal(f.api.listLinkChallenges(f.friend).history.length,1);
+});
+
+test('link history backfills existing results idempotently, survives invitation cleanup and leaves ranked stats untouched',()=>{
+    const f=setup(),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'trace'});
+    finish(f,challenge.id,f.host);finish(f,challenge.id,f.friend);
+    const db=f.store.read();for(const user of db.users)delete user.linkHistory;f.store.write(db);
+    const service=createService(f.store);
+    const first=service.getHistory(f.host.userId,f.host.clientId);
+    assert.equal(first.history.length,0);assert.equal(first.linkHistory.length,2);
+    assert.deepEqual(service.getHistory(f.host.userId,f.host.clientId),first);
+    assert.deepEqual(service.getHistory(f.host.userId,'wrong').linkHistory,[]);
+    f.advance(8*86400000);f.api.createLinkChallenge({...f.host,gameId:'chroma'});
+    assert.equal(f.store.read().linkChallenges.some(c=>c.id===challenge.id),false);
+    assert.deepEqual(f.restart().listLinkChallenges(f.host).history,first.linkHistory);
+    assert.deepEqual(f.store.read().users.find(u=>u.id===f.host.userId).history,[]);
+});
+
+test('renaming an anonymous player preserves wallet, histories and challenge ownership',()=>{
+    const f=setup(),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'trace'});
+    finish(f,challenge.id,f.host);finish(f,challenge.id,f.friend);
+    const db=f.store.read(),user=db.users.find(u=>u.id===f.host.userId);
+    user.wallet=17.25;user.history=[{id:'past-match',type:'DUEL',result:'WIN',net:2}];f.store.write(db);
+    const history=f.api.listLinkChallenges(f.host).history;
+    const result=createService(f.store).joinSession('New nickname',f.host.clientId);
+    assert.equal(result.userId,f.host.userId);assert.equal(result.user.wallet,17.25);
+    assert.deepEqual(result.user.history,user.history);
+    assert.deepEqual(f.api.listLinkChallenges(f.host).history,history);
+    assert.equal(f.api.listLinkChallenges(f.host).challenges[0].hostName,'New nickname');
+    assert.equal(f.store.read().users.length,db.users.length);
+});
