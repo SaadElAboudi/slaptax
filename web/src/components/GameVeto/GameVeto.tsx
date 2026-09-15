@@ -2,6 +2,7 @@ import { Ban, Check, ShieldCheck } from 'lucide-react';
 import type { GameVeto as VetoState } from '../../api/client';
 import { COMPETITIVE_GAMES, gameLabel } from '../../gameplay/catalog';
 import styles from './GameVeto.module.css';
+import { GamePoster } from '../LiveGameArena/GamePoster';
 
 interface Props {
     veto: VetoState;
@@ -20,7 +21,7 @@ export function GameVeto({ veto, userId, isFr, busy, games, tournament, onBan }:
         <p>{tournament ? (isFr ? 'Un vote chacun. Le jeu le plus vote est exclu. Egalite : ordre du catalogue.' : 'One vote each. The most voted game is excluded. Ties use catalogue order.') : (isFr ? 'Un bannissement chacun. Les deux jeux sont exclus de la rotation.' : 'One ban each. Both games are removed from the rotation.')}</p>
         <div className={styles.games}>
             {COMPETITIVE_GAMES.map((game) => <button type="button" key={game.id} data-selected={selected === game.id} data-banned={veto.banned.includes(game.id)} disabled={busy} aria-pressed={selected === game.id} onClick={() => onBan(game.id)} aria-label={`${isFr ? 'Bannir' : 'Ban'} ${gameLabel(game.id, isFr)}`}>
-                {selected === game.id ? <Check size={17} /> : <Ban size={17} />}<span>{gameLabel(game.id, isFr)}</span>
+                <span className={styles.tile}><GamePoster gameId={game.id}/>{veto.banned.includes(game.id)&&<Ban size={26}/>}</span><span>{gameLabel(game.id, isFr)}</span>{selected === game.id && <Check size={15}/>}
                 {tournament && <small>{Object.values(veto.votes).filter((id) => id === game.id).length || ''}</small>}
             </button>)}
         </div>

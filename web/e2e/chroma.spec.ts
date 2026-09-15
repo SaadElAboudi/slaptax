@@ -48,6 +48,7 @@ test('two rivals finish CHROMA with server-owned scores and a result recap',asyn
         const first=await ca.newPage(),second=await cb.newPage();
         await identify(first,a);await identify(second,b);
         await first.goto('/?tab=defy');await second.goto('/?tab=defy');
+        await first.screenshot({path:info.outputPath('club-faceoff.png'),fullPage:true});
         for(const p of [first,second]) await p.getByRole('button',{name:'Enter the arena'}).click();
         for(let i=0;i<3;i++) {
             for(const p of [first,second]) await expect(p.getByTestId('chroma')).toHaveAttribute('data-phase','mix');
@@ -61,5 +62,17 @@ test('two rivals finish CHROMA with server-owned scores and a result recap',asyn
         await expect(first.getByTestId('round-recap')).toBeVisible();
         const result=await (await request.get(`/api/duels/${id}/match?userId=${a.userId}`,{maxRetries:2})).json();
         expect(result.match.status).toBe('done');expect(result.match.rounds[0].gameId).toBe('chroma');
+        for(const p of [first,second])await p.getByRole('button',{name:'See result',exact:true}).click();
+        await expect(first.getByTestId('club-result')).toBeVisible();
+        const rematch=first.getByRole('button',{name:'Propose rematch',exact:true});await expect(rematch).toBeVisible();
+        await first.screenshot({path:info.outputPath('club-result.png'),fullPage:true});
+        expect(await first.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+        await first.locator('summary').filter({hasText:'The decisive moment'}).click();await expect(first.getByTestId('moment-replay')).toBeVisible();
+        const download=first.waitForEvent('download');await first.getByRole('button',{name:'Download image',exact:true}).click();expect((await download).suggestedFilename()).toBe('slaptax-chroma.png');
+        await rematch.click();await expect(first.getByText('Waiting for ColorB',{exact:true})).toBeVisible();
+        await expect(second.getByText('ColorA wants a rematch',{exact:true})).toBeVisible();
+        const pending=await(await request.get(`/api/duels/${id}/match?userId=${a.userId}`)).json();expect(pending.match.rematch.status).toBe('pending');
+        await second.getByRole('button',{name:'Accept',exact:true}).click();
+        await expect(first.getByTestId('game-veto')).toBeVisible();await expect(second.getByTestId('game-veto')).toBeVisible();
     } finally {await ca.close();await cb.close();}
 });

@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ChevronRight, Play, Swords, Trophy, Zap, Timer, Layers3 } from 'lucide-react';
+import { ArrowRight, Play, Swords, Trophy, RotateCcw, Users, History } from 'lucide-react';
 import { api, type RivalryResponse } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
 import { SIGNATURE_GAMES, COMPETITIVE_GAMES, GAME_CATEGORIES, type CompetitiveGameId } from '../../gameplay/catalog';
 import { GamePoster } from '../LiveGameArena/GamePoster';
+import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import styles from './ArenaHome.module.css';
 
 interface ArenaHomeProps { onEnter: (tab: Tab) => void }
-const MARKS = [Zap, Timer, Layers3];
-const HOOKS = {
-    fr: ['Tu paniques trop vite.', 'Tu pensais etre precis ?', 'Tu aurais du t arreter.'],
-    en: ['You blinked first.', 'Think you have perfect timing?', 'You should have stopped.'],
-};
 
 export function ArenaHome({ onEnter }: ArenaHomeProps) {
-    const { language, userId, playerName, history, favoriteRivalId } = useGameStore();
+    const { language, userId, playerName, history, favoriteRivalId, progression } = useGameStore();
     const isFr = language === 'fr';
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
@@ -64,62 +60,33 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
         catch (cause) { setError(cause instanceof Error ? cause.message : 'Connection unavailable'); }
         finally { setBusy(false); }
     }
-    return <section className={styles.home}>
-        <div className={styles.topline}><span>{playerName}</span><span>{isFr ? 'LE TERRAIN DES RIVALITES' : 'HOME OF FRIENDLY RIVALRIES'}</span></div>
+    const games=[...COMPETITIVE_GAMES].sort((a,b)=>Number(b.id==='chroma')-Number(a.id==='chroma'));
+    return <section className={styles.home} data-testid="club-home">
         <header className={styles.intro}>
-            <div><span>SLAP$TAX</span><h1>{isFr ? 'Entre vous deux, qui gagne ?' : 'Between you two, who wins?'}</h1></div>
-            <button type="button" onClick={() => onEnter('tournament')}><Trophy size={17} />{isFr ? 'Tournois' : 'Tournaments'}<ChevronRight size={16} /></button>
+            <div><span className={styles.eyebrow}>SLAP$TAX SOCIAL CLUB</span><h1>{isFr?'Bons amis. Mauvais perdants.':'Good friends. Bad losers.'}</h1></div>
+            <div className={styles.identity}><ClubAvatar variant={progression?.cosmetics.avatar}/><div><span>{isFr?'DANS LE CLUB':'IN THE CLUB'}</span><strong>{playerName}</strong></div></div>
         </header>
-        {(activeDuel || activeTournament || incoming > 0) && <div className={styles.resume}>
-            <span>{incoming ? `${incoming} ${isFr ? 'defi en attente' : 'pending challenge'}` : (isFr ? 'Une partie est en cours.' : 'A match is in progress.')}</span>
-            <button type="button" onClick={() => onEnter(activeTournament && !activeDuel ? 'tournament' : 'defy')}>{isFr ? 'Reprendre' : 'Resume'}<ArrowRight size={17} /></button>
-        </div>}
-        {(['mat','garde','trace','decoupe','contrepied','ricochet','chroma'] as const).map((id)=><section className={styles.chromaFeature} key={id}>
-            <div className={styles.chromaArt}><GamePoster gameId={id} /></div>
-            <div><span>{isFr ? 'NOUVELLE EPREUVE' : 'NEW EVENT'}</span><h2>{id.toUpperCase()}</h2><p>{id==='mat'?(isFr?'Un coup. Avant lui.':'One move. Before them.'):id==='garde'?(isFr?'Il charge. Tu fais quoi ?':'They are charging. Your move?'):id==='trace'?(isFr?'Tu pensais avoir une bonne memoire ?':'Thought you had a good memory?'):id==='decoupe'?(isFr?'37 %. Au juger.':'37%. By eye.'):id==='contrepied' ? (isFr ? 'Ta meilleure carte. Mais au bon moment.' : 'Your best card. At the right moment.') : id==='ricochet' ? (isFr ? 'Ton beau tir ne tient qu a un choc.' : 'One collision changes everything.') : (isFr ? 'Tu crois avoir l oeil ?' : 'Think you have an eye for color?')}</p></div>
-            <button type="button" onClick={() => enter(id,'training')}><Play size={18}/>{isFr ? 'Jouer':'Play'} {id.toUpperCase()}</button>
-            <button type="button" onClick={() => enter(id,'defy')} aria-label={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`} title={`${isFr ? 'Defier sur':'Challenge on'} ${id.toUpperCase()}`}><Swords size={18}/></button>
-        </section>)}
-        <div className={styles.games}>
-            {SIGNATURE_GAMES.map((game, index) => {
-                const Icon = MARKS[index];
-                return <article key={game.id} className={styles.game} data-game={game.id}>
-                    <div className={styles.gameArt}><GamePoster gameId={game.id} /></div>
-                    <div className={styles.cardHeading}><Icon size={19} /><span>0{index + 1}</span><small>{index === 0 ? 'REFLEX' : index === 1 ? 'PRECISION' : 'RISK'}</small></div>
-                    <h2>{isFr ? game.labelFr : game.labelEn}</h2>
-                    <p>{HOOKS[isFr ? 'fr' : 'en'][index]}</p>
-                    <div className={styles.actions}>
-                        <button type="button" onClick={() => enter(game.id, 'defy')}><Swords size={17} />{isFr ? 'Defier un ami' : 'Challenge a friend'}</button>
-                        <button type="button" onClick={() => enter(game.id, 'training')} title={isFr ? 'Jouer solo' : 'Play solo'} aria-label={`${isFr ? 'Jouer solo' : 'Play solo'}: ${isFr ? game.labelFr : game.labelEn}`}><Play size={18} /></button>
-                    </div>
-                </article>;
-            })}
+        {(activeDuel||activeTournament||incoming>0)&&<div className={styles.resume} role="status"><span>{incoming?`${incoming} ${isFr?'defi(s) en attente':'pending challenge(s)'}`:isFr?'Ta partie t attend.':'Your match is waiting.'}</span><button type="button" onClick={()=>onEnter(activeTournament&&!activeDuel?'tournament':'defy')}>{isFr?'Reprendre':'Resume'}<ArrowRight size={18}/></button></div>}
+        <div className={styles.playbar}>
+            <button className={styles.primary} type="button" onClick={()=>enter('chroma','defy')}><Swords size={22}/>{isFr?'Defier un ami':'Challenge a friend'}<ArrowRight size={20}/></button>
+            <button type="button" disabled={!userId||busy} onClick={()=>void quickPlay()}><Users size={19}/>{busy?'…':queued?(isFr?'Entrer dans le salon':'Enter the room'):(isFr?'Trouver un rival':'Find a rival')}</button>
+            <button type="button" onClick={()=>onEnter('tournament')}><Trophy size={19}/>{isFr?'Tournois':'Tournaments'}</button>
         </div>
-        {rival && <div className={styles.rival}>
-            <div><span>{isFr ? 'VOTRE SAISON' : 'YOUR SEASON'} · {rivalry?.season?.month || ''}</span><h2>{isFr ? 'Toi' : 'You'} <small>vs</small> {rival.opponentName}</h2></div>
-            <strong>{rivalry?.season?.wins[userId || ''] || 0}<i>:</i>{rivalry?.season?.wins[rival.opponentId || ''] || 0}</strong>
-            <button type="button" disabled={busy} onClick={() => void rematch()}>{isFr ? 'La revanche' : 'Run it back'}<ArrowRight size={18} /></button>
-        </div>}
-        <div className={styles.matchmaking}>
-            <div><strong>{isFr ? 'Un nouvel adversaire ?' : 'A new opponent?'}</strong><span>{queued ? (isFr ? 'Recherche en cours' : 'Finding a rival') : 'BO3 · LIVE'}</span></div>
-            <button type="button" disabled={!userId || busy} onClick={() => void quickPlay()}>{busy ? '…' : queued ? (isFr ? 'Entrer dans le salon' : 'Enter the room') : (isFr ? 'Trouver un rival' : 'Find a rival')}<ArrowRight size={18} /></button>
-        </div>
-        {error && <p role="alert" className={styles.error}>{error}</p>}
+        {rival&&<div className={styles.rival}><div className={styles.rivalAvatar}><ClubAvatar rival/></div><div><span>{isFr?'UNE AFFAIRE ENTRE VOUS':'UNFINISHED BUSINESS'}</span><strong>{rival.opponentName}</strong></div>{rivalry?.season&&<b>{rivalry.season.wins[userId||'']||0}<i>:</i>{rivalry.season.wins[rival.opponentId||'']||0}</b>}<button type="button" disabled={busy} onClick={()=>void rematch()}><RotateCcw size={18}/>{isFr?'Revanche':'Rematch'}</button></div>}
+        {error&&<p role="alert" className={styles.error}>{error}</p>}
         <section className={styles.library}>
-            <header><h2>{isFr ? 'Choisis ton terrain.' : 'Pick your playground.'}</h2><span>{COMPETITIVE_GAMES.length} {isFr ? 'JEUX' : 'GAMES'}</span></header>
-            <div className={styles.categories} role="tablist" aria-label={isFr ? 'Categories de jeux' : 'Game categories'}>
-                {[{ id: 'all', fr: 'Tous', en: 'All games' }, ...GAME_CATEGORIES].map((entry) => <button type="button" role="tab" aria-selected={category === entry.id} key={entry.id} onClick={() => setCategory(entry.id)}>{isFr ? entry.fr : entry.en}</button>)}
-            </div>
+            <header><h2>{isFr?'Choisis ton terrain.':'Pick your playground.'}</h2><span>{games.length} {isFr?'JEUX':'GAMES'}</span></header>
+            <div className={styles.categories} role="tablist" aria-label={isFr?'Categories de jeux':'Game categories'}>{[{id:'all',fr:'Tous',en:'All games'},...GAME_CATEGORIES].map(c=><button type="button" role="tab" aria-selected={category===c.id} key={c.id} onClick={()=>setCategory(c.id)}>{isFr?c.fr:c.en}</button>)}</div>
             <div className={styles.libraryGrid} role="tabpanel">
-                {COMPETITIVE_GAMES.filter((game) => category === 'all' || GAME_CATEGORIES.find((entry) => entry.id === category)?.games.some((id) => id === game.id)).map((game) => <article key={game.id}>
-                    <GamePoster gameId={game.id} />
-                    <div><span>{isFr ? game.skillFr : game.skillEn}</span><h3>{isFr ? game.labelFr : game.labelEn}</h3><div className={styles.libraryActions}>
-                        <button type="button" onClick={() => enter(game.id, 'training')}><Play size={16} />{isFr ? 'Jouer' : 'Play'}</button>
-                        <button type="button" title={isFr ? 'Defier un ami' : 'Challenge a friend'} aria-label={`${isFr ? 'Defier' : 'Challenge'}: ${isFr ? game.labelFr : game.labelEn}`} onClick={() => enter(game.id, 'defy')}><Swords size={17} /></button>
+                {games.filter(g=>category==='all'||GAME_CATEGORIES.find(c=>c.id===category)?.games.some(id=>id===g.id)).map(game=><article key={game.id} data-game={game.id}>
+                    <div className={styles.art}><GamePoster gameId={game.id}/>{game.id==='chroma'&&<span className={styles.featured}>{isFr?'LE DUEL EN COULEUR':'THE COLOR DUEL'}</span>}</div>
+                    <div className={styles.caption}><div><span>{isFr?game.skillFr:game.skillEn}</span><h3>{isFr?game.labelFr:game.labelEn}</h3></div><div className={styles.actions}>
+                        <button type="button" onClick={()=>enter(game.id,'training')} title={isFr?'Jouer solo':'Play solo'} aria-label={SIGNATURE_GAMES.some(g=>g.id===game.id)?`${isFr?'Jouer solo':'Play solo'}: ${isFr?game.labelFr:game.labelEn}`:`${isFr?'Jouer':'Play'} ${game.id.toUpperCase()}`}><Play size={18}/></button>
+                        <button type="button" onClick={()=>enter(game.id,'defy')} title={isFr?'Defier un ami':'Challenge a friend'} aria-label={`${isFr?'Defier':'Challenge'}: ${isFr?game.labelFr:game.labelEn}`}><Swords size={18}/></button>
                     </div></div>
                 </article>)}
             </div>
         </section>
-        <nav className={styles.footer}><button type="button" onClick={() => onEnter('leaderboard')}>{isFr ? 'Classement' : 'Leaderboard'}</button><button type="button" onClick={() => onEnter('stats')}>{isFr ? 'Historique' : 'History'}</button></nav>
+        <nav className={styles.footer}><button type="button" onClick={()=>onEnter('leaderboard')}><Trophy size={17}/>{isFr?'Classement':'Leaderboard'}</button><button type="button" onClick={()=>onEnter('stats')}><History size={17}/>{isFr?'Historique':'History'}</button><span>PLAY. LOSE. REMATCH.</span></nav>
     </section>;
 }

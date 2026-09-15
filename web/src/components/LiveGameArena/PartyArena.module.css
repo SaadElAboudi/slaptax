@@ -54,3 +54,7 @@
 .draw h3 { margin:0; font-size:24px; }
 @media(max-width:600px) { .arena { padding:16px 12px; gap:14px; min-height:500px; } .signal { min-height:210px; } .signal strong { font-size:34px; } .hold { width:210px; } .stackSurface canvas { height:265px; } .stackFooter { flex-wrap:wrap; } .attempts { gap:6px; } }
 @media(max-width:600px) { .arena { min-height:480px; gap:10px; padding:12px; }.hud { min-height:28px; }.score { min-height:44px; }.clockButton { height:160px; }.clockButton strong { font-size:28px; }.target { min-height:80px; }.target strong { font-size:40px; }.attempts span { padding:8px 0; } }
+.arena[data-game="chroma"] { background:#1d1d24; gap:8px; min-height:540px; }
+.arena[data-game="chroma"] .hud { display:none; }.arena[data-game="chroma"] .feedback:empty { display:none; }
+.arena[data-game="chroma"] .countIn { background:#1d1d24; color:#def56a; }.arena[data-game="chroma"] .countIn span { color:#ffab9c; font:800 10px system-ui,sans-serif; }.arena[data-game="chroma"] .countIn strong { font:900 90px/1 system-ui,sans-serif; }.arena[data-game="chroma"] .countIn:has(strong:not(:only-child)) { padding:20px; }
+@media(max-width:600px) { .arena[data-game="chroma"] { min-height:480px; padding:12px 16px 16px; }.arena[data-game="chroma"] .countIn strong { font-size:58px; } }

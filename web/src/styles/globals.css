@@ -1,19 +1,19 @@
 /* ─── Design Tokens ─────────────────────────────────────── */
 :root {
-    --bg: #101514;
-    --panel: #1b2321;
-    --panel-hover: #252f2c;
-    --line: #37423d;
-    --text: #eff3ee;
-    --muted: #a1b0a9;
-    --accent: #d4ef82;
-    --accent2: #99dbec;
+    --bg: #17171c;
+    --panel: #23232b;
+    --panel-hover: #30303a;
+    --line: #41414b;
+    --text: #f5f5f7;
+    --muted: #b0b0bb;
+    --accent: #def56a;
+    --accent2: #a6e6f0;
     --ok: #4bd47b;
     --bad: #ff5a68;
     --info: #60a5fa;
-    --surface-0: #101514;
-    --surface-1: #171e1c;
-    --surface-2: #202824;
+    --surface-0: #17171c;
+    --surface-1: #1d1d24;
+    --surface-2: #272730;
     --line-soft: rgba(230, 237, 243, 0.11);
     --line-strong: rgba(230, 237, 243, 0.2);
     --success: #36d399;

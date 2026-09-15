@@ -8,6 +8,8 @@ import { useGameStore } from '../../hooks/useGameStore';
 import styles from './LiveGameArena.module.css';
 import { GamePoster } from './GamePoster';
 import { ArrowRight, X } from 'lucide-react';
+import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
+import { hapticPulse } from '../../hooks/useFeedbackPreferences';
 
 interface DuelSession {
     duelId: string;
@@ -94,7 +96,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         if (gameId === 'garde' && score === 500) playDraw();
         else if (score >= 500) playWin(Math.min(1, round / 3));
         else playLoss(Math.min(1, round / 3));
-        navigator.vibrate?.([35, 30, 70]);
+        hapticPulse([20,30,35]);
         completionTimer.current = window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative }), 1600);
     }, [playLoss, playWin, playDraw, gameId, round]);
 
@@ -109,9 +111,9 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.modeBadge}>{isFr ? 'SOLO · SANS ENJEU' : 'SOLO · NO STAKES'}</div>
                 ) : (
                     <div className={styles.versus}>
-                        <div><i data-avatar={avatar} /><strong>{playerName}</strong></div>
+                        <div>{gameId==='chroma'?<ClubAvatar variant={avatar}/>:<i data-avatar={avatar}/>}<strong>{playerName}</strong></div>
                         <span>VS</span>
-                        <div><i data-avatar="rival" /><strong>{opponentName}</strong></div>
+                        <div>{gameId==='chroma'?<ClubAvatar rival/>:<i data-avatar="rival"/>}<strong>{opponentName}</strong></div>
                     </div>
                 )}
                 {mode === 'training' && phase === 'playing' && <button type="button" className={styles.exitPractice} onClick={() => setPhase('briefing')} aria-label={isFr ? 'Quitter l exercice' : 'Exit practice'} title={isFr ? 'Quitter l exercice' : 'Exit practice'}><X size={20} /></button>}
@@ -163,7 +165,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                             ? (isFr ? 'MANCHE DOMINEE' : 'ROUND DOMINATED')
                             : (isFr ? 'IMPACT ENREGISTRE' : 'IMPACT RECORDED')}
                     </span>
-                    <strong>{result.score}</strong>
+                    <strong>{gameId==='chroma'?(isFr?'C est joue.':'All shades in.'):result.score}</strong>
                     <p>{result.detail}</p>
                     <div className={styles.syncBar}><i /></div>
                 </div>

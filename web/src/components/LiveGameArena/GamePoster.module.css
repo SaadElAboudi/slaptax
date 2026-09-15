@@ -1,4 +1,6 @@
-.poster { height:190px; width:100%; display:grid; place-items:center; background:#192322; overflow:hidden; color:#c4ef95; }
+.poster { height:190px; width:100%; display:grid; place-items:center; background:#202027; overflow:hidden; color:#c4ef95; }
+.poster[data-game="chroma"]>svg { width:min(280px,100%); height:100%; }
+.poster .mat { transform:rotate(-8deg) scale(.85); }
 .poster[data-game="onesecond"],.poster[data-game="cupshuffle"] { background:#1a2a32; color:#a3dff4; }.poster[data-game="bombpass"],.poster[data-game="symbolrush"] { background:#32232a; color:#ffbac5; }.poster[data-game="duelnumeric"] { background:#28283b; color:#cccaee; }
 .signal { display:flex; gap:8px; align-items:center; transform:rotate(-6deg); }.signal > * { width:66px; height:70px; display:grid; place-items:center; border:1px solid #52675a; background:#25352b; font:750 13px monospace; border-radius:6px; }.signal b { width:90px; height:102px; color:#1b2a1d; background:#c4ef95; font-size:35px; }.signal i { color:#ffa4aa; }
 .clock { width:144px; height:144px; border:2px solid #a3dff4; border-radius:50%; display:grid; place-content:center; justify-items:center; gap:12px; outline:8px solid #304653; }.clock b { font:750 26px monospace; }.clock small { font-size:14px; margin-left:5px; }

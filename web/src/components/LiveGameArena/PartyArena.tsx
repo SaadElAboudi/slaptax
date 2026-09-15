@@ -167,7 +167,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             <span>{session ? (isFr ? 'FACE A FACE' : 'HEAD TO HEAD') : 'SOLO'}</span>
             <strong>{gameId === 'mat' ? '1 POSITION' : gameId === 'onemore' ? `${Math.ceil((party?.remaining || 30000) / 1000)} s` : `${party?.attempt || 1} / ${gameId === 'garde' ? '8 MAX' : gameId === 'contrepied' ? '5' : ['trace','decoupe','onesecond','chroma','ricochet'].includes(gameId) ? '3' : '7 MAX'}`}</strong>
         </div>
-        {!['mat','garde','ricochet','contrepied'].includes(gameId) && <div className={styles.score}>
+        {!['chroma','mat','garde','ricochet','contrepied'].includes(gameId) && <div className={styles.score}>
             <span>{isFr ? 'TOI' : 'YOU'} <b>{gameId === 'chroma' ? (Math.abs(party?.scores[identity] || 0)/1000).toFixed(1) : Math.abs(party?.scores[identity] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span>
             {rival && <><i>VS</i><span>RIVAL <b>{gameId === 'chroma' ? (Math.abs(party?.scores[rival] || 0)/1000).toFixed(1) : Math.abs(party?.scores[rival] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span></>}
         </div>}

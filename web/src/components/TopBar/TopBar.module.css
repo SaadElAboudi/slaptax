@@ -59,6 +59,8 @@
 }
 
 .walletChip {
+    white-space:nowrap;
+    flex-shrink:0;
     border: 1px solid #445448;
     color: var(--accent);
     padding: 6px 14px;
@@ -143,5 +145,10 @@
         font-size: 0.64rem;
     }
     .avatarButton { width:32px; height:32px; }
-    .audioButton { display:none; }
+    .topbar .audioButton.audioButton { display:none; }
 }
+.topbar.topbar { background:#17171cf5; border-color:#36363e; }
+.avatarButton.avatarButton { border:0; border-radius:8px; background:transparent; width:36px; height:36px; }.avatarButton>svg { width:36px; height:36px; }
+.audioButton.audioButton { display:grid; place-items:center; color:#b8b8c1; background:#24242b; }.audioButton[aria-pressed="true"] { color:#a6e6f0; }
+.walletChip.walletChip,.walletChip.online { background:transparent; border-color:#41414a; color:#c7c7d0; }
+.feedbackSettings { display:grid; gap:10px; padding-bottom:12px; border-bottom:1px solid #41414a; }.feedbackSettings label { display:flex; align-items:center; gap:10px; font-size:13px; color:#dadbe1; }.feedbackSettings input { margin-left:auto; width:18px; height:18px; accent-color:#def56a; }

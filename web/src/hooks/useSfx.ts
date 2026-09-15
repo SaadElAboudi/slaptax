@@ -1,14 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useFeedbackPreferences, preference, SFX_KEY } from './useFeedbackPreferences';
 
 type AudioContextConstructor = typeof AudioContext;
-
-const STORAGE_KEY = 'slaptax.sfx.enabled';
-
-function getInitialSoundOn() {
-    if (typeof window === 'undefined') return true;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === null ? true : stored === '1';
-}
 
 function getAudioContextCtor(): AudioContextConstructor | null {
     if (typeof window === 'undefined') return null;
@@ -20,7 +13,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 export function useSfx() {
-    const [soundOn, setSoundOn] = useState(getInitialSoundOn);
+    const {soundOn,toggleSound}=useFeedbackPreferences();
 
     const getCtx = useCallback(() => {
         const ctor = getAudioContextCtor();
@@ -43,7 +36,7 @@ export function useSfx() {
 
     const playTone = useCallback(
         (freq: number, durationMs: number, gain: number, type: OscillatorType, offsetSec = 0) => {
-            if (!soundOn) return;
+            if (!preference(SFX_KEY,true)||document.hidden) return;
             const ctx = getCtx();
             if (!ctx || ctx.state !== 'running') return;
 
@@ -115,13 +108,11 @@ export function useSfx() {
         [playTone]
     );
 
-    const toggleSound = useCallback(() => {
-        setSoundOn((prev) => {
-            const next = !prev;
-            window.localStorage.setItem(STORAGE_KEY, next ? '1' : '0');
-            return next;
-        });
-    }, []);
+    const playColor = useCallback((phase:'observe'|'mix'|'lock'|'reveal')=>{
+        const frequency={observe:440,mix:660,lock:550,reveal:880}[phase];
+        playTone(frequency,160,.035,'sine');
+        if(phase==='reveal')playTone(1100,220,.025,'sine',.1);
+    },[playTone]);
 
     return {
         soundOn,
@@ -132,5 +123,6 @@ export function useSfx() {
         playWin,
         playLoss,
         playFalseStart,
+        playColor,
     };
 }
