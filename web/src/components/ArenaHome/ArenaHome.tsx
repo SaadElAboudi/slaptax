@@ -5,6 +5,7 @@ import { useRealtime } from '../../api/realtime';
 import { SIGNATURE_GAMES, COMPETITIVE_GAMES, GAME_CATEGORIES, type CompetitiveGameId } from '../../gameplay/catalog';
 import { GamePoster } from '../LiveGameArena/GamePoster';
 import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
+import { OnlinePlayers } from './OnlinePlayers';
 import { useGameStore, type Tab } from '../../hooks/useGameStore';
 import styles from './ArenaHome.module.css';
 
@@ -21,10 +22,14 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const [error, setError] = useState('');
     const [category, setCategory] = useState('all');
     const [tick, setTick] = useState(0);
+    const [presenceRevision, setPresenceRevision] = useState(0);
     const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
     const rival = history.find((entry) => entry.opponentId === favoriteRivalId && entry.opponentName)
         || history.find((entry) => entry.opponentId && entry.opponentName);
-    useRealtime(userId, () => setTick((value) => value + 1));
+    useRealtime(userId, event => {
+        setTick(value => value + 1);
+        if (event.type === 'connected' || event.type === 'presence.changed') setPresenceRevision(value => value + 1);
+    });
     useEffect(() => {
         if (!userId) return;
         let cancelled = false;
@@ -66,9 +71,10 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <div><span className={styles.eyebrow}>SLAP$TAX SOCIAL CLUB</span><h1>{isFr?'Bons amis. Mauvais perdants.':'Good friends. Bad losers.'}</h1></div>
             <div className={styles.identity}><ClubAvatar variant={progression?.cosmetics.avatar}/><div><span>{isFr?'DANS LE CLUB':'IN THE CLUB'}</span><strong>{playerName}</strong></div></div>
         </header>
+        <div className={styles.presence}><OnlinePlayers isFr={isFr} revision={presenceRevision}/></div>
         {(activeDuel||activeTournament||incoming>0)&&<div className={styles.resume} role="status"><span>{incoming?`${incoming} ${isFr?'defi(s) en attente':'pending challenge(s)'}`:isFr?'Ta partie t attend.':'Your match is waiting.'}</span><button type="button" onClick={()=>onEnter(activeTournament&&!activeDuel?'tournament':'defy')}>{isFr?'Reprendre':'Resume'}<ArrowRight size={18}/></button></div>}
         <div className={styles.playbar}>
-            <button className={styles.primary} type="button" onClick={()=>enter('chroma','defy')}><Swords size={22}/>{isFr?'Defier un ami':'Challenge a friend'}<ArrowRight size={20}/></button>
+            <button className={styles.primary} type="button" onClick={()=>{location.href='/?tab=training&link=new&game=chroma';}}><Swords size={22}/>{isFr?'Defier un ami':'Challenge a friend'}<ArrowRight size={20}/></button>
             <button type="button" disabled={!userId||busy} onClick={()=>void quickPlay()}><Users size={19}/>{busy?'…':queued?(isFr?'Entrer dans le salon':'Enter the room'):(isFr?'Trouver un rival':'Find a rival')}</button>
             <button type="button" onClick={()=>onEnter('tournament')}><Trophy size={19}/>{isFr?'Tournois':'Tournaments'}</button>
         </div>

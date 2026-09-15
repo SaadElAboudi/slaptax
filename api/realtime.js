@@ -12,6 +12,7 @@ function createRealtimeHub(server, store, service) {
             return;
         }
         request.userId = url.searchParams.get("userId") || "";
+        request.clientId = url.searchParams.get("clientId") || "";
         wss.handleUpgrade(request, socket, head, (client) => {
             wss.emit("connection", client, request);
         });
@@ -20,8 +21,11 @@ function createRealtimeHub(server, store, service) {
     wss.on("connection", (client, request) => {
         client.isAlive = true;
         client.userId = request.userId;
+        client.clientId = request.clientId;
+        client.lastPongAt = Date.now();
         client.on("pong", () => {
             client.isAlive = true;
+            client.lastPongAt = Date.now();
         });
         sharedArena.attach(client);
         client.send(JSON.stringify({ type: "connected", at: Date.now() }));
@@ -53,7 +57,17 @@ function createRealtimeHub(server, store, service) {
         wss.close();
     }
 
-    return { broadcast, close, wss, sharedArena };
+    function getPresence() {
+        const db = store.read(), now = Date.now(), players = new Set();
+        const known = new Set(db.users.map(user => user.id));
+        for (const client of wss.clients) {
+            if (client.readyState === WebSocket.OPEN && now - client.lastPongAt < 60000
+                && known.has(client.userId) && db.clientSessions?.[client.clientId] === client.userId) players.add(client.userId);
+        }
+        return { onlinePlayers: players.size, updatedAt: now, scope: 'instance' };
+    }
+
+    return { broadcast, close, wss, sharedArena, getPresence };
 }
 
 module.exports = { createRealtimeHub };

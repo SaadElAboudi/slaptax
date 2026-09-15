@@ -11,6 +11,7 @@ test('club home keeps the social entry and all games, with usable feedback setti
     const entry=(await page.getByRole('button',{name:'Defier un ami',exact:true}).boundingBox())!;
     expect(entry.y+entry.height).toBeLessThan(page.viewportSize()!.height);
     await expect(page.getByRole('tabpanel').getByRole('heading')).toHaveCount(15);
+    await expect(page.getByTestId('online-players')).toContainText(/[1-9]\d* joueurs? en ligne/);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.screenshot({path:info.outputPath('club-home.png'),fullPage:false});
     await page.getByRole('button',{name:'Ouvrir les cosmétiques'}).click();
@@ -20,8 +21,9 @@ test('club home keeps the social entry and all games, with usable feedback setti
     await page.getByRole('button',{name:'Ouvrir les cosmétiques'}).click();await expect(page.getByRole('checkbox',{name:'Effets sonores'})).not.toBeChecked();await expect(page.getByRole('checkbox',{name:'Vibrations'})).toBeChecked();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.getByRole('button',{name:'Fermer',exact:true}).click();
-    await page.getByRole('button',{name:'Defier un ami',exact:true}).click();expect(new URL(page.url()).searchParams.get('tab')).toBe('defy');
-    expect(await page.evaluate(()=>localStorage.getItem('slaptax_duel_game'))).toBe('chroma');expect(errors).toEqual([]);
+    await expect(page.getByTestId('online-players')).toContainText(/\d+ joueurs? en ligne/);
+    await page.getByRole('button',{name:'Defier un ami',exact:true}).click();await expect(page.getByTestId('link-challenge')).toBeVisible();
+    expect(new URL(page.url()).searchParams.get('game')).toBe('chroma');expect(errors).toEqual([]);
     await page.evaluate(()=>localStorage.setItem('slaptax_training_game','chroma'));
     await page.emulateMedia({reducedMotion:'reduce'});await page.goto('/?tab=training');
     await page.getByRole('button',{name:'Entrer dans l arene'}).click();

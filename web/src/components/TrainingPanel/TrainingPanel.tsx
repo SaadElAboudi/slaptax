@@ -80,7 +80,7 @@ export function TrainingPanel() {
                 <h2>{result.score}</h2>
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
                 <div className={styles.resultActions}>
-                    {['trace','decoupe'].includes(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+                    {['trace','decoupe','chroma'].includes(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
                     <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
                     <button type="button" onClick={() => {
                         try { localStorage.setItem('slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
@@ -146,7 +146,7 @@ export function TrainingPanel() {
                 onComplete={complete}
                 onStart={() => setPlaying(true)}
             />
-            {!playing&&['trace','decoupe'].includes(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+            {!playing&&['trace','decoupe','chroma'].includes(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
         </section>
     );
 }

@@ -22,7 +22,8 @@ function createLinkChallenges(store, clock = Date.now) {
         if(g?.phase==='done') {
             const host=c.attempts[c.hostId];
             result.result={ownScore:g.scores[userId],hostScore:host.scores[c.hostId],
-                ownHistory:g.drawing.history,hostHistory:host.drawing.history,isHost:userId===c.hostId};
+                hostId:c.hostId, ownHistory:g.drawing?.history || [],hostHistory:host.drawing?.history || [],
+                ownColors:g.colorHistory || [],hostColors:host.colorHistory || [],isHost:userId===c.hostId};
         }
         return JSON.parse(JSON.stringify(result));
     }
@@ -30,11 +31,11 @@ function createLinkChallenges(store, clock = Date.now) {
         createLinkChallenge(body) {
             const db=store.read(), now=clock();
             if(!authorized(db,body))return fail('Session unavailable',403);
-            if(!['trace','decoupe'].includes(body.gameId))return fail('Unsupported link game',400);
+            if(!['trace','decoupe','chroma'].includes(body.gameId))return fail('Unsupported link game',400);
             const existing=(db.linkChallenges||[]).filter((c)=>c.expiresAt>now);
             if(existing.length>=5000||existing.filter((c)=>c.hostId===body.userId&&now-c.createdAt<86400000).length>=20)return fail('Challenge limit reached',429);
             const c={id:randomUUID(),gameId:body.gameId,hostId:body.userId,createdAt:now,expiresAt:now+7*86400000,
-                targets:[1,2,3].map((i)=>drawingTarget(body.gameId,i,randomInt)),attempts:{}};
+                targets:[1,2,3].map((i)=>body.gameId==='chroma'?[randomInt(24,232),randomInt(24,232),randomInt(24,232)]:drawingTarget(body.gameId,i,randomInt)),attempts:{}};
             db.linkChallenges=[...existing,c];store.write(db);
             return {ok:true,challenge:metadata(c,db)};
         },
@@ -50,11 +51,15 @@ function createLinkChallenges(store, clock = Date.now) {
             const c=db.linkChallenges?.find((c)=>c.id===id);
             if(!c)return fail('Challenge not found',404);
             if(c.expiresAt<=now)return fail('Challenge expired',410);
+            const host=c.attempts[c.hostId];
+            if(host && host.phase!=='done' && now>=host.deadline) { advance(host,now);store.write(db); }
             if(body.userId!==c.hostId&&c.attempts[c.hostId]?.phase!=='done')return fail('Creator has not finished',409);
             let g=c.attempts[body.userId];
             if(operation==='start'&&!g) {
                 if(Object.keys(c.attempts).length>=1000)return fail('Challenge is full',429);
-                g=createParty(c.gameId,[body.userId]);g.drawingTargets=c.targets;beginParty(g,now);
+                g=createParty(c.gameId,[body.userId]);
+                if(c.gameId==='chroma')g.colorTargets=c.targets;else g.drawingTargets=c.targets;
+                beginParty(g,now);
                 delete g.random;
                 c.attempts[body.userId]=g;store.write(db);
             }

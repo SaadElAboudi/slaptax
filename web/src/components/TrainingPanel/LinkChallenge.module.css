@@ -4,3 +4,9 @@
 .panel button,.new { border-radius:8px; background:#def56a; color:#222718; border:0; box-shadow:0 4px 0 #889e30; cursor:pointer; }
 .link { background:#292932; border-color:#51515d; color:#d2d2df; border-radius:6px; }.new { box-shadow:none; color:#a6e6f0!important; }
 .result h3 { font-weight:900; color:#def56a; }.actions { flex-wrap:wrap; }
+.result h3 { font-size:36px; overflow-wrap:anywhere; }
+.colors { display:grid; gap:12px; margin:20px 0; }
+.colors>div { display:flex; align-items:center; gap:12px; }
+.colors figure { flex:1; min-width:0; margin:0; }
+.colors figure>span { display:block; height:52px; border-radius:6px; border:1px solid #ffffff30; }
+.colors figcaption { font-size:11px; margin-top:5px; overflow-wrap:anywhere; color:#d2d2df; }

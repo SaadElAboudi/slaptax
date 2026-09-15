@@ -87,6 +87,7 @@ function createServer(options = {}) {
     });
     server.store = store;
     server.realtime = createRealtimeHub(server, store, service);
+    service.getPresence = () => server.realtime.getPresence();
     const health=service.getHealth;
     service.getHealth=()=>({...health(),mat:server.realtime.sharedArena.matPool.health()});
     server.on("close", () => {

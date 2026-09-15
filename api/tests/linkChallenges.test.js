@@ -51,3 +51,63 @@ test('challenge creation is bounded per session',()=>{
     const f=setup();for(let i=0;i<20;i++)assert.equal(f.api.createLinkChallenge({...f.host,gameId:'trace'}).ok,true);
     assert.equal(f.api.createLinkChallenge({...f.host,gameId:'trace'}).code,429);
 });
+
+function finishChroma(f,id,user) {
+    let data=f.api.playLinkChallenge(id,'start',user);
+    for(let i=0;i<3;i++) {
+        assert.equal(data.party.color,undefined);
+        f.advance(3000);data=f.api.playLinkChallenge(id,'state',user);
+        const rgb=data.party.color;assert.equal(rgb.length,3);
+        assert.equal(data.result,undefined);
+        f.advance(2000);data=f.api.playLinkChallenge(id,'state',user);
+        assert.equal(data.party.color,undefined);
+        assert.equal(f.api.playLinkChallenge(id,'action',{...user,action:'lock',turn:data.party.turn,rgb:[300,0,0]}).code,409);
+        data=f.api.playLinkChallenge(id,'action',{...user,action:'lock',turn:data.party.turn,rgb});
+        assert.equal(data.ok,true);
+        f.advance(3500);data=f.api.playLinkChallenge(id,'state',user);
+    }
+    return data;
+}
+test('CHROMA link uses identical private targets, server scoring and persistent single entries',()=>{
+    const f=setup(),before=f.store.read().users.map(u=>u.wallet);
+    const {challenge}=f.api.createLinkChallenge({...f.host,gameId:'chroma'});
+    const host=finishChroma(f,challenge.id,f.host);
+    assert.equal(host.result.ownScore,0);
+    assert.equal(host.result.ownColors.length,3);
+    const metadata=f.api.getLinkChallenge(challenge.id);
+    assert.equal(metadata.challenge.published,true);
+    assert.equal(JSON.stringify(metadata).includes('color'),false);
+    const guest=finishChroma(f,challenge.id,f.friend);
+    assert.equal(guest.result.ownScore,0);
+    assert.deepEqual(guest.result.ownColors.map(r=>r.color),host.result.ownColors.map(r=>r.color));
+    assert.deepEqual(f.restart().playLinkChallenge(challenge.id,'start',f.friend).result,guest.result);
+    assert.deepEqual(f.store.read().users.map(u=>u.wallet),before);
+});
+test('CHROMA server restart and late visitor catch up abandoned attempts without extending deadlines',()=>{
+    const f=setup(),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'chroma'});
+    f.api.playLinkChallenge(challenge.id,'start',f.host);
+    f.advance(100000);f.api=f.restart();
+    const guest=f.api.playLinkChallenge(challenge.id,'start',f.friend);
+    assert.equal(guest.party.phase,'prepare');assert.equal(guest.result,undefined);
+    const host=f.api.playLinkChallenge(challenge.id,'start',f.host);
+    assert.equal(host.party.phase,'done');assert.equal(host.result.ownColors.length,3);
+    f.advance(1000);
+    assert.equal(f.api.playLinkChallenge(challenge.id,'start',f.friend).party.remaining,2000);
+});
+
+test('CHROMA draft survives reconnect, stale actions fail and timeout scores the last server draft',()=>{
+    const f=setup(),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'chroma'});
+    f.api.playLinkChallenge(challenge.id,'start',f.host);f.advance(3000);
+    const target=f.api.playLinkChallenge(challenge.id,'state',f.host).party.color;
+    f.advance(2000);
+    const mix=f.api.playLinkChallenge(challenge.id,'state',f.host),rgb=[10,20,30];
+    assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.host,turn:mix.party.turn-1,action:'color',rgb}).code,409);
+    assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.host,turn:mix.party.turn,action:'color',rgb}).ok,true);
+    f.advance(1000);f.api=f.restart();
+    const resumed=f.api.playLinkChallenge(challenge.id,'start',f.host);
+    assert.deepEqual(resumed.party.draft,rgb);assert.equal(resumed.party.remaining,9000);
+    f.advance(9000);
+    const reveal=f.api.playLinkChallenge(challenge.id,'state',f.host);
+    assert.equal(reveal.party.scores[f.host.userId],-Math.round(Math.hypot(...target.map((c,i)=>c-rgb[i]))*1000));
+    assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.host,turn:mix.party.turn,action:'lock',rgb:target}).code,409);
+});

@@ -7,6 +7,12 @@ import styles from './Chroma.module.css';
 
 export const colorCss = (rgb: number[] = [128, 128, 128]) => `rgb(${rgb.join(',')})`;
 
+function rgbHsv(rgb: number[]) {
+    const [r,g,b]=rgb.map(c=>c/255),max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;
+    const hue=delta===0?180:60*(max===r?((g-b)/delta+6)%6:max===g?(b-r)/delta+2:(r-g)/delta+4);
+    return [hue,max===0?0:delta/max,max];
+}
+
 export function hsvRgb(h: number, s: number, v: number) {
     const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
     const channels = h < 60 ? [c,x,0] : h < 120 ? [x,c,0] : h < 180 ? [0,c,x] : h < 240 ? [0,x,c] : h < 300 ? [x,0,c] : [c,0,x];
@@ -17,7 +23,7 @@ export function Chroma({ party, identity, active, isFr, send }: {
     party: PartyState; identity: string; active: boolean; isFr: boolean;
     send: (action: string, data?: { rgb: number[] }) => void;
 }) {
-    const [hsv, setHsv] = useState([180, 0, 128 / 255]);
+    const [hsv, setHsv] = useState(()=>rgbHsv(party.draft || [128,128,128]));
     const value = useRef(hsv);
     const lastSend = useRef(0);
     const {playColor}=useSfx();

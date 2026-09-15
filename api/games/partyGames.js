@@ -56,7 +56,7 @@ function nextAttempt(g, now) {
         g.targets.push(g.targetMs);
         prepareClock(g, now);
     } else if (g.id === 'chroma') {
-        g.color = [g.random(24, 232), g.random(24, 232), g.random(24, 232)];
+        g.color = g.colorTargets?.[g.attempt - 1] || [g.random(24, 232), g.random(24, 232), g.random(24, 232)];
         prepareChroma(g, now);
     } else {
         g.phase = 'stack';
@@ -87,6 +87,7 @@ function settleChroma(g, now) {
         g.scores[p] -= error;
     }
     g.feedback = { color: [...g.color], colors };
+    if (g.colorTargets) (g.colorHistory ||= []).push({ attempt: g.attempt, ...g.feedback });
     endAttempt(g, now);
     g.deadline = now + 3500;
 }

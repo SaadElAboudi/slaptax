@@ -22,6 +22,7 @@ export function getRealtimeUrl(userId: string) {
     base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
     base.pathname = '/api/realtime';
     base.search = `?userId=${encodeURIComponent(userId)}`;
+    try { base.searchParams.set('clientId', localStorage.getItem('slaptax_client_id') || ''); } catch { /* Anonymous presence unavailable. */ }
     return base.toString();
 }
 
