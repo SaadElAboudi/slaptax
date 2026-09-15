@@ -90,27 +90,27 @@ export interface DrawingState {
     history: Array<{ attempt: number; target: DrawingTarget; results: Record<string, DrawingResult> }>;
 }
 
-export function paintTower(ctx: CanvasRenderingContext2D, run: PartyRun | undefined, width: number, height: number, color = '#93f1b5') {
+export function paintTower(ctx: CanvasRenderingContext2D, run: PartyRun | undefined, width: number, height: number, color = '#def56a') {
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#151719';
+    ctx.fillStyle = '#1d1d24';
     ctx.fillRect(0, 0, width, height);
     const layers = run?.layers || [{ x: .19, width: .62 }];
     const visible = layers.slice(-12);
     const step = Math.min(24, (height - 65) / 13);
-    ctx.strokeStyle = '#323638';
+    ctx.strokeStyle = '#44444f';
     for (let row = 1; row <= 13; row++) {
         ctx.beginPath(); ctx.moveTo(0, height - row * step); ctx.lineTo(width, height - row * step); ctx.stroke();
     }
     visible.forEach((block, i) => {
-        ctx.fillStyle = i === visible.length - 1 ? color : '#52675f';
+        ctx.fillStyle = i === visible.length - 1 ? color : '#6895a0';
         ctx.fillRect(block.x * width, height - 16 - (i + 1) * step, block.width * width, step - 3);
     });
     if (run?.status === 'playing' && run.moving) {
-        ctx.fillStyle = '#f4d26a';
+        ctx.fillStyle = '#f4d77c';
         ctx.fillRect(run.moving.x * width, height - 16 - (visible.length + 1) * step, run.moving.width * width, step - 3);
     }
     if (run?.status === 'crashed') {
-        ctx.fillStyle = '#ff8c94'; ctx.textAlign = 'center'; ctx.font = 'bold 32px sans-serif';
+        ctx.fillStyle = '#ffab9c'; ctx.textAlign = 'center'; ctx.font = 'bold 32px sans-serif';
         ctx.fillText('CRASH', width / 2, 44);
     }
 }

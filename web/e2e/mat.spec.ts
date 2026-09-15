@@ -56,7 +56,9 @@ test('MAT duel: common puzzle, secret answer, server winner and nonblank exporte
         await playMove(pb,solve(sb()!,false),info.project.name.includes('mobile'));await expect(pa.getByTestId('round-recap')).toBeVisible();await expect(pa.getByTestId('round-evidence')).toBeVisible();
         const data=await(await request.get(`/api/duels/${duel.id}/match?userId=${a.userId}`)).json();expect(data.match.rounds[0].winnerId).toBe(a.userId);
         expect(data.match.rounds[0].moment.replay.at(-1).state.mat.results[a.userId].mate).toBe(true);
-        await pa.getByRole('button',{name:'See result',exact:true}).click();await expect(pa.getByTestId('moment-replay')).toBeVisible();
+        await pa.getByRole('button',{name:'See result',exact:true}).click();
+        await pa.locator('summary').filter({hasText:'The decisive moment'}).click();
+        await expect(pa.getByTestId('moment-replay')).toBeVisible();
         const colors=await pa.getByTestId('moment-replay').locator('canvas').evaluate((c:HTMLCanvasElement)=>{const ctx=c.getContext('2d')!;return [[181,317],[227,317]].map(([x,y])=>Array.from(ctx.getImageData(x,y,1,1).data).join(','));});expect(colors[0]).not.toBe(colors[1]);
         const download=pa.waitForEvent('download');await pa.getByRole('button',{name:'Download image',exact:true}).click();expect((await download).suggestedFilename()).toBe('slaptax-mat.png');
         const frame=(await pa.getByTestId('moment-replay').boundingBox())!;

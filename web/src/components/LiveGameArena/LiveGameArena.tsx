@@ -111,9 +111,9 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.modeBadge}>{isFr ? 'SOLO · SANS ENJEU' : 'SOLO · NO STAKES'}</div>
                 ) : (
                     <div className={styles.versus}>
-                        <div>{gameId==='chroma'?<ClubAvatar variant={avatar}/>:<i data-avatar={avatar}/>}<strong>{playerName}</strong></div>
+                        <div><ClubAvatar variant={avatar}/><strong>{playerName}</strong></div>
                         <span>VS</span>
-                        <div>{gameId==='chroma'?<ClubAvatar rival/>:<i data-avatar="rival"/>}<strong>{opponentName}</strong></div>
+                        <div><ClubAvatar rival/><strong>{opponentName}</strong></div>
                     </div>
                 )}
                 {mode === 'training' && phase === 'playing' && <button type="button" className={styles.exitPractice} onClick={() => setPhase('briefing')} aria-label={isFr ? 'Quitter l exercice' : 'Exit practice'} title={isFr ? 'Quitter l exercice' : 'Exit practice'}><X size={20} /></button>}
@@ -360,7 +360,7 @@ function SharedArenaRound({
             const height = drawingCanvas.clientHeight;
             const current = stateRef.current;
             drawingContext.clearRect(0, 0, width, height);
-            drawingContext.fillStyle = '#070b10';
+            drawingContext.fillStyle = '#1d1d24';
             drawingContext.fillRect(0, 0, width, height);
             drawingContext.strokeStyle = 'rgba(255,255,255,.08)';
             drawingContext.setLineDash([10, 12]);
@@ -379,9 +379,9 @@ function SharedArenaRound({
                 const rivalWidth = (current.paddleWidths?.[currentRivalId] || current.paddleWidth || .22) * width;
                 const selfWidth = (current.paddleWidths?.[selfId] || current.paddleWidth || .22) * width;
 
-                drawingContext.fillStyle = '#ef476f';
+                drawingContext.fillStyle = '#ffab9c';
                 drawingContext.fillRect(localX(current.paddles?.[currentRivalId] ?? .5) * width - rivalWidth / 2, height * .06 - 5, rivalWidth, 10);
-                drawingContext.fillStyle = '#ffd400';
+                drawingContext.fillStyle = '#def56a';
                 drawingContext.fillRect(localX(current.paddles?.[selfId] ?? .5) * width - selfWidth / 2, height * .94 - 5, selfWidth, 10);
 
                 for (const obstacle of current.obstacles || []) {
@@ -403,7 +403,7 @@ function SharedArenaRound({
                     drawingContext.beginPath();
                     drawingContext.arc(ballX, ballY, 28, 0, Math.PI * 2);
                     drawingContext.fill();
-                    drawingContext.fillStyle = '#ffd400';
+                    drawingContext.fillStyle = '#def56a';
                     drawingContext.beginPath();
                     drawingContext.ellipse(ballX, ballY, width * .016, height * .016, 0, 0, Math.PI * 2);
                     drawingContext.fill();
@@ -826,7 +826,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             const width = state.width;
             const height = state.height;
             context.clearRect(0, 0, width, height);
-            context.fillStyle = '#070b10';
+            context.fillStyle = '#1d1d24';
             context.fillRect(0, 0, width, height);
             context.strokeStyle = 'rgba(255,255,255,.08)';
             context.setLineDash([10, 12]);
@@ -834,16 +834,16 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             context.setLineDash([]);
 
             if (obstacleActive) {
-                context.fillStyle = '#ef476f';
+                context.fillStyle = '#ffab9c';
                 context.fillRect(obstacleX - obstacleWidth / 2, obstacleY, obstacleWidth, 9);
             }
-            context.fillStyle = '#ffd400';
+            context.fillStyle = '#def56a';
             context.fillRect(paddleX - paddleWidth / 2, paddleY, paddleWidth, 10);
             const glow = context.createRadialGradient(state.x, state.y, 2, state.x, state.y, 28);
             glow.addColorStop(0, 'rgba(255,240,125,.85)');
             glow.addColorStop(1, 'rgba(255,212,0,0)');
             context.fillStyle = glow; context.beginPath(); context.arc(state.x, state.y, 28, 0, Math.PI * 2); context.fill();
-            context.fillStyle = '#ffd400'; context.beginPath(); context.arc(state.x, state.y, ballRadius, 0, Math.PI * 2); context.fill();
+            context.fillStyle = '#def56a'; context.beginPath(); context.arc(state.x, state.y, ballRadius, 0, Math.PI * 2); context.fill();
             frameRef.current = requestAnimationFrame(draw);
         }
         frameRef.current = requestAnimationFrame(draw);

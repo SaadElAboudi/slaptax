@@ -58,3 +58,30 @@
 .arena[data-game="chroma"] .hud { display:none; }.arena[data-game="chroma"] .feedback:empty { display:none; }
 .arena[data-game="chroma"] .countIn { background:#1d1d24; color:#def56a; }.arena[data-game="chroma"] .countIn span { color:#ffab9c; font:800 10px system-ui,sans-serif; }.arena[data-game="chroma"] .countIn strong { font:900 90px/1 system-ui,sans-serif; }.arena[data-game="chroma"] .countIn:has(strong:not(:only-child)) { padding:20px; }
 @media(max-width:600px) { .arena[data-game="chroma"] { min-height:480px; padding:12px 16px 16px; }.arena[data-game="chroma"] .countIn strong { font-size:58px; } }
+.arena[data-game] { background:#1d1d24; --ink:#def56a; }
+.arena[data-game="onesecond"],.arena[data-game="ricochet"] { --ink:#a6e6f0; }
+.arena[data-game="garde"],.arena[data-game="chroma"] { --ink:#ffab9c; }
+.arena[data-game="trace"] { --ink:#edb8dd; }
+.arena[data-game="decoupe"],.arena[data-game="contrepied"] { --ink:#f4d77c; }
+.hud { font:750 11px system-ui,sans-serif; border-color:#454550; }
+.score span,.score b,.score i { font-family:system-ui,sans-serif; }
+.score b { font-weight:900; font-size:28px; }
+.signal { background:#2b2b35; border:1px solid #5c5c68; box-shadow:0 6px 0 #101015; gap:18px; }
+.signal strong { font:900 42px/1.1 system-ui,sans-serif; }
+.signal[data-signal="go"] { background:#def56a; border-color:#def56a; box-shadow:0 6px 0 #889e30; color:#212617; }
+.signal[data-signal="trap"] { background:#ffab9c; border-color:#ffab9c; color:#361e24; box-shadow:0 6px 0 #a56158; }
+.target strong { font:900 52px/1 system-ui,sans-serif; color:#a6e6f0; }
+.target>span,.attempts span,.attempts b { font-family:system-ui,sans-serif; }
+.clockButton { background:#292932; border:1px solid #5b6370; box-shadow:0 5px 0 #101015; }
+.clockButton strong,.clockButton>span { font-family:system-ui,sans-serif; }
+.clockButton[data-state="timing"]:not(:disabled) { background:#a6e6f0; border-color:#a6e6f0; color:#18272a; box-shadow:0 5px 0 #5c929c; }
+.attempts span { border-color:#454550; }
+.attempts span[data-current="true"] { border-color:#a6e6f0; }
+.secondary,.stackFooter button,.draw button { border-radius:8px; font:800 13px system-ui,sans-serif; }
+.stackSurface { background:#1d1d24; }
+.stackFooter button { background:#def56a; box-shadow:0 4px 0 #889e30; }
+.arena[data-game] .countIn { background:#1d1d24; color:var(--ink); }
+.arena[data-game] .countIn span { color:#bdbdc9; font:800 11px system-ui,sans-serif; }
+.arena[data-game] .countIn strong { font:900 64px/1.1 system-ui,sans-serif; overflow-wrap:anywhere; }
+.feedback:empty { display:none; }
+@media(max-width:600px) { .signal strong { font-size:34px; }.target strong { font-size:42px; }.arena[data-game] .countIn strong { font-size:38px; } }

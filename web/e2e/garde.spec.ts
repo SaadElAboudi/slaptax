@@ -53,7 +53,9 @@ test('GARDE duel keeps choices secret, applies guard recovery, resolves eight tu
         const data=await(await request.get(`/api/duels/${duel.id}/match?userId=${a.userId}`)).json();
         expect(data.match.rounds[0].winnerId).toBe(b.userId);const moment=data.match.rounds[0].moment;
         expect(moment.scores).toEqual({[a.userId]:0,[b.userId]:1});expect(moment.replay.at(-1).state.garde.history).toHaveLength(8);
-        await pa.getByRole('button',{name:'See result',exact:true}).click();await expect(pa.getByTestId('moment-replay')).toBeVisible();
+        await pa.getByRole('button',{name:'See result',exact:true}).click();
+        await pa.locator('summary').filter({hasText:'The decisive moment'}).click();
+        await expect(pa.getByTestId('moment-replay')).toBeVisible();
         const download=pa.waitForEvent('download');await pa.getByRole('button',{name:'Download image',exact:true}).click();expect((await download).suggestedFilename()).toContain('.png');
         await pa.screenshot({path:info.outputPath('garde-result.png'),fullPage:true});expect(errors).toEqual([]);
     }finally{await ca.close();await cb.close();}

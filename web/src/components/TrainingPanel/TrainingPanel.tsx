@@ -4,6 +4,7 @@ import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TrainingPanel.module.css';
 import { Share2 } from 'lucide-react';
+import { GamePoster } from '../LiveGameArena/GamePoster';
 
 interface TrainingResult {
     score: number;
@@ -108,7 +109,8 @@ export function TrainingPanel() {
             <div className={styles.config}>
                 <div className={styles.games}>
                     {COMPETITIVE_GAMES.map((game) => (
-                        <button type="button" key={game.id} className={game.id === gameId ? styles.selected : ''} onClick={() => selectGame(game.id)}>
+                        <button type="button" key={game.id} aria-pressed={game.id === gameId} className={game.id === gameId ? styles.selected : ''} onClick={() => selectGame(game.id)}>
+                            <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
                             <strong>{isFr ? game.labelFr : game.labelEn}</strong>
                             <span>{isFr ? game.skillFr : game.skillEn}</span>
                         </button>

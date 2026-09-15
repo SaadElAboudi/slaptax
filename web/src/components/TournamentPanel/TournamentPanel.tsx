@@ -8,6 +8,8 @@ import {
 } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { GamePoster } from '../LiveGameArena/GamePoster';
+import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import { GameVeto } from '../GameVeto/GameVeto';
@@ -375,6 +377,7 @@ export function TournamentPanel() {
                                 return (
                                     <div key={entrant?.id || index} className={entrant ? styles.filledSeed : ''}>
                                         <span>{index + 1}</span>
+                                        {entrant && <div className={styles.entrantAvatar}><ClubAvatar rival={entrant.id !== userId}/></div>}
                                         <strong>{entrant?.name || (isFr ? 'Place libre' : 'Open slot')}</strong>
                                         <i>{entrant ? (entrant.ready ? 'READY' : entrant.online ? 'ONLINE' : 'OFFLINE') : 'OPEN'}</i>
                                     </div>
@@ -389,10 +392,12 @@ export function TournamentPanel() {
                                         type="button"
                                         key={game.id}
                                         className={selectedGames.includes(game.id) ? styles.active : ''}
+                                        aria-pressed={selectedGames.includes(game.id)}
                                         onClick={() => void toggleGame(game.id)}
                                         disabled={!isHost}
                                     >
-                                        {isFr ? game.labelFr : game.labelEn}
+                                        <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
+                                        <strong>{isFr ? game.labelFr : game.labelEn}</strong>
                                     </button>
                                 ))}
                             </div>

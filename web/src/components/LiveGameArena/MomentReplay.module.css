@@ -8,3 +8,8 @@
 .replay .tools button,.replay .timeline button { min-width:0; width:44px; min-height:44px; height:44px; border:1px solid #4e6154; background:#26352b; color:#d5e8d8; padding:8px; }
 .replay .tools button:first-child { width:100%; margin:0; background:#afeeb7; color:#19291c; }
 .replay .timeline button { flex:0 0 44px; }
+.replay { background:#24242e; border-color:#4a4a57; padding:14px; }
+.heading strong { color:#f5f5f8; font-weight:850; }.heading span { font:800 11px system-ui,sans-serif; color:#a6e6f0; }
+.replay .tools button,.replay .timeline button { background:#30303b; border-color:#575765; color:#dcdce7; border-radius:6px; }
+.replay .tools button:first-child { background:#def56a; color:#222718; }
+.timeline input,.privacy input { accent-color:#a6e6f0; }.privacy { color:#c2c2cf; }.replay p { color:#a6e6f0; }

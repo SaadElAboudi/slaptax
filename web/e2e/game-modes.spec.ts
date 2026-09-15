@@ -448,6 +448,8 @@ test('two rivals negotiate a rematch in realtime', async ({ browser, request }, 
         challengerPage.getByRole('button', { name: 'See result' }).click(),
         opponentPage.getByRole('button', { name: 'See result' }).click(),
     ]);
+    await challengerPage.locator('summary').filter({hasText:'Your rivalry'}).click();
+    await opponentPage.locator('summary').filter({hasText:'Your rivalry'}).click();
     await expect(challengerPage.getByText('HEAD TO HEAD')).toBeVisible();
     await expect(opponentPage.getByText('HEAD TO HEAD')).toBeVisible();
     await challengerPage.getByRole('button', { name: 'Add favorite rival' }).click();

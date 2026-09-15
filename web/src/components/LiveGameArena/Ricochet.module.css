@@ -10,3 +10,8 @@
 .game button:disabled { opacity:.5; cursor:default; }
 .standing {display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px;}
 .standing b {color:var(--text);font-variant-numeric:tabular-nums;}
+.game header { font-weight:750; }.game header b { color:#a6e6f0; font-size:26px; font-weight:900; }
+.game canvas { border:1px solid #535360; border-radius:8px; }
+.controls input { accent-color:#a6e6f0; }
+.game button { background:#def56a; border-radius:8px; box-shadow:0 4px 0 #889e30; font-weight:800; }
+.standing { padding-block:8px; border-bottom:1px solid #44444f; }

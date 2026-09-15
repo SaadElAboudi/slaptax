@@ -125,3 +125,7 @@
         color: var(--accent);
     }
 }
+.tabs { background:#1d1d24; border:0; border-bottom:1px solid #44444f; border-radius:0; box-shadow:none; }
+.tab { background:transparent; border-color:transparent; min-height:42px; border-radius:6px; }
+.tab:hover { border-color:#73737f; }.tab.active { background:#def56a; }
+@media(max-width:767px) { .tabs { background:#1d1d24; border-top:1px solid #44444f; }.tab.active { background:#303525; }.tab { min-height:52px; } }

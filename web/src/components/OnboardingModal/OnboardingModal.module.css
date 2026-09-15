@@ -164,3 +164,11 @@
     color: var(--muted);
     font-size: 0.68rem;
 }
+.overlay { background:#141419db; padding-block:16px; overflow-y:auto; }
+.modal { background:#23232c; border-color:#51515f; max-height:calc(100dvh - 32px); overflow-y:auto; box-shadow:0 24px 80px #0007; }
+.modal h2 { color:#def56a; font:900 28px/1.1 system-ui,sans-serif; letter-spacing:0; text-shadow:none; }
+.input { background:#30303b; border-color:#626270; font-family:system-ui,sans-serif; }
+.input:focus { border-color:#a6e6f0; box-shadow:0 0 0 3px #a6e6f026; }
+.btnMain { background:#def56a; color:#222718; font:800 15px system-ui,sans-serif; letter-spacing:0; box-shadow:0 4px 0 #889e30; min-height:48px; }
+.btnMain:hover { box-shadow:0 5px 0 #889e30; }.dot.active { box-shadow:none; }
+@media(prefers-reduced-motion:reduce) { .modal,.overlay { animation:none; }.btnMain,.dot { transition:none; } }

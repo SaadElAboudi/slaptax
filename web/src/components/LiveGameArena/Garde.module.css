@@ -5,3 +5,21 @@
 @keyframes strike{50%{transform:translateX(20px) rotate(8deg)}}@keyframes rivalStrike{50%{transform:translateX(-20px) rotate(-8deg)}}@keyframes damage{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 @media(max-width:600px){.health{gap:14px;margin:6px 0}.health>div>span{font-size:8px}.health b{font-size:14px}.field{min-height:208px;gap:24px}.armor{height:126px;width:102px}.controls{gap:6px}.controls button{min-height:90px}.controls strong{font-size:12px}.charge{font-size:8px}.damage{font-size:23px}.game header>span{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.game *{animation:none!important;transition:none!important}}
+.game { color:#f5f5f8; }
+.game header strong { color:#ffab9c; font-weight:900; font-variant-numeric:tabular-nums; }
+.health>div,.fighter { color:#def56a; }
+.health>div[data-rival=true],.fighter[data-side=rival] { color:#ffab9c; }
+.pips i { height:9px; border-radius:2px; background:#3d3d49; }
+.field { background:transparent; border-color:#474752; }
+.armor path:first-child { fill:#30303b; stroke-width:3; }
+.armor path:nth-child(2) { stroke-width:3; }
+.fighter[data-charged=true] .armor path:first-child { fill:#413b29; stroke:#f4d77c; }
+.controls button { border-radius:8px; border-color:#50505e; background:#2b2b35; box-shadow:0 4px 0 #101015; transition:background .15s,transform .15s; }
+.controls button:hover:not(:disabled) { background:#383843; }
+.controls button[data-selected=true] { background:#383843; box-shadow:inset 0 -3px currentColor; }
+.controls button:active:not(:disabled) { transform:translateY(3px); }
+.controls button svg { width:26px; height:26px; }
+.status { color:#c9c9d4; }
+.damage { color:#fff; background:#272730; border-radius:6px; padding:3px 8px; text-shadow:none; font-weight:900; }
+.log,.row { border-color:#44444f; }
+@media(prefers-reduced-motion:reduce) { .controls button { transition:none; } }

@@ -136,3 +136,22 @@
 }
 .seasonRail { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:16px; padding:16px; border-block:1px solid #405045; color:#b5c6b9; font:700 12px monospace; }
 .seasonRail strong { color:#aff2b4; font-size:22px; }
+.panel,.waiting,.intermission { background:#1d1d24; border:0; border-radius:0; box-shadow:none; }
+.hero { background:transparent; }.hero h2 { font:900 28px/1.15 system-ui,sans-serif; }
+.hero span,.readyTitle span,.inbox>span { font-family:system-ui,sans-serif; }
+.fields select,.setup input,.shareLink input { background:#292932; border-color:#51515d; }
+.fields label { min-width:0; }.fields select { width:100%; }
+.gameDraft button { padding:0 0 12px; overflow:hidden; border-color:#484854; background:#272730; border-radius:8px; }
+.gameDraft button>strong,.gameDraft button>span { padding-inline:10px; overflow-wrap:anywhere; }
+.gamePreview { height:88px; position:relative; overflow:hidden; }
+.gamePreview>div { position:absolute; top:50%; left:50%; width:280px; height:190px; transform:translate(-50%,-50%) scale(.45); background:transparent; }
+.primary { border-radius:8px; box-shadow:0 4px 0 #889e30; }
+.players>div { background:transparent; border:0; border-bottom:3px solid #4b4b57; border-radius:0; overflow-wrap:anywhere; }
+.players .isReady { background:transparent; border-color:#def56a; color:#def56a; }
+.queueRoom { background:transparent; border:0; border-block:1px solid #44444f; }
+.inbox article { background:#292932; border-color:#484854; border-radius:8px; gap:10px; }
+.inbox article div { min-width:0; overflow-wrap:anywhere; }
+.setupActions button { padding:12px; }
+.rematchBuilder,.rematchPrompt { min-width:0; }
+@media(max-width:760px) { .gameDraft { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }.gamePreview { height:68px; }.gamePreview>div { transform:translate(-50%,-50%) scale(.32); }.gameDraft button>strong { font-size:11px; }.gameDraft button>span { font-size:9px; }.hero h2 { font-size:24px; } }
+@media(max-width:360px) { .gameDraft { grid-template-columns:repeat(2,minmax(0,1fr)); } }

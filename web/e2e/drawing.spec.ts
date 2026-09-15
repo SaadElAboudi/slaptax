@@ -85,7 +85,9 @@ for(const game of ['trace','decoupe'] as const) {
                 await expect(pa.getByTestId('drawing')).toHaveAttribute('data-phase','reveal');
             }
             await expect(pa.getByTestId('round-recap')).toBeVisible();await expect(pa.getByTestId('round-evidence')).toBeVisible();
-            await pa.getByRole('button',{name:'See result',exact:true}).click();await expect(pa.getByTestId('moment-replay')).toBeVisible();
+            await pa.getByRole('button',{name:'See result',exact:true}).click();
+            await pa.locator('summary').filter({hasText:'The decisive moment'}).click();
+            await expect(pa.getByTestId('moment-replay')).toBeVisible();
             await pa.screenshot({path:info.outputPath(`${game}-duel-result.png`),fullPage:true});
         }finally{await ca.close();await cb.close();}
     });

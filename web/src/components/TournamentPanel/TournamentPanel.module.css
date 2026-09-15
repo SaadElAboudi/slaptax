@@ -24,3 +24,26 @@
 .readyMatch,.champion { min-height:130px; display:grid; place-content:center; justify-items:center; gap:10px; border:1px solid rgba(255,212,0,.35); background:rgba(255,212,0,.05); text-align:center; }.readyMatch strong,.champion strong { font:400 1.55rem 'Black Ops One',sans-serif; }.champion button { min-height:40px; border:1px solid var(--accent); border-radius:4px; padding:0 14px; color:var(--accent); background:transparent; cursor:pointer; }
 .notice,.error { margin:0; padding:10px; border:1px solid var(--line-soft); color:var(--muted); text-align:center; font-size:.72rem; }.notice { display:flex; align-items:center; justify-content:center; gap:10px; }.notice button,.stopWatching { min-height:34px; border:1px solid var(--accent); border-radius:4px; padding:0 11px; color:var(--accent); background:transparent; cursor:pointer; }.stopWatching { justify-self:start; }.error { border-color:rgba(239,71,111,.4); color:var(--danger); }
 @media (max-width:800px) { .panel { padding:10px; border-radius:0; }.createRoom { grid-template-columns:1fr; }.roster { grid-template-columns:repeat(2,minmax(0,1fr)); }.gameRotation > div { grid-template-columns:repeat(2,minmax(0,1fr)); }.roomTools { align-items:stretch; flex-direction:column; }.hero { align-items:flex-start; }.liveRun { gap:8px; } }
+.panel { border:0; border-radius:0; background:#1d1d24; padding:20px; align-content:start; }
+.hero { background:transparent; padding:10px 0 20px; }.hero h2 { font:900 28px/1.15 system-ui,sans-serif; }
+.hero span,.roomTools small,.gameRotation>span,.readyMatch>span,.champion span { font-family:system-ui,sans-serif; }
+.createRoom,.roomTools,.gameRotation,.bracket { background:transparent; border:0; border-block:1px solid #44444f; border-radius:0; padding:16px 0; }
+.createRoom input,.presets button { background:#292932; border-color:#51515d; }
+.createRoom input { min-width:0; }
+.presets button { min-width:44px; min-height:44px; padding:8px 10px; }
+.createRoom>button,.waitingRoom>button,.readyMatch button { border-radius:8px; min-height:48px; box-shadow:0 4px 0 #889e30; }
+.tournamentList>button { background:#292932; border-color:#484854; border-radius:8px; padding:14px; }
+.roster>div { position:relative; min-height:110px; background:#272730; border-color:#484854; border-radius:8px; padding:12px; }
+.roster strong { overflow-wrap:anywhere; max-width:100%; font-size:13px; }
+.entrantAvatar { position:absolute; right:8px; top:8px; width:32px; height:32px; }
+.roster .filledSeed { border-color:#6f8064!important; }
+.gameRotation button { background:#272730; border:1px solid #484854; border-radius:8px; overflow:hidden; padding:0 0 12px; }
+.gameRotation button.active { color:#def56a; background:#272730; border-color:#def56a; box-shadow:inset 0 -3px #def56a; }
+.gameRotation button strong { display:block; padding-inline:6px; overflow-wrap:anywhere; }
+.gamePreview { height:76px; position:relative; overflow:hidden; }
+.gamePreview>div { position:absolute; top:50%; left:50%; width:280px; height:190px; transform:translate(-50%,-50%) scale(.38); background:transparent; }
+.bracket { gap:24px; }.bracket>section { gap:12px; }.bracket section>div { background:#292932; border-color:#50505c; border-radius:8px; min-height:70px; }
+.readyMatch,.champion { border:0; border-block:1px solid #51515c; background:transparent; padding:24px; }
+.readyMatch strong,.champion strong { font:900 28px/1.2 system-ui,sans-serif; overflow-wrap:anywhere; max-width:100%; }
+.champion strong { color:#def56a; }.champion button { border-radius:8px; min-height:44px; }
+@media(max-width:800px) { .panel { padding:16px; }.hero h2 { font-size:24px; }.gameRotation>div { grid-template-columns:repeat(3,minmax(0,1fr)); }.gamePreview { height:64px; }.gamePreview>div { transform:translate(-50%,-50%) scale(.3); }.tournamentList>button { grid-template-columns:1fr auto; }.tournamentList>button>span { grid-column:1/-1; } }

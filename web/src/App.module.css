@@ -173,3 +173,5 @@
         animation: none;
     }
 }
+.matchHeader strong { font:850 16px system-ui,sans-serif; }
+.matchHeader span,.modeStatus { font-family:system-ui,sans-serif; }

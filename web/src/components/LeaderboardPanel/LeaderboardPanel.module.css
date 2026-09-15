@@ -112,3 +112,9 @@
         margin-left: 44px;
     }
 }
+.panel { background:transparent; border:0; border-radius:0; box-shadow:none; padding:20px 16px; }
+.head { padding-bottom:20px; border-bottom:1px solid #44444f; }.title { font:900 28px/1.15 system-ui,sans-serif; }
+.badge { border-radius:5px; letter-spacing:0; }.list { gap:0; }
+.row { background:transparent; border:0; border-bottom:1px solid #3c3c47; border-radius:0; min-height:76px; }
+.row:first-child { background:#262a23; }.rank { border-radius:6px; color:#202517; }
+.meta { min-width:0; }.meta strong { overflow-wrap:anywhere; }.stats { color:#a6e6f0; font-variant-numeric:tabular-nums; }

@@ -118,6 +118,7 @@ for (const game of [{ id: 'falsestart', label: 'False Start' }, { id: 'onesecond
             }
             await expect.poll(async () => (await (await request.get(`/api/duels/${id}/match?userId=${a.userId}`)).json()).match.status).toBe('done');
             await first.getByRole('button', { name: 'See result' }).click();
+            await first.locator('summary').filter({hasText:'The decisive moment'}).click();
             const replay = first.getByTestId('moment-replay');
             await expect(replay).toBeVisible();
             await expect(first.getByLabel('Include player names')).not.toBeChecked();

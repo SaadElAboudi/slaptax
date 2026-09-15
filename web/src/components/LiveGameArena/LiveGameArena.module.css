@@ -131,3 +131,56 @@
 .arena[data-game="chroma"] .versus { font:750 12px system-ui,sans-serif; gap:16px; }.arena[data-game="chroma"] .versus svg { width:44px; height:44px; flex-shrink:0; }.arena[data-game="chroma"][data-phase="briefing"] .versus svg { width:64px; height:64px; }
 .arena[data-game="chroma"] .briefing { background:#1d1d24; gap:12px; padding:24px; }.arena[data-game="chroma"] .poster { max-width:360px; height:170px; margin-bottom:0; border-radius:0; }.arena[data-game="chroma"] .briefing h3 { font-size:42px; font-weight:900; }.arena[data-game="chroma"] .briefing button { min-height:52px; border-radius:8px; box-shadow:0 4px 0 #889e30; }.arena[data-game="chroma"] .briefStats { color:#a6e6f0; font-family:system-ui,sans-serif; }.arena[data-game="chroma"] .complete { background:#1d1d24; }.arena[data-game="chroma"] .complete strong { font:900 44px/1.1 system-ui,sans-serif; }.arena[data-game="chroma"] .impactLines { display:none; }
 @media(max-width:600px) { .arena[data-game="chroma"] .header { gap:10px; padding:10px 16px; }.arena[data-game="chroma"] .versus { justify-content:space-between; width:100%; gap:8px; }.arena[data-game="chroma"] .versus strong { max-width:85px; font-size:11px; }.arena[data-game="chroma"][data-phase="briefing"] .versus svg { width:48px; height:48px; }.arena[data-game="chroma"] .versus svg { width:30px; height:30px; }.arena[data-game="chroma"] .briefing { padding:18px 16px 24px; }.arena[data-game="chroma"] .briefing h3 { font-size:34px; }.arena[data-game="chroma"] .complete strong { font-size:30px; } }
+.arena[data-game] { border:0; border-radius:0; background:#1d1d24; --game-color:#def56a; }
+.arena[data-game="onesecond"],.arena[data-game="bounce"],.arena[data-game="cupshuffle"] { --game-color:#a6e6f0; }
+.arena[data-game="bombpass"],.arena[data-game="garde"],.arena[data-game="chroma"] { --game-color:#ffab9c; }
+.arena[data-game="symbolrush"],.arena[data-game="trace"] { --game-color:#edb8dd; }
+.arena[data-game="decoupe"],.arena[data-game="contrepied"] { --game-color:#f4d77c; }
+.arena[data-game] .header { background:#1d1d24; padding:14px 20px; }
+.arena[data-game] .header h2 { font:900 23px/1.15 system-ui,sans-serif; }
+.arena[data-game] .header span { font-family:system-ui,sans-serif; }
+.arena[data-game] .versus { font:750 12px system-ui,sans-serif; gap:16px; }
+.arena[data-game] .versus svg { width:40px; height:40px; flex-shrink:0; }
+.arena[data-game][data-phase="briefing"] .versus svg { width:60px; height:60px; }
+.arena[data-game] .briefing { background:#1d1d24; gap:12px; padding:24px; }
+.arena[data-game] .poster { max-width:360px; height:190px; margin-bottom:0; border-radius:0; }
+.arena[data-game] .briefing h3 { font:900 40px/1.1 system-ui,sans-serif; overflow-wrap:anywhere; }
+.arena[data-game] .briefing button { min-height:52px; border-radius:8px; box-shadow:0 4px 0 #889e30; transition:transform .15s,box-shadow .15s; }
+.arena[data-game] .briefing button:active { transform:translateY(3px); box-shadow:0 1px 0 #889e30; }
+.arena[data-game] .briefStats { color:var(--game-color); font:800 11px system-ui,sans-serif; }
+.arena[data-game] .series { background:transparent; border:0; gap:10px; padding:8px 16px; }
+.arena[data-game] .series>div { border:0; border-bottom:3px solid #41414d; background:transparent; }
+.arena[data-game] .seriesActive { border-bottom-color:var(--game-color)!important; }
+.arena[data-game] .seriesDone { border-bottom-color:#a6e6f0!important; }
+.arena[data-game] .game { background:#1d1d24; }
+.arena[data-game] .liveHud { background:transparent; border-bottom:1px solid #454550; font:750 11px system-ui,sans-serif; }
+.arena[data-game] .countdown { background:#1d1d24; color:var(--game-color); font:900 100px/1 system-ui,sans-serif; animation:arenaReveal .25s ease-out both; }
+.arena[data-game] .complete { background:#1d1d24; }
+.arena[data-game] .complete strong { font:900 64px/1.1 system-ui,sans-serif; overflow-wrap:anywhere; max-width:100%; }
+.arena[data-game] .impactLines { display:none; }
+.arena[data-game] .symbolBoard span { border-radius:8px; background:#2a2a34; color:#d9d9e3; }
+.arena[data-game] .symbolFlash { background:#edb8dd!important; box-shadow:0 4px 0 #925c84; }
+.arena[data-game] .symbolPad button,.arena[data-game] .answerGrid button { border:1px solid #555562; background:#30303b; border-radius:8px; box-shadow:0 4px 0 #101014; font-family:system-ui,sans-serif; }
+.arena[data-game] .equation { font:900 64px/1.1 system-ui,sans-serif; color:#def56a; }
+.arena[data-game] .bombCore>.bombOrb { background:#30303b; border-color:#ffab9c; box-shadow:inset -10px -8px #22222b; font-family:system-ui,sans-serif; }
+.arena[data-game] .bombTrack { border-radius:8px; background:#352831; }
+.arena[data-game] .powerBar button,.arena[data-game] .powerBar span { background:#2a2a34; font-family:system-ui,sans-serif; }
+.arena[data-game] .roundFeedback { border-radius:6px; font:750 13px system-ui,sans-serif; }
+@media(max-width:600px) {
+    .arena[data-game] .header { padding:10px 16px; gap:10px; }
+    .arena[data-game] .versus { justify-content:space-between; width:100%; gap:8px; }
+    .arena[data-game] .versus strong { max-width:90px; font-size:11px; }
+    .arena[data-game] .versus svg { width:30px; height:30px; }
+    .arena[data-game][data-phase="briefing"] .versus svg { width:48px; height:48px; }
+    .arena[data-game] .briefing { padding:18px 16px 24px; }
+    .arena[data-game] .briefing h3 { font-size:32px; }
+    .arena[data-game] .complete strong { font-size:40px; }
+    .arena[data-game] .equation { font-size:46px; }
+    .arena[data-game] .countdown { font-size:72px; }
+}
+@media(prefers-reduced-motion:reduce) { .arena[data-game] .countdown { animation:none; }.arena[data-game] .briefing button { transition:none; } }
+@media(max-width:600px) {
+    .arena[data-game] .header:has(.modeBadge) { display:grid; grid-template-columns:minmax(0,1fr) auto 36px; gap:8px; }
+    .arena[data-game] .modeBadge { font:800 9px system-ui,sans-serif; padding:6px; white-space:nowrap; }
+}
+@media(max-width:360px) { .arena[data-game] .header h2 { font-size:18px; overflow-wrap:normal; } }

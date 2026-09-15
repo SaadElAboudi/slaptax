@@ -11,3 +11,11 @@
 .progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;min-height:56px}.progress span{border-top:2px solid #37474b;display:grid;gap:6px;padding-top:8px;font-size:10px;color:#b6c4c8}.progress span[data-current=true]{border-color:#bdf182}.progress b{font-size:16px;color:#edf2ed}
 @media(max-width:600px){.board{width:min(100%,max(200px,calc(100svh - 410px)),340px)}.game header{min-height:45px}.results strong{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.game *{animation:none;transition:none}}
+.game header { color:#bdbdc9; }.game header strong { color:#a6e6f0; font-weight:900; }
+.board { border-color:#535360; border-radius:8px; }
+.overlay { background:#1d1d24; }.overlay strong { color:#def56a; font-weight:900; }
+.locked { background:#24242eea; border-radius:6px; color:#def56a; }
+.actions button { border-radius:8px; background:#2c2c36; border-color:#555562; color:#f5f5f8; cursor:pointer; }
+.actions button:last-child { background:#def56a; color:#202517; border:0; box-shadow:0 4px 0 #889e30; }
+.results>div { color:#def56a; }.results>div[data-rival=true] { color:#ffab9c; }
+.progress span { border-color:#44444f; }.progress span[data-current=true] { border-color:#edb8dd; }

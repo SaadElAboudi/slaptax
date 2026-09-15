@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type RivalryResponse, type UserListEntry } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
 import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { GamePoster } from '../LiveGameArena/GamePoster';
 import { getRiskStakeCap } from '../../gameplay/difficulty';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
@@ -678,8 +679,8 @@ export function FriendDuelPanel() {
                         </button>
                     </div>
                 ));
-        if(decisiveRound?.gameId==='chroma'&&userId)return <section className={club.final} data-testid="club-result" data-won={won}>
-            <header><span>CHROMA / {isFr?'LE VERDICT':'THE VERDICT'}</span><span>{isFr?'PARTIE TERMINEE':'MATCH COMPLETE'}</span></header>
+        if(decisiveRound&&userId)return <section className={club.final} data-testid="club-result" data-won={won}>
+            <header><span>{decisiveGame} / {isFr?'LE VERDICT':'THE VERDICT'}</span><span>{isFr?'PARTIE TERMINEE':'MATCH COMPLETE'}</span></header>
             <div className={club.faceoff}><div><ClubAvatar variant={avatar}/><span>{playerName}</span><strong>{match.score[myRole]}</strong></div><b>VS</b><div><ClubAvatar rival/><span>{match.opponentName}</span><strong>{match.score[rivalRole]}</strong></div></div>
             <h2>{won?(isFr?'Tu peux chambrer.':'Bragging rights: yours.'):(isFr?'Une revanche ?':'Another round?')}</h2>
             <p>{shareHeadline}</p>
@@ -883,8 +884,10 @@ export function FriendDuelPanel() {
                                 type="button"
                                 key={game.id}
                                 className={preferredGame === game.id ? styles.picked : ''}
+                                aria-pressed={preferredGame === game.id}
                                 onClick={() => setPreferredGame(game.id)}
                             >
+                                <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
                                 <strong>{isFr ? game.labelFr : game.labelEn}</strong>
                                 <span>{preferredGame === game.id ? (isFr ? 'FAVORI' : 'PREFERRED') : (isFr ? game.skillFr : game.skillEn)}</span>
                             </button>
