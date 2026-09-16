@@ -29,6 +29,7 @@ function createRealtimeHub(server, store, service) {
         });
         sharedArena.attach(client);
         client.send(JSON.stringify({ type: "connected", at: Date.now() }));
+        server.monitoring?.observe(getOnlineIds());
     });
 
     const heartbeat = setInterval(() => {
@@ -40,6 +41,7 @@ function createRealtimeHub(server, store, service) {
             client.isAlive = false;
             client.ping();
         }
+        server.monitoring?.observe(getOnlineIds());
     }, 25_000);
     heartbeat.unref?.();
 
@@ -57,14 +59,18 @@ function createRealtimeHub(server, store, service) {
         wss.close();
     }
 
-    function getPresence() {
+    function getOnlineIds() {
         const db = store.read(), now = Date.now(), players = new Set();
         const known = new Set(db.users.map(user => user.id));
         for (const client of wss.clients) {
             if (client.readyState === WebSocket.OPEN && now - client.lastPongAt < 60000
                 && known.has(client.userId) && db.clientSessions?.[client.clientId] === client.userId) players.add(client.userId);
         }
-        return { onlinePlayers: players.size, updatedAt: now, scope: 'instance' };
+        return [...players];
+    }
+
+    function getPresence() {
+        return { onlinePlayers: getOnlineIds().length, updatedAt: Date.now(), scope: 'instance' };
     }
 
     return { broadcast, close, wss, sharedArena, getPresence };

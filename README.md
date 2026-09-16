@@ -183,6 +183,9 @@ Without `DATABASE_URL`, the API keeps using `data/mvp_db.json` locally.
 - `HOST`: `0.0.0.0` on Render.
 - `PORT`: provided automatically by Render.
 - `PG_POOL_SIZE`: optional, defaults to `4`.
+- `ADMIN_TOKEN`: random secret of at least 32 characters for the private `/admin`
+  dashboard. Never use a `VITE_` variable for this secret. See
+  [monitoring setup and metric definitions](./MONITORING.md).
 
 ## Lancer les prototypes HTML / Run the HTML Prototypes
 

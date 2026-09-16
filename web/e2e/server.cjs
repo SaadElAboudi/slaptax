@@ -6,7 +6,7 @@ fs.rmSync(dbPath, { force: true });
 process.env.DB_PATH = dbPath;
 
 const { createServer } = require("../../api/server");
-const server = createServer({ dbPath });
+const server = createServer({ dbPath, adminToken: 'playwright-admin-token-only-not-production-12345' });
 
 server.store.ready.then(() => {
     server.listen(3100, "127.0.0.1");

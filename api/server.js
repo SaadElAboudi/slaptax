@@ -6,6 +6,7 @@ const { createStore } = require("./infrastructure/store");
 const { createRequestHandler } = require("./http/router");
 const { createRealtimeHub } = require("./realtime");
 const { json } = require("./http/io");
+const { createMonitoring, adminAuthorized } = require('./application/monitoring');
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || "0.0.0.0";
@@ -60,12 +61,29 @@ function createServer(options = {}) {
     const store = options.store || createStore(options);
     const service = createService(store);
     const handleRequest = createRequestHandler(service);
+    const monitoring = createMonitoring(store);
+    const adminToken = options.adminToken ?? process.env.ADMIN_TOKEN;
 
     const server = http.createServer(async (req, res) => {
         try {
             await store.ready;
             const url = new URL(req.url, "http://localhost");
+            if (url.pathname.startsWith('/api/admin/')) {
+                res.setHeader('Cache-Control', 'no-store');
+                res.setHeader('X-Content-Type-Options', 'nosniff');
+                if (!adminAuthorized(req, adminToken)) {
+                    json(res, 401, { error: 'Acces administrateur refuse.' });
+                    return;
+                }
+                if (req.method === 'GET' && url.pathname === '/api/admin/monitoring') {
+                    json(res, 200, monitoring.snapshot(server.realtime.getPresence()));
+                } else json(res, 404, { error: 'Not found' });
+                return;
+            }
             if (url.pathname.startsWith("/api/")) {
+                if (!['/api/health', '/api/presence'].includes(url.pathname)) {
+                    res.once('finish', () => monitoring.request(res.statusCode));
+                }
                 if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS" && !url.pathname.startsWith('/api/link-challenges')) {
                     res.once("finish", () => {
                         if (res.statusCode < 400) {
@@ -86,11 +104,18 @@ function createServer(options = {}) {
         }
     });
     server.store = store;
+    server.monitoring = monitoring;
     server.realtime = createRealtimeHub(server, store, service);
     service.getPresence = () => server.realtime.getPresence();
     const health=service.getHealth;
     service.getHealth=()=>({...health(),mat:server.realtime.sharedArena.matPool.health()});
+    const metricsTimer = setInterval(() => {
+        store.ready.then(() => monitoring.flush()).catch(error => process.stderr.write(`Monitoring persistence error: ${error.message}\n`));
+    }, 30000);
+    metricsTimer.unref();
     server.on("close", () => {
+        clearInterval(metricsTimer);
+        monitoring.flush();
         server.realtime.close();
     });
     return server;
