@@ -1,14 +1,15 @@
-const GAME_POOL = ['falsestart', 'onesecond', 'onemore', 'bounce', 'symbolrush', 'bombpass', 'cupshuffle', 'duelnumeric', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'];
+const GAME_POOL = require('../../shared/game-selection.json').map(game=>game.id);
 
+const KNOWN_GAMES=[...GAME_POOL,'ricochet','falsestart','onesecond','bounce','symbolrush','cupshuffle','duelnumeric','chroma','contrepied','trace','mat'];
 function newVeto() { return { votes: {}, banned: [], complete: false }; }
 
 function tournamentVeto(votes, entrants, preferred) {
-    const counts = GAME_POOL.map((game) => ({ game, count: entrants.filter((id) => votes[id] === game).length }));
+    const counts = KNOWN_GAMES.map((game) => ({ game, count: entrants.filter((id) => votes[id] === game).length }));
     // Catalogue order breaks equal votes consistently for every client.
     counts.sort((a, b) => b.count - a.count);
     const banned = counts[0].count ? [counts[0].game] : [];
-    const games = [...new Set([...(preferred || []), ...GAME_POOL])].filter((id) => GAME_POOL.includes(id) && !banned.includes(id)).slice(0, 3);
-    return { banned, games, complete: entrants.every((id) => GAME_POOL.includes(votes[id])) };
+    const games = [...new Set([...(preferred || []), ...GAME_POOL])].filter((id) => KNOWN_GAMES.includes(id) && !banned.includes(id)).slice(0, 3);
+    return { banned, games, complete: entrants.every((id) => KNOWN_GAMES.includes(votes[id])) };
 }
 
 function pruneQueue(db, now = Date.now()) {

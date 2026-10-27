@@ -9,7 +9,6 @@ import { HistoryPanel } from './components/HistoryPanel/HistoryPanel';
 import { FriendDuelPanel } from './components/FriendDuelPanel/FriendDuelPanel';
 import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
 import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
-import { OnboardingModal } from './components/OnboardingModal/OnboardingModal';
 import { useRealtime } from './api/realtime';
 import { api } from './api/client';
 import { LinkChallenge } from './components/TrainingPanel/LinkChallenge';
@@ -18,7 +17,7 @@ import { MyChallenges } from './components/MyChallenges/MyChallenges';
 function App() {
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
     const isFr = language === 'fr';
-    const [linkChallenge] = useState(() => new URLSearchParams(window.location.search).get('link'));
+    const [linkChallenge, setLinkChallenge] = useState(() => new URLSearchParams(window.location.search).get('link'));
     useEffect(() => {
         if (!userId) return;
         const heartbeat = window.setInterval(() => {
@@ -30,25 +29,11 @@ function App() {
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
         return Boolean(requestedTab);
     });
-    const [showOnboarding, setShowOnboarding] = useState(() => {
-        try {
-            return !localStorage.getItem('slaptax_onboarded');
-        } catch {
-            return true;
-        }
-    });
 
     useRealtime(userId, (event) => {
         if (event.type === 'state.changed') void refreshLiveState();
     });
 
-    const handleOnboardingComplete = (tab: Tab) => {
-        try {
-            localStorage.setItem('slaptax_onboarded', '1');
-        } catch { }
-        setShowOnboarding(false);
-        enterArena(tab);
-    };
 
     useEffect(() => {
         bootstrap();
@@ -84,26 +69,50 @@ function App() {
         window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
     }, [activeTab, arenaOpen]);
 
+    useEffect(() => {
+        const restoreRoute = () => {
+            const params = new URLSearchParams(window.location.search);
+            const tab = params.get('tab');
+            setLinkChallenge(params.get('link'));
+            const valid = Boolean(tab && ['training','defy','tournament','leaderboard','stats','challenges'].includes(tab));
+            if (valid) setActiveTab(tab as Tab);
+            setArenaOpen(valid);
+        };
+        window.addEventListener('popstate', restoreRoute);
+        return () => window.removeEventListener('popstate', restoreRoute);
+    }, [setActiveTab]);
+
     function enterArena(tab: Tab) {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('link');
+        params.set('tab', tab);
+        const next = `${window.location.pathname}?${params.toString()}`;
+        if (`${window.location.pathname}${window.location.search}` !== next) window.history.pushState({}, '', next);
+        setLinkChallenge(null);
         setActiveTab(tab);
         setArenaOpen(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
     function leaveArena() {
         setArenaOpen(false);
+        setLinkChallenge(null);
         const params = new URLSearchParams(window.location.search);
+        params.delete('link');
+        params.delete('game');
         params.delete('tab');
         params.delete('invite');
         params.delete('room');
         params.delete('token');
         const query = params.toString();
-        window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+        const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
+        if (`${window.location.pathname}${window.location.search}` !== next) window.history.pushState({}, '', next);
+        window.scrollTo({top:0,behavior:'instant'});
     }
 
     const sectionLabels: Partial<Record<Tab, string>> = {
-        training: isFr ? 'Entrainement' : 'Training',
-        defy: isFr ? 'Duel Ami' : 'Friend Duel',
+        training: isFr ? 'Jouer en solo' : 'Solo play',
+        defy: isFr ? 'Avec un ami' : 'Friend Duel',
         tournament: isFr ? 'Tournoi' : 'Tournament',
         leaderboard: isFr ? 'Classement' : 'Leaderboard',
         stats: isFr ? 'Historique' : 'History',
@@ -113,17 +122,17 @@ function App() {
     const modeStatus: Record<Tab, { label: string; tone: string }> = {
         training: { label: 'SOLO', tone: styles.statusSolo },
         defy: { label: '1V1', tone: styles.statusLive },
-        tournament: { label: 'RUN', tone: styles.statusTournament },
-        leaderboard: { label: 'RANK', tone: styles.statusMeta },
+        tournament: { label: isFr ? 'COUPE' : 'CUP', tone: styles.statusTournament },
+        leaderboard: { label: 'TOP', tone: styles.statusMeta },
         stats: { label: isFr ? 'BILAN' : 'LOG', tone: styles.statusMeta },
-        challenges: {label:'LINK',tone:styles.statusMeta},
+        challenges: {label:isFr?'DÉFI':'LINK',tone:styles.statusMeta},
     };
 
     return (
         <>
             <div className={styles.tapeBg} aria-hidden />
 
-            <TopBar />
+            <TopBar onHome={leaveArena} />
 
             <main className={`${styles.container} ${arenaOpen ? styles.arenaMode : styles.homeMode}`}>
                 {linkChallenge ? <LinkChallenge id={linkChallenge}/> : !arenaOpen ? (
@@ -143,7 +152,6 @@ function App() {
                             </span>
                         </div>
 
-                        <Tabs />
 
                         <div key={activeTab} className={styles.panelArea}>
                             {activeTab === 'training' && <TrainingPanel />}
@@ -156,7 +164,7 @@ function App() {
                     </>
                 )}
 
-                {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+                {!linkChallenge && <Tabs home={!arenaOpen} onHome={leaveArena} onEnter={enterArena} />}
             </main>
         </>
     );

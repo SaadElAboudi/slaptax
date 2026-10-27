@@ -5,10 +5,11 @@ function game(players=['a','b'],random=(min)=>min){const g=createParty('garde',p
 function act(g,id,action){return actParty(g,id,{action,turn:g.turn},g.deadline-1);}
 function exchange(g,a,b){assert.equal(act(g,'a',a),true);assert.equal(act(g,'b',b),true);}
 
-test('GARDE resolves all nine action pairs and four charge configurations simultaneously',()=>{
-    for(const a of ['attack','charge','defend'])for(const b of ['attack','charge','defend'])for(const ca of [false,true])for(const cb of [false,true]) {
+test('GARDE resolves all sixteen action pairs and four charge configurations simultaneously',()=>{
+    for(const a of ['attack','charge','defend','prank'])for(const b of ['attack','charge','defend','prank'])for(const ca of [false,true])for(const cb of [false,true]) {
         const g=game();g.garde.charged={a:ca,b:cb};exchange(g,a,b);
-        assert.deepEqual(g.garde.hp,{a:6-(b==='attack'&&a!=='defend'?(cb?2:1):0),b:6-(a==='attack'&&b!=='defend'?(ca?2:1):0)});
+        const loss=(from,to,cFrom,cTo)=>from==='attack'&&to!=='defend'?(cFrom?2:1)+(to==='prank'?1:0):from==='prank'&&to==='charge'?2:from==='defend'&&to==='attack'?(cTo?2:1):0;
+        assert.deepEqual(g.garde.hp,{a:6-loss(b,a,cb,ca),b:6-loss(a,b,ca,cb)});
         assert.deepEqual(g.garde.charged,{a:a==='charge',b:b==='charge'});
         assert.equal(g.phase,'reveal');assert.equal(g.deadline,5199);
     }
@@ -26,7 +27,7 @@ test('GARDE rejects invalid, stale, outsider and duplicate actions without expos
     act(g,'b','attack');assert.equal(g.garde.hp.a,5);assert.equal(g.garde.charged.a,true);
 });
 test('GARDE defense cannot repeat, recovers after another action, and fully blocks a charge',()=>{
-    const g=game();g.garde.charged.b=true;exchange(g,'defend','attack');assert.deepEqual(g.scores,{a:6,b:6});
+    const g=game();g.garde.charged.b=true;exchange(g,'defend','attack');assert.deepEqual(g.scores,{a:6,b:4});
     tickParty(g,g.deadline);assert.equal(publicParty(g,'a',6000).garde.canDefend.a,false);assert.equal(act(g,'a','defend'),false);
     exchange(g,'charge','attack');tickParty(g,g.deadline);assert.equal(act(g,'a','defend'),true);
 });
@@ -64,4 +65,10 @@ test('GARDE replay is immutable and contains the complete history for sharing',(
     const p=publicParty(g,'a',4000);p.garde.hp.a=0;p.garde.history[0].actions.a='miss';
     assert.equal(g.garde.hp.a,6);assert.equal(g.garde.history[0].actions.a,'attack');
     g.garde.hp.a=1;assert.equal(g.replay[0].state.garde.hp.a,6);
+});
+
+test('banana really trips charge, loses to a punch, and a frying pan reflects the big fish',()=>{
+ const g=game();exchange(g,'prank','charge');assert.equal(g.garde.hp.b,4);assert.equal(g.garde.charged.b,true);assert.equal(g.garde.history[0].gags.b,'banana');
+ tickParty(g,g.deadline);exchange(g,'defend','attack');assert.equal(g.garde.hp.a,6);assert.equal(g.garde.hp.b,2);assert.equal(g.garde.history[1].gags.b,'pan');
+ const h=game();exchange(h,'prank','attack');assert.equal(h.garde.hp.a,4);assert.equal(h.garde.hp.b,6);
 });

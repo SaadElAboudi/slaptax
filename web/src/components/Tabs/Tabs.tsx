@@ -1,45 +1,11 @@
 import styles from './Tabs.module.css';
-import { useGameStore, type Tab } from '../../hooks/useGameStore';
-import { Play, Swords, Trophy, ChartNoAxesColumnIncreasing, History, Link, type LucideIcon } from 'lucide-react';
-
-const ALL_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
-    { id: 'training', label: 'Training', icon: Play },
-    { id: 'defy', label: 'Friend Duel', icon: Swords },
-    { id: 'challenges', label: 'My challenges', icon: Link },
-    { id: 'tournament', label: 'Tournament', icon: Trophy },
-    { id: 'leaderboard', label: 'Leaderboard', icon: ChartNoAxesColumnIncreasing },
-    { id: 'stats', label: 'History', icon: History },
-];
-
-const TAB_LABELS_FR: Record<Tab, string> = {
-    training: 'Entrainement',
-    defy: 'Duel Ami',
-    tournament: 'Tournoi',
-    leaderboard: 'Classement',
-    stats: 'Historique',
-    challenges: 'Mes defis',
-};
-
-export function Tabs() {
-    const { activeTab, setActiveTab, language } = useGameStore();
-    const isFr = language === 'fr';
-
-    return (
-        <nav className={styles.tabs} aria-label={isFr ? 'Navigation principale' : 'Main navigation'}>
-            {ALL_TABS.map((t) => (
-                <button
-                    key={t.id}
-                    data-tab={t.id}
-                    className={`${styles.tab} ${activeTab === t.id ? styles.active : ''}`}
-                    onClick={() => {
-                        setActiveTab(t.id);
-                    }}
-                    aria-current={activeTab === t.id ? 'page' : undefined}
-                >
-                    <span aria-hidden><t.icon size={19} strokeWidth={1.8} /></span>
-                    <b>{isFr ? TAB_LABELS_FR[t.id] : t.label}</b>
-                </button>
-            ))}
-        </nav>
-    );
+import {useGameStore,type Tab} from '../../hooks/useGameStore';
+import {Gamepad2,Swords,Link,Trophy} from 'lucide-react';
+export function Tabs({home,onHome,onEnter}:{home:boolean;onHome:()=>void;onEnter:(tab:Tab)=>void}){
+ const {activeTab,language}=useGameStore();const fr=language==='fr';
+ const items=[{id:'home',fr:'Jouer',en:'Play',icon:Gamepad2},{id:'defy',fr:'Amis',en:'Friends',icon:Swords},{id:'challenges',fr:'Défis',en:'Challenges',icon:Link},{id:'tournament',fr:'Tournois',en:'Tournaments',icon:Trophy}];
+ return <nav className={styles.tabs} aria-label={fr?'Navigation principale':'Main navigation'}>{items.map(t=>{
+ const selected=t.id==='home'?(home||activeTab==='training'):!home&&activeTab===t.id;
+ return <button type="button" key={t.id} data-tab={t.id} className={`${styles.tab} ${selected?styles.active:''}`} aria-current={selected?'page':undefined} onClick={()=>t.id==='home'?onHome():onEnter(t.id as Tab)}><t.icon size={23} strokeWidth={2.7}/><b>{fr?t.fr:t.en}</b></button>;
+ })}</nav>;
 }

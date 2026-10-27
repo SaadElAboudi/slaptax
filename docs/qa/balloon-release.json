@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-27T12:08:45.777Z",
+  "url": "http://127.0.0.1:5173/?tab=training",
+  "player": {
+    "id": "0951d9df-975c-415e-8511-30df0a944f64",
+    "slot": 0,
+    "bot": false,
+    "score": 0,
+    "hits": 0,
+    "combo": 0,
+    "misses": 1,
+    "volume": 0,
+    "serial": 2,
+    "inflating": false,
+    "x": 0.7246813624376636,
+    "cooldown": 0,
+    "ducking": false,
+    "duckCooldown": 0,
+    "pokeCooldown": 0,
+    "creamed": false
+  },
+  "errors": []
+}

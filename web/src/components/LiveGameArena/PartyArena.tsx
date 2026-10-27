@@ -1,3 +1,9 @@
+import {Absurd} from './Absurd/Absurd';
+import {Carnival} from './Carnival/Carnival';
+import {Toilet} from './Toilet/Toilet';
+import {GameReaction} from './GameReaction';
+import {Table} from './Table/Table';
+import type {SoloReward} from '../../api/client';
 import { useEffect, useRef, useState } from 'react';
 import { Flag, LockKeyhole, RotateCcw, Square, Timer, Zap, Check } from 'lucide-react';
 import { getRealtimeUrl } from '../../api/realtime';
@@ -18,11 +24,11 @@ interface Props {
     round: number;
     isFr: boolean;
     session?: { userId: string; challengerId: string; duelId: string; spectator?: boolean };
-    finish: (score: number, detail: string, authoritative?: boolean) => void;
+    finish: (score: number, detail: string, authoritative?: boolean, soloReward?:SoloReward) => void;
 }
 interface ArenaEvent {
     type: string; duelId: string; round: number; phase: string; at: number;
-    resumeAt: number; disconnectDeadline: number; party: PartyState; winnerId: string | null;
+    resumeAt: number; disconnectDeadline: number; party: PartyState; winnerId: string | null; soloReward?:SoloReward;
 }
 
 export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
@@ -33,6 +39,8 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const socket = useRef<WebSocket | null>(null);
     const latest = useRef<ArenaEvent | null>(null);
     const receivedAt = useRef(0);
+    const channelOpenedAt = useRef(0);
+    const channelState = useRef<'pending'|'ready'|'error'>('pending');
     const finishRef = useRef(finish);
     finishRef.current = finish;
     const [event, setEvent] = useState<ArenaEvent | null>(null);
@@ -42,8 +50,12 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const offset = useRef(0);
     const canvas = useRef<HTMLCanvasElement>(null);
     const completed = useRef(false);
+    const completionDelay=useRef(0);
+    useEffect(()=>()=>window.clearTimeout(completionDelay.current),[]);
     const { playDraw, playFalseStart } = useSfx();
     const soundTurn = useRef('');
+    const [stackMoment,setStackMoment]=useState('');
+    const stackPrevious=useRef({level:0,perfects:0});
 
     useEffect(() => {
         if (!identity) return;
@@ -51,19 +63,26 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         let retry = 0;
         let attempts = 0;
         const connect = () => {
+            if(stopped)return;
+            setConnected(false);channelState.current='pending';channelOpenedAt.current=performance.now();
             const ws = new WebSocket(getRealtimeUrl(identity));
             socket.current = ws;
             ws.onopen = () => {
-                setConnected(true); setError(''); attempts = 0;
+                if(stopped||socket.current!==ws){ws.close();return;}
+                channelOpenedAt.current=performance.now();
+                setError('');
                 ws.send(JSON.stringify(session
                     ? { type: session.spectator ? 'arena.watch' : 'arena.join', duelId, round }
                     : { type: 'party.practice', practiceId: practiceId.current, gameId }));
             };
             ws.onmessage = (message) => {
+                if(stopped||socket.current!==ws)return;
                 let data;
                 try { data = JSON.parse(String(message.data)); } catch { return; }
-                if (data?.type === 'arena.error') { setError(isFr ? 'Manche indisponible. Reviens au duel.' : 'Round unavailable. Return to the duel.'); return; }
+                if (data?.type === 'arena.error') { channelState.current='error';setError(isFr ? 'Manche indisponible. Reviens au duel.' : 'Round unavailable. Return to the duel.'); return; }
                 if (data?.type !== 'arena.state' || data.duelId !== duelId || !data.party || (session && data.round !== round)) return;
+                if(latest.current&&data.at<latest.current.at)return;
+                channelState.current='ready';setConnected(true);attempts=0;
                 offset.current = data.at - Date.now();
                 latest.current = data;
                 receivedAt.current = performance.now();
@@ -73,6 +92,8 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                     const party: PartyState = data.party;
                     const raw = party.scores[identity] || 0;
                     const score = session ? (data.winnerId === identity ? 1000 : 0)
+                        : gameId==='pigeon'?raw/3:gameId==='lift'?raw/2.5: gameId==='pie'?raw/4:gameId==='balloon'?raw/2: gameId==='toilet'?raw/10
+                        : gameId === 'table' ? raw
                         : gameId === 'mat' ? party.mat?.results?.[identity]?.mate ? 500 + raw / 40 : 0
                         : gameId === 'garde' ? party.garde?.winnerId === identity ? 1000 : party.garde?.winnerId === null ? 500 : 0
                         : ['trace','decoupe'].includes(gameId) ? raw / 3
@@ -82,31 +103,57 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                         : gameId === 'onesecond' ? Math.max(0, 1000 + raw / 3)
                             : gameId === 'onemore' ? raw * 50 : raw * 1000 / 3;
                     const matResult = party.mat?.results?.[identity];
-                    const detail = gameId === 'mat' ? matResult?.mate ? `MAT · ${((matResult.ms || 0)/1000).toFixed(2)} s` : matResult?.expired ? (isFr?'Temps ecoule':'Time up') : (isFr?'Pas de mat':'Not checkmate') : gameId === 'contrepied' ? `${raw} / 15 ${isFr ? 'points remportes' : 'points won'}${!session ? ` · ${isFr ? 'bot' : 'bot'} ${party.contrepied?.botScore || 0}` : ''}` : gameId === 'ricochet' ? raw ? `${((10000-raw)/10).toFixed(1)} ${isFr ? 'du centre' : 'from center'}` : (isFr ? 'Aucun palet restant' : 'No remaining puck') : gameId === 'chroma' ? `${(Math.abs(raw)/1000).toFixed(1)} ${isFr ? 'de distance RVB cumulee' : 'total RGB distance'}` : gameId === 'onesecond' ? `${Math.abs(raw)} ms ${isFr ? "d'ecart cumule" : 'total error'}`
+                    const detail = ['pigeon','lift'].includes(gameId)?`${raw} pts · ${gameId==='pigeon'?`${party.absurd?.bodies.find(p=>p.id===identity)?.hits||0} ${isFr?'livraisons':'deliveries'}`:`${party.absurd?.bodies.find(p=>p.id===identity)?.pranks||0} ${isFr?'pièges réussis':'successful traps'}`}${!session?` · BOT ${party.absurd?.bodies.find(p=>p.bot)?.score||0} pts`:''}`:['pie','balloon'].includes(gameId)?`${raw} pts · ${party.carnival?.bodies.find(p=>p.id===identity)?.hits||0} ${gameId==='pie'?(isFr?'tartes en pleine face':'pies landed'):(isFr?'ballons encaissés':'balloons banked')}${!session?` · BOT ${party.carnival?.bodies.find(p=>p.bot)?.score||0} pts`:''}`:gameId==='toilet'?`${party.toilet?.bodies.find(p=>p.id===identity)?.loot||0} 🦆 · ${party.toilet?.bodies.find(p=>p.id===identity)?.flushes||0} ${isFr?'plouf(s)':'splash(es)'}`:gameId === 'table' ? `${party.table?.winnerId===identity?(isFr?'ROI DE LA BAGARRE !':'RUMBLE CHAMPION!'):(isFr?'PLOUF !':'SPLASH!')} · ${party.table?.bodies.find(p=>p.id===identity)?.kos||0} KO` : gameId === 'mat' ? matResult?.mate ? `MAT · ${((matResult.ms || 0)/1000).toFixed(2)} s` : matResult?.expired ? (isFr?'Temps ecoule':'Time up') : (isFr?'Pas de mat':'Not checkmate') : gameId === 'contrepied' ? `${raw} / 15 ${isFr ? 'points remportes' : 'points won'}${!session ? ` · ${isFr ? 'bot' : 'bot'} ${party.contrepied?.botScore || 0}` : ''}` : gameId === 'ricochet' ? raw ? `${((10000-raw)/10).toFixed(1)} ${isFr ? 'du centre' : 'from center'}` : (isFr ? 'Aucun palet restant' : 'No remaining puck') : gameId === 'chroma' ? `${(Math.abs(raw)/1000).toFixed(1)} ${isFr ? 'de distance RVB cumulee' : 'total RGB distance'}` : gameId === 'onesecond' ? `${Math.abs(raw)} ms ${isFr ? "d'ecart cumule" : 'total error'}`
                         : gameId === 'onemore' ? `${raw} ${isFr ? 'blocs securises' : 'blocks banked'}` : `${raw} ${isFr ? 'points' : 'points'}`;
-                    finishRef.current(score, gameId === 'garde' ? `${raw} ${isFr?'PV':'HP'} · ${!session ? `BOT ${party.garde?.hp[party.garde.botId||'']||0} ${isFr?'PV':'HP'}` : `${isFr?'TOUR':'TURN'} ${party.attempt}`}` : ['trace','decoupe'].includes(gameId) ? `${(raw/30).toFixed(1)}% ${isFr ? 'score moyen' : 'average score'}` : detail, Boolean(session));
+                    const complete=()=>finishRef.current(score, gameId === 'garde' ? `${raw} ${isFr?'PV':'HP'} · ${!session ? `BOT ${party.garde?.hp[party.garde.botId||'']||0} ${isFr?'PV':'HP'}` : `${isFr?'TOUR':'TURN'} ${party.attempt}`}` : ['trace','decoupe'].includes(gameId) ? `${(raw/30).toFixed(1)}% ${isFr ? 'score moyen' : 'average score'}` : detail, Boolean(session), data.soloReward);
+                    if(gameId==='table')completionDelay.current=window.setTimeout(complete,1800);else complete();
                 }
             };
             ws.onclose = () => {
+                if(stopped||socket.current!==ws)return;
                 setConnected(false);
                 if (!stopped && !completed.current) retry = window.setTimeout(connect, Math.min(5000, 400 * 2 ** attempts++));
             };
         };
         connect();
-        const timer = window.setInterval(() => setClock(Date.now()), 100);
+        const timer = window.setInterval(() => {
+            setClock(Date.now());const ws=socket.current;if(!ws||completed.current||channelState.current==='error')return;
+            const now=performance.now();
+            if(ws.readyState===WebSocket.CONNECTING&&now-channelOpenedAt.current>10000)ws.close();
+            else if(ws.readyState===WebSocket.OPEN&&(channelState.current==='pending'||latest.current?.phase==='playing')&&now-Math.max(receivedAt.current,channelOpenedAt.current)>8000)ws.close();
+        }, 100);
         return () => { stopped = true; clearTimeout(retry); clearInterval(timer); socket.current?.close(); };
     }, [identity, duelId, gameId, round, session?.spectator, Boolean(session), isFr]);
 
     const party = event?.party;
     const rival = Object.keys(party?.scores || {}).find((id) => id !== identity);
-    const active = connected && event?.phase === 'playing' && !session?.spectator && !error;
+    const fresh = !!event&&performance.now()-receivedAt.current<3000;
+    const active = connected && fresh && event?.phase === 'playing' && !session?.spectator && !error;
     const run = party?.runs[identity];
+    useEffect(()=>{
+        if(gameId!=='onemore'||!run)return;
+        const previous=stackPrevious.current;
+        stackPrevious.current={level:run.level||0,perfects:run.perfects||0};
+        if((run.level||0)<=previous.level)return;
+        setStackMoment((run.perfects||0)>previous.perfects?(isFr?'PARFAIT !':'PERFECT!'):(isFr?'BIEN PLACÉ !':'NICE DROP!'));
+        const timer=window.setTimeout(()=>setStackMoment(''),850);
+        return()=>clearTimeout(timer);
+    },[run?.level,gameId,isFr]);
+    const rescuePrevious=useRef({buoy:false,rescues:0});
+    useEffect(()=>{
+        if(gameId!=='onemore'||!run)return;
+        const previous=rescuePrevious.current;rescuePrevious.current={buoy:!!run.buoy,rescues:run.rescues||0};
+        if((run.rescues||0)>previous.rescues)setStackMoment(isFr?'SAUVÉ ! Ta bouée a absorbé le raté.':'SAVED! Your lifeline absorbed the miss.');
+        else if(run.buoy&&!previous.buoy)setStackMoment(isFr?'BOUÉE GAGNÉE ! Un raté pardonné.':'LIFELINE EARNED! One miss forgiven.');
+        else return;
+        const timer=window.setTimeout(()=>setStackMoment(''),1300);return()=>clearTimeout(timer);
+    },[run?.buoy,run?.rescues,gameId,isFr]);
     const submitted = party?.answered.includes(identity);
     const revealing = party?.phase === 'reveal';
 
-    function send(action: string, data?: { move:string } | { rgb: number[] } | { angle: number; power: number } | { card: number } | {points:Point[];side?:number}) {
+    function send(action: string, data?: {x:number} | {lane:number} | {serial:number} | {aim:number} | { move:string } | { rgb: number[] } | { angle: number; power: number } | { card: number } | {points:Point[];side?:number} | {dx:number;dy:number;power:number} | {dx:number;dy:number}) {
         const ws = socket.current;
-        if (!active || !ws || ws.readyState !== WebSocket.OPEN) return;
+        if (!active || performance.now()-receivedAt.current>=3000 || !ws || ws.readyState !== WebSocket.OPEN) return;
         ws.send(JSON.stringify({ type: 'arena.action', action, turn: latest.current?.party.turn, ...data }));
     }
     function stopClock() {
@@ -153,7 +200,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         return () => { observer.disconnect(); cancelAnimationFrame(frame); };
     }, [gameId, identity]);
 
-    const status = error || (!connected ? (isFr ? 'Connexion en cours…' : 'Connecting…')
+    const status = error || (!connected || (event?.phase==='playing'&&!fresh) ? (isFr ? 'Connexion en cours…' : 'Connecting…')
         : event?.phase === 'waiting' ? (isFr ? 'En attente du rival' : 'Waiting for your rival')
             : event?.phase === 'countdown' ? `${Math.max(1, Math.ceil(((event.resumeAt || 0) - clock - offset.current) / 1000))}` : '');
     const feedback = party?.feedback;
@@ -163,11 +210,12 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const duration = run?.durations?.[attemptIndex];
     const delta = duration == null ? null : duration - (party?.targetMs || 0);
     return <div className={styles.arena} data-testid="party-arena" data-game={gameId} data-phase={party?.phase || 'ready'}>
+        <GameReaction gameId={gameId} party={party} identity={identity} isFr={isFr}/>
         <div className={styles.hud}>
             <span>{session ? (isFr ? 'FACE A FACE' : 'HEAD TO HEAD') : 'SOLO'}</span>
-            <strong>{gameId === 'mat' ? '1 POSITION' : gameId === 'onemore' ? `${Math.ceil((party?.remaining || 30000) / 1000)} s` : `${party?.attempt || 1} / ${gameId === 'garde' ? '8 MAX' : gameId === 'contrepied' ? '5' : ['trace','decoupe','onesecond','chroma','ricochet'].includes(gameId) ? '3' : '7 MAX'}`}</strong>
+            <strong>{gameId === 'mat' ? '1 POSITION' : ['pigeon','lift','pie','balloon','toilet','onemore','table'].includes(gameId) ? `${Math.ceil((party?.remaining ?? (gameId==='pigeon'?24000:['lift','pie','balloon'].includes(gameId)?22000:gameId==='toilet'?25000:gameId==='table'?20000:30000)) / 1000)} s` : `${party?.attempt || 1} / ${gameId === 'garde' ? '8 MAX' : gameId === 'contrepied' ? '5' : ['trace','decoupe','onesecond','chroma','ricochet'].includes(gameId) ? '3' : '7 MAX'}`}</strong>
         </div>
-        {!['chroma','mat','garde','ricochet','contrepied'].includes(gameId) && <div className={styles.score}>
+        {!['pigeon','lift','pie','balloon','toilet','table','chroma','mat','garde','ricochet','contrepied'].includes(gameId) && <div className={styles.score}>
             <span>{isFr ? 'TOI' : 'YOU'} <b>{gameId === 'chroma' ? (Math.abs(party?.scores[identity] || 0)/1000).toFixed(1) : Math.abs(party?.scores[identity] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span>
             {rival && <><i>VS</i><span>RIVAL <b>{gameId === 'chroma' ? (Math.abs(party?.scores[rival] || 0)/1000).toFixed(1) : Math.abs(party?.scores[rival] || 0)}{gameId === 'onesecond' ? ' ms' : gameId === 'chroma' ? ' RGB' : ''}</b></span></>}
         </div>}
@@ -176,7 +224,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         {party?.phase === 'draw' ? <div className={styles.draw}>
             <h3>{isFr ? 'Egalite parfaite.' : 'An exact tie.'}</h3>
             <button type="button" disabled={!active || party.ready.includes(identity)} onClick={() => send('retry')}><RotateCcw size={18} />{party.ready.includes(identity) ? (isFr ? 'En attente du rival' : 'Waiting for rival') : (isFr ? 'Rejouer la manche' : 'Replay this round')}</button>
-        </div> : gameId === 'garde' ? party && <Garde key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send}/> : ['trace','decoupe'].includes(gameId) ? party && <Drawing key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'contrepied' ? party && <Contrepied key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'ricochet' ? party && <Ricochet key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'chroma' ? party && <Chroma key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'falsestart' ? <>
+        </div> : ['pigeon','lift'].includes(gameId)?party&&<Absurd party={party} identity={identity} active={active} isFr={isFr} send={send}/>:['pie','balloon'].includes(gameId)?party&&<Carnival party={party} identity={identity} active={active} isFr={isFr} send={send}/>:gameId==='toilet'?party&&<Toilet party={party} identity={identity} active={active} isFr={isFr} send={send}/>:gameId === 'table' ? party && <Table party={party} identity={identity} active={active} isFr={isFr} send={send}/> : gameId === 'garde' ? party && <Garde key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send}/> : ['trace','decoupe'].includes(gameId) ? party && <Drawing key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'contrepied' ? party && <Contrepied key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'ricochet' ? party && <Ricochet key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'chroma' ? party && <Chroma key={party.turn} party={party} identity={identity} active={active} isFr={isFr} send={send} /> : gameId === 'falsestart' ? <>
             <button type="button" className={styles.signal} data-signal={party?.signal || 'wait'} data-testid="signal-button"
                 disabled={!active || revealing || party?.phase === 'ready'} onClick={() => send('hit')}>
                 <Zap size={42} />
@@ -201,6 +249,8 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             <button type="button" className={styles.stackSurface} disabled={!active || run?.status !== 'playing' || (run.motion?.ageMs || 0) < 180} onClick={() => send('drop')} aria-label={isFr ? 'Poser le bloc' : 'Drop block'}>
                 <canvas ref={canvas} data-testid="stack-canvas" data-level={run?.level || 0} />
             </button>
+            <div className={styles.stackMoment} role="status" data-testid="stack-moment">{stackMoment||((run?.perfects||0)>0?`${run?.perfects} ${isFr?'placements parfaits':'perfect drops'}`:(isFr?'Aligne. Pose. Sécurise.':'Align. Drop. Bank.'))}</div>
+            <div className={styles.combo} data-testid="stack-combo" data-protected={!!run?.buoy}>{run?.buoy?(isFr?'🛟 BOUÉE PRÊTE · 1 raté pardonné':'🛟 LIFELINE READY · one miss forgiven'):(run?.rescues||0)>0?(isFr?'Bouée utilisée. Sécurise avant le prochain raté !':'Lifeline used. Bank before the next miss!'):`${Math.min(3,run?.perfectStreak||0)} / 3 ${isFr?'parfaits d’affilée = une bouée':'perfect drops in a row = a lifeline'}`}</div>
             <div className={styles.stackFooter}>
                 <span>{run?.level || 0} {isFr ? 'BLOCS' : 'BLOCKS'}{rival ? ` · ${isFr ? 'RIVAL' : 'RIVAL'} ${party?.runs[rival]?.level || 0}` : ''}</span>
                 <button type="button" disabled={!active || !run?.level || run.status !== 'playing'} onClick={() => send('bank')}><LockKeyhole size={17} />{isFr ? 'Securiser' : 'Bank tower'}</button>

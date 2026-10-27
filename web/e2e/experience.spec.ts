@@ -59,7 +59,7 @@ test('leaving a pending duel closes the room for both players without a debit',a
             const status=await (await request.get(`/api/matchmaking/status?userId=${user.userId}`,{maxRetries:2})).json();
             expect(status.status).toBe('idle');
         }
-        await expect(first.getByText('SLAP$ 25.00',{exact:true}).first()).toBeVisible();
+        await expect(first.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
     } finally {await ca.close();await cb.close();}
 });
 

@@ -1,3 +1,5 @@
+import type {SoloReward} from '../../api/client';
+import {SoloVictory} from './SoloVictory';
 import { useMemo, useRef, useState } from 'react';
 import {recordPractice} from '../../gameplay/practiceHistory';
 import { COMPETITIVE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
@@ -10,6 +12,7 @@ import { GamePoster } from '../LiveGameArena/GamePoster';
 interface TrainingResult {
     score: number;
     metric: number;
+    soloReward?:SoloReward;
 }
 
 const LEVELS = [1, 2, 3] as const;
@@ -25,9 +28,9 @@ export function TrainingPanel() {
     const [gameId, setGameId] = useState<CompetitiveGameId>(() => {
         try {
             const stored = localStorage.getItem('slaptax_training_game');
-            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'falsestart';
+            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'toilet';
         } catch {
-            return 'falsestart';
+            return 'toilet';
         }
     });
     const [level, setLevel] = useState<(typeof LEVELS)[number]>(1);
@@ -61,6 +64,7 @@ export function TrainingPanel() {
         const key=`${gameId}:${level}:${attempt}`;
         if(recorded.current!==key){recordPractice(useGameStore.getState().userId||'',gameId,next.score);recorded.current=key;}
         setResult(next);
+        void useGameStore.getState().refreshLiveState();
         if (next.score > best) {
             try {
                 localStorage.setItem(bestKey, String(next.score));
@@ -80,12 +84,14 @@ export function TrainingPanel() {
         const isRecord = result.score > best;
         return (
             <section className={styles.result}>
+                <SoloVictory result={result} best={best} isFr={isFr}/>
                 <span>{isRecord ? (isFr ? 'NOUVEAU RECORD' : 'NEW RECORD') : (isFr ? 'SESSION TERMINEE' : 'SESSION COMPLETE')}</span>
-                <h2>{result.score}</h2>
+                <h2>{result.score}<small> / 1000</small></h2>
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
                 <div className={styles.resultActions}>
-                    {['trace','decoupe','chroma'].includes(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+
                     <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
+                    {['trace','decoupe','chroma'].includes(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
                     <button type="button" onClick={() => {
                         try { localStorage.setItem('slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
                         setActiveTab('defy');
@@ -102,15 +108,11 @@ export function TrainingPanel() {
         <section className={styles.panel}>
             {!playing && <>
             <header className={styles.head}>
-                <div>
-                    <span>{isFr ? 'ZONE SANS ENJEU' : 'NO-STAKES ZONE'}</span>
-                    <h2>{isFr ? 'Entrainement' : 'Training'}</h2>
-                    <p>{isFr ? 'Travaille une epreuve librement. Aucun adversaire, aucune mise, aucun impact sur ton classement.' : 'Practice one event freely. No opponent, no stake, no ranking impact.'}</p>
-                </div>
-                <div className={styles.best}><span>BEST</span><strong>{best || '--'}</strong></div>
+                <p>{isFr?'Découvre le jeu et bats ton propre score.':'Learn the game and beat your own score.'}</p>
+                <div className={styles.best}><span>{isFr?'RECORD SOLO':'SOLO BEST'}</span><strong>{best || '--'}</strong></div>
             </header>
 
-            <div className={styles.config}>
+            <details className={styles.config}><summary>{isFr?'Changer de jeu':'Change game'}<span>{gameLabel(gameId,isFr)}</span></summary>
                 <div className={styles.games}>
                     {COMPETITIVE_GAMES.map((game) => (
                         <button type="button" key={game.id} aria-pressed={game.id === gameId} className={game.id === gameId ? styles.selected : ''} onClick={() => selectGame(game.id)}>
@@ -136,7 +138,7 @@ export function TrainingPanel() {
                         </button>
                     ))}
                 </div>}
-            </div>
+            </details>
 
             </>}
             <LiveGameArena

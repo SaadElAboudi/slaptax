@@ -25,7 +25,7 @@ async function forfeitRound(duelId: string, round: number, loserId: string) {
 const GAMES = [
     { id: 'bounce', label: 'Bounce Panic', testId: 'bounce-canvas' },
     { id: 'symbolrush', label: 'Symbol Sprint', testId: 'symbol-pad' },
-    { id: 'bombpass', label: 'Bomb Pass', testId: 'bomb-track' },
+    { id: 'bombpass', label: 'Pass or BOOM', testId: 'bomb-track' },
     { id: 'cupshuffle', label: 'Cup Shuffle', testId: 'cup-table' },
     { id: 'duelnumeric', label: 'Duel Numeric', testId: 'numeric-answers' },
 ] as const;
@@ -187,6 +187,8 @@ async function verifyGame(page: Page, game: typeof GAMES[number], testInfo: Test
     });
     if (game.id === 'duelnumeric') {
         await page.getByRole('button', { name: 'Challenge a friend', exact: true }).click();
+        await expect(page.locator('summary').filter({hasText:'Favorite game'})).toContainText('Duel Numeric');
+        await page.locator('summary').filter({hasText:'Favorite game'}).click();
         await expect(page.getByRole('button', { name: 'Duel Numeric PREFERRED', exact: true })).toBeVisible();
     }
 }
@@ -204,8 +206,8 @@ test('Play now enters a recoverable matchmaking queue', async ({ page, request }
     await identify(page, player);
     await page.goto('/');
 
-    await expect(page.getByRole('button', { name: /Find a rival/ })).toBeVisible();
-    await page.getByRole('button', { name: /Find a rival/ }).click();
+    await expect(page.getByRole('button', { name: /Find an opponent/ })).toBeVisible();
+    await page.getByRole('button', { name: /Find an opponent/ }).click();
     await expect(page.getByRole('heading', { name: 'Friend Duel' })).toBeVisible();
     await expect(page.getByText('Finding a human rival')).toBeVisible();
 

@@ -5,7 +5,7 @@ import { Drawing } from '../LiveGameArena/Drawing';
 import { Chroma, colorCss } from '../LiveGameArena/Chroma';
 import { GamePoster } from '../LiveGameArena/GamePoster';
 import { MomentReplay } from '../LiveGameArena/MomentReplay';
-import { getCompetitiveGame } from '../../gameplay/catalog';
+import { gameLabel, getCompetitiveGame } from '../../gameplay/catalog';
 import type { DrawingState, PartyState, Point } from '../../gameplay/party';
 import styles from './LinkChallenge.module.css';
 import { useSfx } from '../../hooks/useSfx';
@@ -59,7 +59,7 @@ export function LinkChallenge({id}:{id:string}) {
     }
     const url=`${location.origin}/?tab=training&link=${challengeId}`;
     async function share(native:boolean) {
-        try{if(native&&navigator.share)await navigator.share({title:`${gameId.toUpperCase()} · SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
+        try{if(native&&navigator.share)await navigator.share({title:`${gameLabel(gameId,isFr)} · SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
             else {await navigator.clipboard.writeText(url);setMessage(isFr?'Lien copie':'Link copied');}}
         catch(e){if((e as Error).name!=='AbortError')setMessage(isFr?'Copie le lien ci-dessous.':'Copy the link below.');}
     }
@@ -70,7 +70,7 @@ export function LinkChallenge({id}:{id:string}) {
     const scoreText=(score:number)=>gameId==='chroma'?`${(Math.abs(score)/1000).toFixed(1)} RGB`:`${(score/30).toFixed(1)}%`;
     const lastColor=result?.ownColors?.[result.ownColors.length-1], hostColor=result?.hostColors?.[result.hostColors.length-1];
     return <section className={styles.panel} data-testid="link-challenge">
-        <header><a href="/?tab=training" aria-label={isFr?'Retour':'Back'} title={isFr?'Retour':'Back'}><ArrowLeft size={20}/></a><div><span>{isFr?'DEFI PAR LIEN · SANS MISE':'LINK CHALLENGE · NO STAKES'}</span><h2>{gameId.toUpperCase()}</h2></div></header>
+        <header><a href="/?tab=training" aria-label={isFr?'Retour':'Back'} title={isFr?'Retour':'Back'}><ArrowLeft size={20}/></a><div><span>{isFr?'DEFI PAR LIEN · SANS MISE':'LINK CHALLENGE · NO STAKES'}</span><h2>{gameLabel(gameId,isFr)}</h2></div></header>
         {error&&<p role="alert" className={styles.error}>{error}</p>}
         {!data?.party||data.party.phase==='done'?<a className={styles.new} href="/?tab=challenges">{isFr?'Mes defis et resultats':'My challenges and results'}<ArrowRight size={18}/></a>:null}
         {result&&party?<>

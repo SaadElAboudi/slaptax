@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-10-27T13:17:04.990Z",
+  "checks": [
+    {
+      "url": "http://127.0.0.1:5173/",
+      "names": [
+        "Panique aux Toilettes",
+        "Tarte ta Face",
+        "Gonfle ou Pète",
+        "Bagarre de Table",
+        "Pif Paf",
+        "Tour de Trop",
+        "Chef Couic",
+        "Passe ou BOUM"
+      ],
+      "errors": [],
+      "scripts": [
+        "/@vite/client",
+        "/src/main.tsx?t=1793106694182"
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:8787/",
+      "names": [
+        "Panique aux Toilettes",
+        "Tarte ta Face",
+        "Gonfle ou Pète",
+        "Bagarre de Table",
+        "Pif Paf",
+        "Tour de Trop",
+        "Chef Couic",
+        "Passe ou BOUM"
+      ],
+      "errors": [],
+      "scripts": [
+        "/assets/index-CHthv8Np.js"
+      ]
+    }
+  ],
+  "engine": {
+    "kind": "pie",
+    "participants": 2,
+    "declaredBots": 1,
+    "powersPublished": true,
+    "reducedMotion": true,
+    "errors": []
+  }
+}

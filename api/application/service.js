@@ -1,3 +1,4 @@
+const {applySoloRun,publicSolo,ensureSolo} = require('../domain/soloProgression');
 const { getStats } = require("../domain/stats");
 const {
     P2P_GAME_LIBRARY,
@@ -22,6 +23,10 @@ const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
 const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
 
 const DRAFT_GAMES = [
+    {id:'pigeon',label:'Pigeon Express'},{id:'lift',label:'Elevator of Farts'},
+    {id:'pie',label:'Pie in Your Face'},{id:'balloon',label:'Pump or Pop'},
+    {id:'toilet',label:'Toilet Panic'},
+    {id:'table',label:'Dernier sur la table'},
     { id: 'falsestart', label: 'False Start' },
     { id: 'onesecond', label: 'Blind Clock' },
     { id: 'onemore', label: 'One More' },
@@ -38,6 +43,8 @@ const DRAFT_GAMES = [
     { id: "cupshuffle", label: "Cup Shuffle" },
     { id: "duelnumeric", label: "Duel Numeric" },
 ];
+
+for(const game of require('../../shared/game-selection.json'))DRAFT_GAMES.find(entry=>entry.id===game.id).label=game.labelEn;
 
 const DRAFT_GAME_ALIASES = {
     precision: "bounce",
@@ -238,6 +245,7 @@ function ensureUserProgression(user) {
         unlocked,
     };
 
+    ensureSolo(user);
     return user.progression;
 }
 
@@ -336,7 +344,7 @@ function normalizeDraftPlan(draft) {
 function buildPreferredDraft(preferredGame) {
     const preferred = normalizeDraftGameId(preferredGame);
     if (!preferred) return null;
-    const others = DRAFT_GAMES.map((game) => game.id).filter((id) => id !== preferred);
+    const others = GAME_POOL.filter((id) => id !== preferred);
     return {
         challenger: { ban: others[0], pick: preferred },
         opponent: { ban: others[1], pick: others[2] || preferred },
@@ -455,7 +463,7 @@ function isDuelParticipant(duel, userId) {
 }
 
 function tournamentGames() {
-    return ["bounce", "symbolrush", "bombpass"];
+    return GAME_POOL.slice(0,3);
 }
 
 function createTournamentDuel(db, tournament, playerAId, playerBId, round, matchIndex) {
@@ -726,6 +734,7 @@ function statePayload(db, userId, clientId) {
         stakeCap: activeSkill.stakeCap,
         progression: {
             ...progression,
+            solo: publicSolo(activeUser),
             rank: rankFromPoints(progression.rankedPoints),
         },
     };
@@ -2049,7 +2058,7 @@ function createService(store) {
             if (!duel) return { error: 'Duel not found', code: 404 };
             if (!isDuelParticipant(duel, userId)) return { error: 'User is not part of duel', code: 403 };
             if (duel.status !== 'pending' || duel.tournamentId) return { error: 'Draft is closed', code: 409 };
-            if (!GAME_POOL.includes(gameId)) return { error: 'Unknown game', code: 400 };
+            if (!DRAFT_GAMES.some(game=>game.id===gameId)) return { error: 'Unknown game', code: 400 };
             duel.veto ||= newVeto();
             if (duel.veto.votes[userId] === gameId) return { ok: true, room: duelRoomSnapshot(duel) };
             duel.veto.votes[userId] = gameId;
@@ -2071,7 +2080,7 @@ function createService(store) {
             if (!tournament) return { error: 'Tournament not found', code: 404 };
             if (!tournament.entrants.includes(userId)) return { error: 'Join the room first', code: 403 };
             if (tournament.status !== 'waiting') return { error: 'Draft is closed', code: 409 };
-            if (!GAME_POOL.includes(gameId)) return { error: 'Unknown game', code: 400 };
+            if (!DRAFT_GAMES.some(game=>game.id===gameId)) return { error: 'Unknown game', code: 400 };
             tournament.veto ||= newVeto();
             if (tournament.veto.votes[userId] === gameId) return { ok: true };
             tournament.veto.votes[userId] = gameId;
@@ -2668,6 +2677,20 @@ function createService(store) {
                     },
                 },
             };
+        },
+
+        recordSoloCompletion(userId, id, gameId, score) {
+            const db=store.read();const user=db.users.find(u=>u.id===userId);
+            if(!user || !PARTY_IDS.includes(gameId))return null;
+            ensureUserProgression(user);
+            const previousLevel=user.progression.level;
+            const before=structuredClone(user.progression.cosmetics.unlocked);
+            const receipt=applySoloRun(user,{id,gameId,score});
+            if(!receipt)return null;
+            ensureUserProgression(user);
+            const unlocked=Object.entries(user.progression.cosmetics.unlocked).flatMap(([kind,values])=>values.filter(value=>!before[kind].includes(value)).map(value=>({kind,id:value})));
+            store.write(db);
+            return {...receipt,level:user.progression.level,levelUp:user.progression.level>previousLevel,unlocked};
         },
 
         getLeaderboard() {

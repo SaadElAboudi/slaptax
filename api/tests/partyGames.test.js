@@ -137,3 +137,12 @@ test('replay is a bounded immutable record and practice never needs an invented 
     assert.equal(g.replay[0].state.scores.a, score);
     assert.deepEqual(partyMoment(g).players, ['a']);
 });
+
+test('three consecutive perfect drops earn one real lifeline, which preserves a tower once',()=>{
+ const g=game('onemore'),run=g.runs.a;
+ for(let i=0;i<3;i++){const now=run.motionAt+500/(.65+run.level*.07);assert.equal(act(g,'a','drop',now),true);}
+ assert.equal(run.level,3);assert.equal(run.perfectStreak,3);assert.equal(run.buoy,true);
+ const height=run.layers.length;run.layers[height-1]={x:.8,width:.1};
+ assert.equal(act(g,'a','drop',run.motionAt+200),true);assert.equal(run.status,'playing');assert.equal(run.level,3);assert.equal(run.layers.length,height);assert.equal(run.rescues,1);assert.equal(run.buoy,false);
+ assert.equal(act(g,'a','drop',run.motionAt+200),true);assert.equal(run.status,'crashed');assert.equal(g.scores.a,0);
+});

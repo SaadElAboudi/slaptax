@@ -1,6 +1,13 @@
+const selection=require('../../shared/game-selection.json');
 const { toMoney2 } = require("../shared/money");
 
 const P2P_GAME_LIBRARY = {
+    pigeon:{label:'Pigeon Express',metric:[0,4000],elite:3200,hard:2400},
+    lift:{label:'Elevator of Farts',metric:[0,3000],elite:2600,hard:1800},
+    pie:{label:'Pie in Your Face',metric:[0,5000],elite:4000,hard:3000},
+    balloon:{label:'Pump or Pop',metric:[0,2000],elite:1800,hard:1400},
+    toilet:{label:'Toilet Panic',metric:[0,10000],elite:9000,hard:7000},
+    table: {label:'Dernier sur la table',metric:[0,1000],elite:900,hard:700},
     chroma: { label: 'CHROMA', metric: [0, 440], elite: 20, hard: 80 },
     ricochet: { label: 'RICOCHET', metric: [0, 420], elite: 20, hard: 80 },
     contrepied: { label: 'CONTREPIED', metric: [0, 15], elite: 13, hard: 10 },
@@ -80,6 +87,8 @@ function metricRoll([min, max], skillEdge = 0) {
     return Math.round(clamp(adjusted, min, max));
 }
 
+for(const game of selection)P2P_GAME_LIBRARY[game.id].label=game.labelEn;
+
 function normalizeDraftGameId(value) {
     const id = String(value || "").trim();
     const normalized = DRAFT_GAME_ALIASES[id] || id;
@@ -87,15 +96,15 @@ function normalizeDraftGameId(value) {
 }
 
 function resolveP2PGames(draft) {
-    const roster = Object.keys(P2P_GAME_LIBRARY);
-    if (!draft) return shuffle(['falsestart', 'onesecond', 'onemore']);
+    const roster = selection.map(game=>game.id);
+    if (!draft) return shuffle(roster).slice(0,3);
 
     const banned = new Set([draft.challenger?.ban, draft.opponent?.ban].filter(Boolean));
     const available = roster.filter((id) => !banned.has(id));
     const ordered = [];
 
     [draft.challenger?.pick, draft.opponent?.pick].forEach((pick) => {
-        if (pick && available.includes(pick) && !ordered.includes(pick)) {
+        if (pick && P2P_GAME_LIBRARY[pick] && !banned.has(pick) && !ordered.includes(pick)) {
             ordered.push(pick);
         }
     });
@@ -116,7 +125,7 @@ function normalizeTournamentDraft(draft) {
 }
 
 function resolveTournamentGames(draft) {
-    const roster = Object.keys(P2P_GAME_LIBRARY);
+    const roster = selection.map(game=>game.id);
     const safeDraft = normalizeTournamentDraft(draft);
     if (!safeDraft) return shuffle(roster);
 

@@ -221,19 +221,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Bootstrap
     bootstrap: async () => {
-        let hasCompletedOnboarding = false;
-        try {
-            hasCompletedOnboarding = localStorage.getItem('slaptax_onboarded') === '1';
-        } catch {
-            hasCompletedOnboarding = false;
-        }
-
-        if (get().userId || hasCompletedOnboarding) {
-            await get().joinSession();
-            await get().refreshLiveState();
-            return;
-        }
-
-        await get().checkHealth();
+        // The home is immediately playable: create/recover the anonymous session
+        // without waiting for the retired onboarding modal to set a flag.
+        await get().joinSession();
+        await get().refreshLiveState();
     },
 }));

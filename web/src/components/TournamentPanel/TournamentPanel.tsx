@@ -7,7 +7,7 @@ import {
     type MultiplayerTournamentResponse,
 } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
-import { COMPETITIVE_GAMES, gameLabel, type CompetitiveGameId } from '../../gameplay/catalog';
+import { COMPETITIVE_GAMES, type CompetitiveGameId } from '../../gameplay/catalog';
 import { GamePoster } from '../LiveGameArena/GamePoster';
 import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
 import { useGameStore } from '../../hooks/useGameStore';
@@ -39,7 +39,7 @@ export function TournamentPanel() {
     const [spectatorMatch, setSpectatorMatch] = useState<MultiplayerTournamentResponse['spectatorMatch']>(null);
     const [spectating, setSpectating] = useState(false);
     const [roomReady, setRoomReady] = useState(false);
-    const [selectedGames, setSelectedGames] = useState<CompetitiveGameId[]>(['bounce', 'symbolrush', 'bombpass']);
+    const [selectedGames, setSelectedGames] = useState<CompetitiveGameId[]>(COMPETITIVE_GAMES.slice(0,3).map(game=>game.id));
     const [inviteCopied, setInviteCopied] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -76,7 +76,7 @@ export function TournamentPanel() {
         }
         setTournament(data.tournament);
         setRoomReady(Boolean(data.tournament.readyBy?.[userId]));
-        setSelectedGames(data.tournament.games || ['bounce', 'symbolrush', 'bombpass']);
+        setSelectedGames([...new Set([...(data.tournament.games||[]).filter(id=>COMPETITIVE_GAMES.some(game=>game.id===id)),...COMPETITIVE_GAMES.map(game=>game.id)])].slice(0,3) as CompetitiveGameId[]);
         setActiveDuelId(data.activeDuelId || null);
         setSpectatorMatch(data.spectatorMatch || null);
     }, [tournament?.id, userId]);
@@ -493,7 +493,7 @@ function Bracket({ tournament, userId, isFr }: { tournament: MultiplayerTourname
                     {round.matches.map((match) => (
                         <div key={match.id} className={match.playerAId === userId || match.playerBId === userId ? styles.myBracketMatch : ''}>
                             <p className={match.winnerId === match.playerAId ? styles.winner : ''}>{match.playerAName}</p>
-                            <strong>{match.status === 'done' ? '✓' : gameLabel('bounce', isFr)}</strong>
+                            <strong>{match.status === 'done' ? '✓' : (isFr?'À venir':'Upcoming')}</strong>
                             <p className={match.winnerId === match.playerBId ? styles.winner : ''}>{match.playerBName}</p>
                         </div>
                     ))}

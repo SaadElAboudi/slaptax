@@ -7,7 +7,7 @@ async function identify(p:Page,u:Awaited<ReturnType<typeof player>>){await p.add
 },u);}
 test('RICOCHET solo renders an interactive board and three real volleys',async({page,request},info)=>{
     test.setTimeout(80000);await identify(page,await player(request,'PuckSolo'));await page.goto('/');
-    await page.getByRole('button',{name:'Play RICOCHET',exact:true}).click();await page.getByRole('button',{name:'Enter the arena'}).click();
+    await page.getByRole('button',{name:'Play Puck Panic',exact:true}).click();await page.getByRole('button',{name:'Enter the arena'}).click();
     const game=page.getByTestId('ricochet'),canvas=page.getByTestId('ricochet-canvas');
     for(let i=0;i<3;i++){
         await expect(game).toHaveAttribute('data-phase','aim');
@@ -27,7 +27,7 @@ test('RICOCHET solo renders an interactive board and three real volleys',async({
         }
         await expect(game).toHaveAttribute('data-phase','reveal');
     }
-    await expect(game).toHaveCount(0);await expect(page.getByText('SLAP$ 25.00',{exact:true}).first()).toBeVisible();
+    await expect(game).toHaveCount(0);await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
 });
 test('RICOCHET rivals commit in secret and receive the authoritative result',async({browser,request},info)=>{
     test.setTimeout(80000);const a=await player(request,'PuckA'),b=await player(request,'PuckB');

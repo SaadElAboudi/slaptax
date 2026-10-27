@@ -10,3 +10,4 @@
 .colors figure { flex:1; min-width:0; margin:0; }
 .colors figure>span { display:block; height:52px; border-radius:6px; border:1px solid #ffffff30; }
 .colors figcaption { font-size:11px; margin-top:5px; overflow-wrap:anywhere; color:#d2d2df; }
+.panel{background:#243f79;border:3px solid #101a38;border-radius:18px;box-shadow:0 6px #101a38}.brief p,.brief>span,.round{color:#d1e3ff}.panel button,.new{background:#ffda4b;color:#17294e;border:2px solid #101a38;border-radius:10px;box-shadow:0 4px #101a38}.link{background:#192e5b;border:2px solid #101a38;color:white}.result h3{color:#ffda4b;font-family:var(--font-display)}

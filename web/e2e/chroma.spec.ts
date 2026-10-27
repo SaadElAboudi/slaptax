@@ -33,7 +33,7 @@ test('CHROMA solo uses the picker, expires automatically and leaves the wallet u
         if(i===0) await page.screenshot({path:info.outputPath('chroma-reveal.png'),fullPage:true});
     }
     await expect(page.getByTestId('chroma')).toHaveCount(0);
-    await expect(page.getByText('SLAP$ 25.00',{exact:true}).first()).toBeVisible();
+    await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
 });
 test('two rivals finish CHROMA with server-owned scores and a result recap',async({browser,request},info)=>{
     test.setTimeout(90000);

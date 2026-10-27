@@ -1,3 +1,5 @@
+import {GameReaction} from './GameReaction';
+import type {SoloReward} from '../../api/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { gameLabel, getCompetitiveGame, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
 import { PartyArena } from './PartyArena';
@@ -27,13 +29,13 @@ interface LiveGameArenaProps {
     isFr: boolean;
     duelSession?: DuelSession;
     onStart?: () => void;
-    onComplete: (result: { score: number; metric: number; authoritative?: boolean }) => void;
+    onComplete: (result: { score: number; metric: number; authoritative?: boolean; soloReward?:SoloReward }) => void;
 }
 
 interface RoundProps {
     round: number;
     isFr: boolean;
-    finish: (score: number, detail: string, authoritative?: boolean) => void;
+    finish: (score: number, detail: string, authoritative?: boolean, soloReward?:SoloReward) => void;
 }
 
 const SYMBOLS = ['◆', '●', '▲', '■', '✦'];
@@ -86,7 +88,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         return stopAdaptiveMusic;
     }, [gameId, phase, round]);
 
-    const finish = useCallback((rawScore: number, detail: string, authoritative = false) => {
+    const finish = useCallback((rawScore: number, detail: string, authoritative = false, soloReward?:SoloReward) => {
         if (finishedRef.current) return;
         finishedRef.current = true;
         const metric = Math.max(1, Math.round(performance.now() - startRef.current));
@@ -97,11 +99,11 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         else if (score >= 500) playWin(Math.min(1, round / 3));
         else playLoss(Math.min(1, round / 3));
         hapticPulse([20,30,35]);
-        completionTimer.current = window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative }), 1600);
+        completionTimer.current = window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative, soloReward }), 1600);
     }, [playLoss, playWin, playDraw, gameId, round]);
 
     return (
-        <section className={styles.arena} data-game={gameId} data-phase={phase} data-focus={phase === 'playing' || phase === 'countdown'}>
+        <section className={styles.arena} data-game={gameId} data-mode={mode} data-phase={phase} data-focus={phase === 'playing' || phase === 'countdown'}>
             <header className={styles.header}>
                 <div>
                     <span>{isFr ? `MANCHE ${round}` : `ROUND ${round}`}</span>
@@ -132,9 +134,10 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.poster}><GamePoster gameId={gameId} /></div>
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <h3>{gameLabel(gameId, isFr)}</h3>
-                    <p>{gameRule(gameId, isFr)}</p>
+                    <div className={styles.ruleSteps}>{briefSteps(gameId,isFr).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
+                    <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p></details>
                     <div className={styles.briefStats}>
-                        <span>{gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{gameId==='pigeon'?(isFr?'24 s · LIVRAISON':'24 s · DELIVERY'):gameId==='lift'?(isFr?'22 s · ESQUIVE':'22 s · DODGE'):['pie','balloon'].includes(gameId)?'22 s · DUEL':gameId==='toilet'?(isFr?'25 s · CANARDS ET TURBO':'25 s · DUCKS AND TURBO'):gameId==='table'?(isFr?'20 s · COLLISIONS':'20 s · BUMPS'):gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
                     <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
@@ -145,6 +148,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'playing' && (
                 <div className={styles.stage}>
+                    {!isPartyGame(gameId)&&duelSession&&<GameReaction gameId={gameId} isFr={isFr}/>}
                     {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} /> : duelSession && usesSharedArena ? (
                         <SharedArenaRound round={round} gameId={gameId} isFr={isFr} finish={finish} session={duelSession} />
                     ) : gameId === 'bounce' ? (
@@ -159,9 +163,10 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 
             {phase === 'complete' && result && (
                 <div className={`${styles.complete} ${result.score >= 500 ? styles.completeWin : styles.completeLoss}`}>
+                    <GameReaction gameId={gameId} isFr={isFr} score={result.score}/>
                     <div className={styles.impactLines} aria-hidden><i /><i /><i /><i /></div>
                     <span>
-                        {gameId==='mat' ? (isFr?'PROBLEME TERMINE':'PUZZLE COMPLETE') : gameId==='garde' ? result.score===500?(isFr?'EGALITE':'DRAW'):result.score>500?(isFr?'VICTOIRE':'VICTORY'):(isFr?'DEFAITE':'DEFEAT') : ['trace','decoupe'].includes(gameId) ? (isFr ? 'TROIS FORMES. TON RESULTAT.' : 'THREE SHAPES. YOUR RESULT.') : result.score >= 500
+                        {gameId==='toilet'?(isFr?'BRAQUAGE TERMINÉ !':'HEIST COMPLETE!'):gameId==='mat' ? (isFr?'PROBLEME TERMINE':'PUZZLE COMPLETE') : gameId==='garde' ? result.score===500?(isFr?'EGALITE':'DRAW'):result.score>500?(isFr?'VICTOIRE':'VICTORY'):(isFr?'DEFAITE':'DEFEAT') : ['trace','decoupe'].includes(gameId) ? (isFr ? 'TROIS FORMES. TON RESULTAT.' : 'THREE SHAPES. YOUR RESULT.') : result.score >= 500
                             ? (isFr ? 'MANCHE DOMINEE' : 'ROUND DOMINATED')
                             : (isFr ? 'IMPACT ENREGISTRE' : 'IMPACT RECORDED')}
                     </span>
@@ -360,7 +365,7 @@ function SharedArenaRound({
             const height = drawingCanvas.clientHeight;
             const current = stateRef.current;
             drawingContext.clearRect(0, 0, width, height);
-            drawingContext.fillStyle = '#1d1d24';
+            drawingContext.fillStyle = '#1c305d';
             drawingContext.fillRect(0, 0, width, height);
             drawingContext.strokeStyle = 'rgba(255,255,255,.08)';
             drawingContext.setLineDash([10, 12]);
@@ -604,7 +609,7 @@ function SharedArenaRound({
                     <span>PASSES <strong data-testid="bomb-passes">{state?.passes || 0}</strong></span>
                 </div>
                 <div className={`${styles.bombCore} ${fuse < 2.5 ? styles.bombCritical : ''}`}>
-                    <span className={styles.bombOrb}><b>{fuse.toFixed(1)}</b></span>
+                    <span className={styles.bombOrb}><i className={styles.bombEyes} aria-hidden="true"/><b>{fuse.toFixed(1)}</b></span>
                     <i style={{ width: `${Math.min(100, fuse / 8 * 100)}%` }} />
                 </div>
                 <button
@@ -826,7 +831,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             const width = state.width;
             const height = state.height;
             context.clearRect(0, 0, width, height);
-            context.fillStyle = '#1d1d24';
+            context.fillStyle = '#1c305d';
             context.fillRect(0, 0, width, height);
             context.strokeStyle = 'rgba(255,255,255,.08)';
             context.setLineDash([10, 12]);
@@ -844,6 +849,11 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
             glow.addColorStop(1, 'rgba(255,212,0,0)');
             context.fillStyle = glow; context.beginPath(); context.arc(state.x, state.y, 28, 0, Math.PI * 2); context.fill();
             context.fillStyle = '#def56a'; context.beginPath(); context.arc(state.x, state.y, ballRadius, 0, Math.PI * 2); context.fill();
+            context.strokeStyle='#182642';context.lineWidth=2;context.stroke();
+            context.fillStyle='#182642';for(const side of [-1,1]){context.beginPath();context.arc(state.x+side*3,state.y-2,1.5,0,Math.PI*2);context.fill();}
+            context.beginPath();context.moveTo(state.x-3,state.y+3);context.quadraticCurveTo(state.x,state.y+6,state.x+3,state.y+3);context.stroke();
+            context.fillStyle='#182642';for(const side of [-1,1]){context.beginPath();context.arc(paddleX+side*8,paddleY+4,2,0,Math.PI*2);context.fill();}
+
             frameRef.current = requestAnimationFrame(draw);
         }
         frameRef.current = requestAnimationFrame(draw);
@@ -862,6 +872,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
 
     return (
         <div className={styles.game}>
+            <GameReaction gameId="bounce" isFr={isFr} moodOverride={rally>0?'happy':'focus'} messageOverride={rally>0?(isFr?`${rally} retours ! La balle accélère, reste dans le rythme.`:`${rally} returns! The ball speeds up, keep the rhythm.`):undefined}/>
             <div className={styles.liveHud}><span>RALLY <strong data-testid="bounce-rally">{rally}</strong></span><span>SPEED <strong>x{speed.toFixed(1)}</strong></span></div>
             <canvas
                 ref={canvasRef}
@@ -941,6 +952,7 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
 
     return (
         <div className={styles.game}>
+            <GameReaction gameId="symbolrush" isFr={isFr} moodOverride={phase==='reveal'?'focus':input.length>0?'happy':'ready'} messageOverride={phase==='input'?(isFr?`${input.length} / ${sequence.length} retrouvés · ${errors} erreur(s).`:`${input.length} / ${sequence.length} recalled · ${errors} mistake(s).`):undefined}/>
             <div className={styles.liveHud}><span>{phase === 'reveal' ? 'MEMORIZE' : 'REBUILD'}</span><span><strong>{time.toFixed(1)}s</strong></span></div>
             <div
                 className={styles.symbolBoard}
@@ -1011,9 +1023,10 @@ function BombRound({ round, isFr, finish }: RoundProps) {
 
     return (
         <div className={styles.game}>
+            <GameReaction gameId="bombpass" isFr={isFr} moodOverride={view.fuse<2.5?'wow':view.passes>0?'happy':'focus'} messageOverride={view.passes>0?(isFr?`${view.passes} passes · ${view.perfects} au centre. Garde le tempo !`:`${view.passes} passes · ${view.perfects} perfect. Keep the tempo!`):undefined}/>
             <div className={styles.liveHud}><span>PASSES <strong data-testid="bomb-passes">{view.passes}</strong></span><span>PERFECT <strong>{view.perfects}</strong></span></div>
             <div className={`${styles.bombCore} ${view.fuse < 2.5 ? styles.bombCritical : ''}`}>
-                <span className={styles.bombOrb}><b>{view.fuse.toFixed(1)}</b></span>
+                <span key={view.passes} className={styles.bombOrb} data-passed={view.passes>0}><i className={styles.bombEyes} aria-hidden="true"/><b>{view.fuse.toFixed(1)}</b></span>
                 <i style={{ width: `${Math.max(0, view.fuse / 8.5) * 100}%` }} />
             </div>
             <button type="button" className={styles.bombTrack} data-testid="bomb-track" onClick={pass} disabled={performance.now() - run.current.lastTap < 180} aria-label={isFr ? 'Passer la bombe' : 'Pass the bomb'}>
@@ -1097,6 +1110,7 @@ function CupRound({ round, isFr, finish }: RoundProps) {
     }
     return (
         <div className={styles.game}>
+            <GameReaction gameId="cupshuffle" isFr={isFr} moodOverride={phase==='feedback'?correct?'happy':'oops':'focus'} messageOverride={phase==='feedback'?(correct?(isFr?'GOBÉ ! Bien suivi !':'GOT IT! Nice tracking!'):(isFr?'Il nous a échappé… on se reconcentre !':'It slipped away… focus for the next one!')):undefined}/>
             <div className={styles.liveHud}><span>{stage} / 3</span><span><strong>{hits.current}</strong> / 3</span></div>
             <div className={styles.cupTable} data-testid="cup-table" data-phase={phase}>
                 {[0, 1, 2].map((id) => {
@@ -1161,6 +1175,7 @@ function NumericRound({ round, isFr, finish }: RoundProps) {
     }
     return (
         <div className={styles.game}>
+            <GameReaction gameId="duelnumeric" isFr={isFr} moodOverride={feedback===null?'focus':feedback?'happy':'oops'} messageOverride={feedback===null?undefined:feedback?(isFr?'BINGO ! Le cerveau chauffe !':'BINGO! Brain on fire!'):(isFr?'Petit bug de calcul. On repart !':'A little maths glitch. On we go!')}/>
             <div className={styles.liveHud}><span>{index + 1} / 5</span><span><strong>{time.toFixed(1)} s</strong></span></div>
             <div className={styles.equation} data-testid="numeric-equation" data-question={index}>{question.label}</div>
             <div className={styles.answerGrid} data-testid="numeric-answers">
@@ -1226,4 +1241,31 @@ function makeQuestion(round: number) {
     }
     const options = shuffle(Array.from(candidates).filter((value) => value !== answer)).slice(0, 3);
     return { label: `${a} ${multiply ? '×' : '+'} ${b}`, answer, options: shuffle([answer, ...options]) };
+}
+
+function briefSteps(gameId: CompetitiveGameId,fr:boolean):string[]{
+ const steps:Record<string,[string[],string[]]>={
+ pigeon:[['Glisse pour piloter ton pigeon.','Largue devant la voiture rose : vent et chute comptent !','Protège ta voiture jaune avec le parasol.'],['Slide to fly your pigeon.','Drop ahead of the pink car: wind and flight time matter!','Cover your yellow car with the umbrella.']],
+ lift:[['Choisis une place à chaque passage.','Évite le nuage. Ramasse les haricots.','Prout ciblé : vise ton pote, puis esquive le sien !'],['Pick a spot each wave.','Dodge the cloud. Collect beans.','Targeted fart: trap your friend, dodge theirs!']],
+ pie:[['Touche devant la tête du rival pour lancer.','ENTARTE ! Anticipe son déplacement.','ESQUIVE quand sa tarte arrive.'],['Tap ahead of the rival to throw.','THROW! Lead their movement.','DUCK when their pie arrives.']],
+ balloon:[['Maintiens GONFLE pour gonfler.','Relâche pour encaisser avant le PAAF.','Dépense 25 points pour gonfler le ballon adverse.'],['Hold PUMP to inflate.','Release to bank before it POPS.','Spend 25 points to inflate the rival balloon.']],
+ toilet:[['Pilote ta toilette.','Ramasse et vole les canards.','Évite la chasse. PROUT pour t’échapper !'],['Drive your toilet.','Collect and steal ducks.','Dodge the flush. FART to escape!']],
+ table:[['Glisse depuis ton perso.','Relâche pour te propulser.','Anticipe les coups de nappe. Reste sur la table !'],['Drag from your character.','Release to dash.','Watch the tablecloth pulls. Stay on the table!']],
+ decoupe:[['Trace ta coupe.','Choisis le côté à garder.','Approche le % cible.'],['Draw your cut.','Pick the side to keep.','Match the target %.']],
+ trace:[['Observe 2 secondes.','Redessine en un trait.','Sois le plus fidèle.'],['Look for 2 seconds.','Redraw in one stroke.','Match the shape.']],
+ chroma:[['Retiens la couleur.','Recrée-la de mémoire.','Le plus proche gagne.'],['Remember the color.','Rebuild it from memory.','Closest match wins.']],
+ mat:[['Observe la position.','Trouve le mat en un coup.','Joue avant le rival.'],['Look at the board.','Find mate in one.','Play before your rival.']],
+ garde:[['Banane piège charge. Attaque bat banane.','Défense renvoie le coup de ton pote.','Charge pour sortir le gros poisson.'],['Banana traps charge. Attack beats banana.','Guard bounces your friend’s attack.','Charge to bring out the big fish.']],
+ contrepied:[['Choisis une carte.','Chaque carte sert une fois.','Gagne les récompenses.'],['Pick a card.','Use each card once.','Win the rewards.']],
+ ricochet:[['Choisis ton angle.','Dose et verrouille.','Vise le centre.'],['Pick your angle.','Set power and lock.','Get closest to center.']],
+ falsestart:[['Attends le GO.','Attention à la feinte !','Premier à 3 points.'],['Wait for GO.','Watch for the fake!','First to 3 points.']],
+ onesecond:[['Lis la durée cible.','Compte dans ta tête.','STOP au bon moment.'],['Read the target time.','Count in your head.','STOP at the right time.']],
+ onemore:[['Empile les blocs.','Sécurise quand tu veux.','3 parfaits : une bouée anti-chute !'],['Stack the blocks.','Bank when you want.','3 perfect drops earn a lifeline!']],
+ bounce:[['Déplace ta raquette.','Renvoie la balle.','Tiens le plus longtemps.'],['Move your paddle.','Return the ball.','Survive the longest.']],
+ symbolrush:[['Mémorise la suite.','Recompose-la.','Bats le chrono rival.'],['Remember the sequence.','Rebuild it.','Beat the rival clock.']],
+ bombpass:[['Surveille la bombe.','Passe au bon moment.','Ne la garde pas à la fin.'],['Watch the bomb.','Pass at the right time.','Do not hold it at the end.']],
+ cupshuffle:[['Repère le jeton.','Suis les gobelets.','Choisis avant ton ami.'],['Spot the token.','Follow the cups.','Choose before your friend.']],
+ duelnumeric:[['Lis le calcul.','Choisis la bonne réponse.','La vitesse départage.'],['Read the calculation.','Pick the right answer.','Speed breaks the tie.']]
+ };
+ return steps[gameId][fr?0:1];
 }

@@ -17,7 +17,7 @@ const MUSIC_KEY = 'slaptax.music.enabled';
 const MUSIC_EVENT = 'slaptax:music-change';
 
 function enabled() {
-    return localStorage.getItem(MUSIC_KEY) !== '0';
+    return localStorage.getItem(MUSIC_KEY) === '1';
 }
 
 function context() {
@@ -44,6 +44,8 @@ function note(ctx: AudioContext, destination: AudioNode, frequency: number, dura
 }
 
 const PATTERNS: Record<CompetitiveGameId, number[]> = {
+    pigeon:[0],lift:[0],pie:[0],balloon:[0],toilet:[0],
+    table: [0],
     falsestart: [110, 0, 165, 0, 110, 0, 220, 0],
     onesecond: [0],
     chroma: [0],

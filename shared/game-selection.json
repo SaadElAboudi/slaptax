@@ -1,0 +1,72 @@
+[
+ {
+  "id": "toilet",
+  "labelFr": "Panique aux Toilettes",
+  "labelEn": "Toilet Panic",
+  "hookFr": "Canards à voler. Chasse géante. Prout turbo.",
+  "hookEn": "Steal ducks. Dodge the flush. Fart to escape."
+ },
+ {
+  "id": "pigeon",
+  "labelFr": "Pigeon Express",
+  "labelEn": "Pigeon Express",
+  "hookFr": "Vise la voiture de ton pote. Pas la tienne.",
+  "hookEn": "Bomb your friend’s car. Not your own."
+ },
+ {
+  "id": "lift",
+  "labelFr": "Ascenseur à Prouts",
+  "labelEn": "Elevator of Farts",
+  "hookFr": "Trois places. Des haricots. Zéro dignité.",
+  "hookEn": "Three spots. A few beans. Zero dignity."
+ },
+ {
+  "id": "pie",
+  "labelFr": "Tarte ta Face",
+  "labelEn": "Pie in Your Face",
+  "hookFr": "Vise la tronche. Esquive. Chantilly partout.",
+  "hookEn": "Aim at faces. Duck. Cream everywhere."
+ },
+ {
+  "id": "balloon",
+  "labelFr": "Gonfle ou Pète",
+  "labelEn": "Pump or Pop",
+  "hookFr": "Gonfle ton ego. Pique celui de ton pote.",
+  "hookEn": "Inflate your ego. Burst your friend’s bubble."
+ },
+ {
+  "id": "table",
+  "labelFr": "Bagarre de Table",
+  "labelEn": "Table Rumble",
+  "hookFr": "Quelqu’un tire la nappe. Sauve ton ego.",
+  "hookEn": "Someone pulls the tablecloth. Save your ego."
+ },
+ {
+  "id": "garde",
+  "labelFr": "Pif Paf",
+  "labelEn": "Bonk Bonk",
+  "hookFr": "Banane, poêle, poisson. Règle tes comptes.",
+  "hookEn": "Banana. Frying pan. Fish. Settle the score."
+ },
+ {
+  "id": "onemore",
+  "labelFr": "Tour de Trop",
+  "labelEn": "One Block Too Far",
+  "hookFr": "Encore un bloc… ou la catastrophe ?",
+  "hookEn": "One more block… or total disaster?"
+ },
+ {
+  "id": "decoupe",
+  "labelFr": "Chef Couic",
+  "labelEn": "Chef Snip",
+  "hookFr": "La bonne portion. Un seul coup de couic.",
+  "hookEn": "The right portion. One satisfying snip."
+ },
+ {
+  "id": "bombpass",
+  "labelFr": "Passe ou BOUM",
+  "labelEn": "Pass or BOOM",
+  "hookFr": "Passe au bon moment. Garde tes sourcils.",
+  "hookEn": "Pass on time. Keep your eyebrows."
+ }
+]

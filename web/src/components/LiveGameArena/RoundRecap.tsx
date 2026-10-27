@@ -1,3 +1,4 @@
+import {chaosRecap} from '../../gameplay/chaosRecap';
 import { ArrowRight } from 'lucide-react';
 import type { LiveDuelMatch, LiveDuelRound } from '../../api/client';
 import { gameLabel } from '../../gameplay/catalog';
@@ -19,6 +20,7 @@ export function RoundRecap({ match, round, userId, isFr, onContinue }: { match: 
         <div className={styles.clubPlayers}><div><ClubAvatar variant={avatar}/><span>{isFr?'TOI':'YOU'}</span><strong>{match.score[own]}</strong></div><b>VS</b><div><ClubAvatar rival/><span>{match.opponentName}</span><strong>{match.score[rival]}</strong></div></div>
         <h2>{round.gameId==='chroma'&&!round.moment?.summary.includes('forfeit') ? (won?(isFr?'Tu avais l oeil.':'You had the eye.'):(isFr?'Pas la meme nuance.':'A shade off.')) : (won?(isFr?'Un point pour toi.':'Your point.'):(isFr?'Le rival marque.':'Your rival scores.'))}</h2>
         {round.gameId==='chroma'&&round.moment&&!round.moment.summary.includes('forfeit')&&<p>{totals[0].toFixed(1)} / {totals[1].toFixed(1)} · {isFr?'ecart RVB cumule':'total RGB error'}</p>}
+        {round.moment&&chaosRecap(round.moment,userId,isFr)&&<p data-testid="round-chaos">{chaosRecap(round.moment,userId,isFr)}</p>}
         {round.moment&&<RoundEvidence moment={round.moment} userId={userId} isFr={isFr}/>}
         {!final&&<div className={styles.next}><span>{isFr?'A SUIVRE':'UP NEXT'}</span><strong>{gameLabel(match.games[match.currentRound-1],isFr)}</strong></div>}
         <button type="button" onClick={onContinue}>{final?(isFr?'Voir le resultat':'See result'):(isFr?'Manche suivante':'Next round')}<ArrowRight size={20}/></button>

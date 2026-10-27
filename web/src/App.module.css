@@ -175,3 +175,6 @@
 }
 .matchHeader strong { font:850 16px system-ui,sans-serif; }
 .matchHeader span,.modeStatus { font-family:system-ui,sans-serif; }
+/* Cartoon arena shell */
+.container{max-width:1180px;padding-bottom:125px}.homeMode{max-width:1120px}.matchHeader{margin:12px 0 16px;grid-template-columns:48px 1fr 70px}.matchHeader button{width:44px;height:44px;border:2px solid #101a38;border-radius:11px;background:#3b5698;box-shadow:0 3px #101a38;font-size:23px}.matchHeader strong{font-family:var(--font-display);font-size:21px;font-weight:1000}.matchHeader span{color:#c2d5ff}.modeStatus{background:#2d4885;border:2px solid #101a38;border-radius:8px;padding:7px}.panelArea>section{border-radius:18px}.container:has([data-focus="true"]){padding-bottom:24px}.container:has([data-focus="true"]) .panelArea>section{border-radius:14px}
+@media(max-width:767px){.container{padding-bottom:105px}.arenaMode{padding-inline:10px}.matchHeader{margin-top:10px}.matchHeader strong{font-size:18px}.panelArea>section{border-radius:14px;border-inline:0}.panelArea{min-height:0}}

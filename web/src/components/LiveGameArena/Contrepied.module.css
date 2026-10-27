@@ -58,3 +58,4 @@
 .commit { background:#def56a; border-radius:8px; box-shadow:0 4px 0 #889e30; min-height:50px; }
 .scores b { color:#def56a; }.scores span:last-child b { color:#ffab9c; }
 .rewards [data-current=true] { color:#f4d77c; border-color:#f4d77c; }
+.card{border:3px solid #101a38;border-radius:12px;background:#ffdf6b;color:#1d2c4f;box-shadow:0 5px #101a38}[data-side=rival] .card{background:#ffb59f;box-shadow:0 5px #101a38}.hand button{border:2px solid #101a38;border-radius:10px;box-shadow:0 4px #101a38}.hand [data-selected=true]{background:#ffda4b;box-shadow:0 4px #101a38}.commit{background:#ffda4b;border:2px solid #101a38;border-radius:10px;color:#1d2c4f;box-shadow:0 4px #101a38}.prize{color:#ffdf78}.scores b{color:#ffda4b}

@@ -135,8 +135,8 @@ export function FriendDuelPanel() {
     const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>(() => {
         try {
             const stored = localStorage.getItem('slaptax_duel_game');
-            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'bounce';
-        } catch { return 'bounce'; }
+            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'toilet';
+        } catch { return 'toilet'; }
     });
     const [bestOf, setBestOf] = useState(3);
     const [duelId, setDuelId] = useState<string | null>(null);
@@ -654,7 +654,7 @@ export function FriendDuelPanel() {
                     <div className={styles.rematchBuilder}>
                         <div className={styles.rematchOptions}>
                             <label>
-                                <span>{isFr ? 'Mise' : 'Stake'}</span>
+                                <span>{isFr ? 'Crédits démo par joueur' : 'Demo credits per player'}</span>
                                 <select value={rematchStake} onChange={(event) => setRematchStake(Number(event.target.value))}>
                                     <option value={match.stake}>{isFr ? 'Même mise' : 'Same stake'} · SLAP$ {match.stake}</option>
                                     {doubledStake && doubledStake <= Number(wallet) && (
@@ -799,11 +799,10 @@ export function FriendDuelPanel() {
         <section className={styles.panel}>
             {!duelId && <header className={styles.hero}>
                 <div>
-                    <span>LIVE 1V1</span>
+                    <span>{isFr?'À DEUX, EN DIRECT':'TWO PLAYERS, LIVE'}</span>
                     <h2>{isFr ? 'Duel entre amis' : 'Friend Duel'}</h2>
-                    <p>{isFr ? 'Choisis ton terrain. Bannis le sien. Affrontez-vous en direct.' : 'Pick your ground. Ban theirs. Face off live.'}</p>
+                    <p>{isFr ? 'Un lien, deux joueurs et une revanche à réclamer.' : 'One link, two players and a rematch to settle.'}</p>
                 </div>
-                <strong>SLAP$ {Number(wallet).toFixed(2)}</strong>
             </header>}
 
             {linkInvite && !duelId && linkInvite.challengerId !== userId && (
@@ -817,20 +816,20 @@ export function FriendDuelPanel() {
             {duelId ? (
                 <div className={styles.readyRoom}>
                     <div className={styles.readyTitle}>
-                        <span>{isFr ? 'SALON RIVALITE' : 'RIVALRY ROOM'}</span>
+                        <span>{isFr ? 'VOTRE SALON' : 'YOUR ROOM'}</span>
                         <strong>{(room?.seriesId || duelId).slice(0, 8).toUpperCase()}</strong>
                     </div>
                     <div className={styles.players}>
-                        <div className={ready ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar variant={avatar}/></span><strong>{playerName}</strong><span>{ready ? 'READY' : 'WAITING'}</span></div>
+                        <div className={ready ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar variant={avatar}/></span><strong>{playerName}</strong><span>{ready ? (isFr?'PRÊT':'READY') : (isFr?'EN ATTENTE':'WAITING')}</span></div>
                         <b>VS</b>
-                        <div className={rivalReady ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar rival/></span><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? 'READY' : 'WAITING'}</span></div>
+                        <div className={rivalReady ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar rival/></span><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? (isFr?'PRÊT':'READY') : (isFr?'EN ATTENTE':'WAITING')}</span></div>
                     </div>
                     {room?.veto && userId && <GameVeto veto={room.veto} userId={userId} isFr={isFr} busy={busy} games={room.games} onBan={(gameId) => {
                         setBusy(true); setError('');
                         void api.banDuelGame(duelId, userId, gameId).then((data) => setRoom(data.room)).catch((cause) => setError(cause.message)).finally(() => setBusy(false));
                     }} />}
                     <button className={styles.primary} type="button" onClick={toggleReady} disabled={busy || Boolean(room?.veto && !room.veto.complete)}>
-                        {ready ? (isFr ? 'Annuler READY' : 'Cancel READY') : (isFr ? 'Je suis READY' : 'I am READY')}
+                        {ready ? (isFr ? 'Je ne suis plus prêt' : 'Cancel READY') : (isFr ? 'Je suis prêt !' : 'I am READY')}
                     </button>
                     <button className={styles.secondary} type="button" disabled={busy} onClick={() => {
                         if (!userId) return;
@@ -852,12 +851,28 @@ export function FriendDuelPanel() {
                 </div>
             ) : (
                 <div className={styles.setup}>
-                    <div className={styles.setupIntro}>
-                        <strong>{isFr ? '1. Configure la partie' : '1. Set up the match'}</strong>
-                        <span>{isFr ? 'Ton épreuve favorite entre dans la rotation, sauf si elle est bannie.' : 'Your preferred event joins the rotation unless it is banned.'}</span>
+                    <div className={styles.setupIntro}><strong>{isFr?'1. Choisis ton jeu':'1. Pick your game'}</strong><span>{isFr?'Ton favori entre dans la rotation, sauf si ton ami le bannit.':'Your favorite joins the rotation unless your friend bans it.'}</span></div>
+                    <details className={styles.gamePicker}><summary>{isFr?'Jeu favori':'Favorite game'}<strong>{gameLabel(preferredGame,isFr)} ▾</strong></summary>
+                    <div className={styles.gameDraft}>
+                        {COMPETITIVE_GAMES.map((game) => (
+                            <button
+                                type="button"
+                                key={game.id}
+                                className={preferredGame === game.id ? styles.picked : ''}
+                                aria-pressed={preferredGame === game.id}
+                                onClick={() => setPreferredGame(game.id)}
+                            >
+                                <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
+                                <strong>{isFr ? game.labelFr : game.labelEn}</strong>
+                                <span>{preferredGame === game.id ? (isFr ? 'FAVORI' : 'PREFERRED') : (isFr ? game.skillFr : game.skillEn)}</span>
+                            </button>
+                        ))}
                     </div>
+                    </details>
+                    <div className={styles.setupIntro}><strong>{isFr?'2. Invite ton ami':'2. Invite your friend'}</strong><span>{isFr?'Crée un lien et envoie-le à ton ami. Vous jouez ensemble, en direct.':'Create a link and send it to a friend. Play together, live.'}</span></div>
+                    <details className={styles.matchOptions}><summary>{isFr?'Options de partie et invitation directe':'Match options and direct invitation'}</summary>
                     <div className={styles.fields}>
-                        <label>{isFr ? 'Mise' : 'Stake'}
+                        <label>{isFr ? 'Crédits démo par joueur' : 'Demo credits per player'}
                             <select value={stake} onChange={(event) => setStake(Number(event.target.value))}>
                                 {affordableStakes.map((value) => <option key={value} value={value}>SLAP$ {value}</option>)}
                             </select>
@@ -874,32 +889,14 @@ export function FriendDuelPanel() {
                         </label>
                         <label>{isFr ? 'Format' : 'Format'}
                             <select value={bestOf} onChange={(event) => setBestOf(Number(event.target.value))}>
-                                {[1, 3, 5, 7].map((value) => <option key={value} value={value}>BO{value}</option>)}
+                                {[1, 3, 5, 7].map((value) => <option key={value} value={value}>{isFr?`${value} manche${value>1?'s':''}`:`Best of ${value}`}</option>)}
                             </select>
                         </label>
                     </div>
-                    <div className={styles.gameDraft}>
-                        {COMPETITIVE_GAMES.map((game) => (
-                            <button
-                                type="button"
-                                key={game.id}
-                                className={preferredGame === game.id ? styles.picked : ''}
-                                aria-pressed={preferredGame === game.id}
-                                onClick={() => setPreferredGame(game.id)}
-                            >
-                                <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
-                                <strong>{isFr ? game.labelFr : game.labelEn}</strong>
-                                <span>{preferredGame === game.id ? (isFr ? 'FAVORI' : 'PREFERRED') : (isFr ? game.skillFr : game.skillEn)}</span>
-                            </button>
-                        ))}
-                    </div>
-                    <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder={isFr ? 'Ajoute un message...' : 'Add a message...'} maxLength={140} />
-                    <div className={styles.setupIntro}>
-                        <strong>{isFr ? '2. Invite ton rival' : '2. Invite your rival'}</strong>
-                        <span>{isFr ? 'Le lien fonctionne même si ton ami n est pas encore inscrit.' : 'The link works even if your friend has not joined yet.'}</span>
-                    </div>
+                    <input aria-label={isFr?'Message pour ton ami':'Message for your friend'} value={message} onChange={(event) => setMessage(event.target.value)} placeholder={isFr?'Un message pour ton ami (facultatif)':'A message for your friend (optional)'} maxLength={140}/>
+                    </details>
                     <div className={styles.setupActions}>
-                        <button className={styles.primary} type="button" onClick={createInviteLink} disabled={busy}>
+                        <button className={styles.primary} type="button" onClick={createInviteLink} disabled={busy || !userId}>
                             {busy ? (isFr ? 'Création...' : 'Creating...') : (isFr ? 'Créer et copier le lien' : 'Create and copy link')}
                         </button>
                         <button className={styles.secondary} type="button" onClick={sendDirectChallenge} disabled={busy || !opponentId}>
@@ -912,7 +909,7 @@ export function FriendDuelPanel() {
                     {inviteLink && (
                         <div className={styles.shareLink}>
                             <span>{linkCopied ? (isFr ? 'LIEN COPIE' : 'LINK COPIED') : (isFr ? 'LIEN PRET' : 'LINK READY')}</span>
-                            <input readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
+                            <input aria-label={isFr?'Lien d invitation':'Invitation link'} readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
                             <button type="button" onClick={() => void copyInviteLink()}>{isFr ? 'Copier' : 'Copy'}</button>
                         </div>
                     )}

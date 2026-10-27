@@ -85,3 +85,19 @@
 .arena[data-game] .countIn strong { font:900 64px/1.1 system-ui,sans-serif; overflow-wrap:anywhere; }
 .feedback:empty { display:none; }
 @media(max-width:600px) { .signal strong { font-size:34px; }.target strong { font-size:42px; }.arena[data-game] .countIn strong { font-size:38px; } }
+.arena[data-game]{background:#233c72;--ink:#ffda4b;color:#fff}.hud{border-color:#647fb5;color:#cadcff;font-family:inherit}.score span{color:#cbddff;font-family:inherit}.score b{font-family:var(--font-display);font-size:28px;text-shadow:0 3px #101a38}.signal,.hold,.clockButton{border:3px solid #101a38;border-radius:17px;background:#365693;box-shadow:0 6px #101a38;color:#eff6ff}.signal strong,.clockButton strong{font-family:var(--font-display);font-weight:1000}.signal[data-signal="go"]{background:#b9ed65;border-color:#101a38;color:#172846}.signal[data-signal="trap"]{background:#ed7680;color:#172846;border-color:#101a38}.countIn{background:#233c72;color:#ffda4b}.countIn strong{font-family:var(--font-display);font-weight:1000;text-shadow:0 5px #101a38}.countIn span{color:#d7e5ff}.feedback{color:#ffe17a}.secondary,.stackFooter button,.draw button{border:2px solid #101a38;border-radius:10px;background:#ffda4b;color:#1d2c50;box-shadow:0 4px #101a38;font-family:inherit;font-weight:900}.target strong{color:#ffda4b}.clockButton[data-state="timing"]:not(:disabled){background:#75d7f2;border-color:#101a38;color:#152647}.attempts span{color:#c0d1ef;border-color:#789bd4}.attempts b{color:white}.forfeit{color:#c9dbff}.notice{background:#ffe39b;color:#1d2d50;border:2px solid #101a38;border-radius:10px}
+.stackMoment{min-height:33px;text-align:center;font-size:22px;font-weight:1000;color:#ffda4b;text-shadow:0 3px #101a38;font-family:var(--font-display)}
+.arena:has(>[data-testid="game-reaction"]){gap:10px}.arena>[data-testid="game-reaction"]{margin-bottom:0}
+.arena[data-game="toilet"]>.hud,.arena[data-game="toilet"]>.feedback:empty{display:none}.arena[data-game="toilet"]{min-height:0;gap:8px}
+.combo{text-align:center;font-size:11px;font-weight:850;color:#dce9ff;background:#304d80;border:2px solid #182642;border-radius:10px;padding:8px}.combo[data-protected=true]{background:#c8ebad;color:#182642}
+@media(max-width:600px){.stackSurface canvas{height:min(265px,max(180px,calc(100svh - 540px)))}}
+/* One scene, one useful HUD: custom games already show time, scores and mode. */
+.arena[data-game]{background:transparent;min-height:0;padding:12px 16px 16px;gap:8px;--ink:#ffdc87}
+.arena[data-game]:is([data-game=pigeon],[data-game=lift],[data-game=pie],[data-game=balloon],[data-game=table],[data-game=garde],[data-game=decoupe])>.hud{display:none}
+.arena[data-game] .hud{border-color:#78958f;color:#e0eade}
+.arena[data-game] .combo{background:#3a5558;border-color:#152b37;color:#ecf2de;padding:6px}
+.arena[data-game] .combo[data-protected=true]{background:#c8ebad;color:#182642}
+.arena[data-game] .stackSurface{border:3px solid #152b37;border-radius:14px;overflow:hidden;background:#709b9d;box-shadow:0 5px #152b37}
+.arena[data-game] .stackSurface canvas{display:block}
+.arena[data-game] .stackMoment{color:#ffe39a;font-size:19px;min-height:26px}
+@media(max-width:600px){.arena[data-game]{padding:8px 10px 12px;gap:6px}.arena[data-game=onemore] .stackSurface canvas{height:min(320px,max(200px,calc(100svh - 400px)))}}

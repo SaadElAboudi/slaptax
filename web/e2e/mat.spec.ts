@@ -35,7 +35,7 @@ test('MAT solo: real board, legal solution, fresh content and no wallet change',
         expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
         await playMove(page,solve(state),info.project.name.includes('mobile'));
         await expect(page.getByTestId('party-arena')).toHaveAttribute('data-phase','reveal');expect(current()!.results).toBeDefined();
-        await expect(page.getByRole('button',{name:'Replay',exact:true})).toBeVisible();await expect(page.getByText('SLAP$ 25.00',{exact:true}).first()).toBeVisible();
+        await expect(page.getByRole('button',{name:'Replay',exact:true})).toBeVisible();await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
     }
     expect(errors).toEqual([]);
 });

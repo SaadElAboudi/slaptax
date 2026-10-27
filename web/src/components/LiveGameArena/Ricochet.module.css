@@ -15,3 +15,5 @@
 .controls input { accent-color:#a6e6f0; }
 .game button { background:#def56a; border-radius:8px; box-shadow:0 4px 0 #889e30; font-weight:800; }
 .standing { padding-block:8px; border-bottom:1px solid #44444f; }
+.game canvas{border:3px solid #101a38;border-radius:15px;box-shadow:0 5px #101a38}.game header{color:#cfe2ff}.game header b{color:#ffda4b}.game button{border:2px solid #101a38;border-radius:10px;background:#ffda4b;box-shadow:0 4px #101a38;color:#192b50}
+.game{max-width:min(440px,max(200px,calc(100svh - 610px)))}

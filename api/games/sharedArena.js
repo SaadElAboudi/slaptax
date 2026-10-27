@@ -1,3 +1,4 @@
+const {normalizePractice} = require('../domain/soloProgression');
 const { WebSocket } = require("ws");
 const { createRace, nextStage, publicRace, answerRace, tickRace } = require('./challengeRace');
 const {createMatPool}=require('../infrastructure/matPool');
@@ -195,7 +196,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         };
 
         if (PARTY_IDS.includes(session.gameId)) return { ...common, party: publicParty(session.game, session.challengerId, now),
-            moment: session.phase === 'done' ? partyMoment(session.game) : undefined, practice: session.practice };
+            moment: session.phase === 'done' ? partyMoment(session.game) : undefined, practice: session.practice, soloReward: session.practice ? session.soloReward : undefined };
 
         if (session.gameId === "bounce") {
             const game = session.game;
@@ -338,7 +339,12 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             session.game.phase = 'done'; session.game.winnerId = winnerId; session.game.summary = reason;
             recordParty(session.game, Date.now(), true);
         }
-        if (session.practice) { broadcast(session); return; }
+        if (session.practice) {
+            if(!String(reason).includes('forfeit'))session.soloReward=service.recordSoloCompletion(session.challengerId,session.duelId,session.gameId,normalizePractice(session.game,session.challengerId));
+            broadcast(session);
+            if(session.soloReward)emitGlobal({type:'state.changed',scope:'/api/solo'});
+            return;
+        }
         const result = service.resolveAuthoritativeDuelRound(session.duelId, session.round, winnerId, {
             duration: session.startedAt ? Date.now() - session.startedAt : 100,
             reason,

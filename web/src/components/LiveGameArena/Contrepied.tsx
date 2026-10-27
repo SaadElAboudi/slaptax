@@ -1,3 +1,4 @@
+import {GameBuddy} from '../GameBuddy/GameBuddy';
 import { useState } from 'react';
 import { Check, Diamond, LockKeyhole, Send, Trophy } from 'lucide-react';
 import type { PartyState } from '../../gameplay/party';
@@ -46,5 +47,5 @@ export function Contrepied({ party, identity, active, isFr, send }: {
 }
 
 function PlayingCard({ value, hidden = false }: { value?: number | null; hidden?: boolean }) {
-    return <div className={styles.card} data-hidden={hidden || value == null}>{hidden || value == null ? <LockKeyhole size={24} /> : <><small>{value}</small><Diamond size={19} /><strong>{value}</strong></>}</div>;
+    return <div className={styles.card} data-hidden={hidden || value == null}>{hidden || value == null ? <LockKeyhole size={24} /> : <><small>{value}</small><div style={{width:54,height:54}}><GameBuddy gameId="contrepied" mood={value===5?'wow':'focus'} rival={value!==undefined&&value!==null&&value%2===0}/></div><strong>{value}</strong></>}</div>;
 }

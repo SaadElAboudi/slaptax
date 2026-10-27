@@ -106,6 +106,12 @@ function createServer(options = {}) {
     server.store = store;
     server.monitoring = monitoring;
     server.realtime = createRealtimeHub(server, store, service);
+    // HTTP close waits for upgraded sockets: drain them before waiting for it.
+    const closeHttp = server.close.bind(server);
+    server.close = function closeWithRealtime(callback) {
+        const drained = server.realtime.close();
+        return closeHttp(error => { drained.then(() => callback?.(error)); });
+    };
     service.getPresence = () => server.realtime.getPresence();
     const health=service.getHealth;
     service.getHealth=()=>({...health(),mat:server.realtime.sharedArena.matPool.health()});

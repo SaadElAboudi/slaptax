@@ -1,3 +1,8 @@
+import {paintAbsurd} from './Absurd/paintAbsurd';
+import {paintTable} from './Table/paintTable';
+import {chaosRecap} from '../../gameplay/chaosRecap';
+import {paintCarnival} from './Carnival/paintCarnival';
+import {paintToilet} from './Toilet/paintToilet';
 import { useEffect, useRef, useState } from 'react';
 import { Download, ImageDown, Pause, Play, Share2 } from 'lucide-react';
 import { gameLabel } from '../../gameplay/catalog';
@@ -30,9 +35,13 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         const score = state?.scores[id] ?? moment.scores[id] ?? 0;
         ctx.font = 'bold 42px monospace'; ctx.fillStyle = index ? '#ffa49c' : accent;
         const r=state?.mat?.results?.[id];
-        ctx.fillText(moment.gameId==='mat' ? r?.mate?`${((r.ms||0)/1000).toFixed(2)} s`:r?(isFr?'MANQUE':'MISSED'):'--' : `${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
+        ctx.fillText(moment.gameId==='toilet'?`${state?.toilet?.bodies.find(p=>p.id===id)?.loot||0} ${isFr?'canards':'ducks'}`:moment.gameId==='mat' ? r?.mate?`${((r.ms||0)/1000).toFixed(2)} s`:r?(isFr?'MANQUE':'MISSED'):'--' : `${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if (moment.gameId === 'mat' && state?.mat) {
+    if(state?.absurd){const surface=document.createElement('canvas');surface.width=600;surface.height=440;const c=surface.getContext('2d');if(c)paintAbsurd(c,state.absurd,players[0],isFr,true);ctx.drawImage(surface,60,315,600,440);
+    }else if(state?.table){const surface=document.createElement('canvas');surface.width=600;surface.height=600;const c=surface.getContext('2d');if(c)paintTable(c,state.table,players[0],null,state.table.elapsed,isFr,true);ctx.drawImage(surface,160,315,400,400);
+    }else if(state?.carnival){const surface=document.createElement('canvas');surface.width=600;surface.height=420;const c=surface.getContext('2d');if(c)paintCarnival(c,state.carnival,players[0],isFr);ctx.drawImage(surface,60,340,600,420);
+    }else if(moment.gameId==='toilet'&&state?.toilet){const surface=document.createElement('canvas');surface.width=600;surface.height=600;const c=surface.getContext('2d');if(c)paintToilet(c,state.toilet,players[0],state.toilet.elapsed,isFr,true);ctx.drawImage(surface,160,315,400,400);
+    } else if (moment.gameId === 'mat' && state?.mat) {
         const mat=state.mat,files=mat.turn==='w'?'abcdefgh':'hgfedcba',ranks=mat.turn==='w'?'87654321':'12345678';
         [...ranks].forEach((rank,row)=>[...files].forEach((file,col)=>{
             const square=file+rank,x=176+col*46,y=312+row*46;
@@ -115,7 +124,8 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
     }
     ctx.fillStyle = '#f2f5ef'; ctx.textAlign = 'center'; ctx.font = 'bold 32px sans-serif';
     const gap = Math.abs((moment.scores[players[0]] || 0) - (moment.scores[players[1]] || 0));
-    ctx.fillText(moment.summary.includes('forfeit') ? (isFr ? 'Victoire par forfait' : 'Won by forfeit') : moment.gameId === 'onesecond' ? `${gap} ms ${isFr ? "d'ecart." : 'apart.'}` : isFr ? 'On remet ca ?' : 'Run it back?', 360, 759);
+    ctx.font=chaosRecap(moment,players[0],isFr)?'bold 21px sans-serif':'bold 32px sans-serif';
+    ctx.fillText(chaosRecap(moment,players[0],isFr)|| (moment.summary.includes('forfeit') ? (isFr ? 'Victoire par forfait' : 'Won by forfeit') : moment.gameId === 'onesecond' ? `${gap} ms ${isFr ? "d'ecart." : 'apart.'}` : isFr ? 'On remet ca ?' : 'Run it back?'), 360, 759,636);
     ctx.fillStyle = '#b7c5ba'; ctx.font = '17px sans-serif'; ctx.fillText(isFr ? 'La revanche vous appartient.' : 'The rematch is yours.', 360, 804);
     ctx.fillStyle = accent; ctx.fillRect(42, 850, 636, 4);
 }
@@ -168,7 +178,7 @@ export function MomentReplay({ moment, userId, playerName, rivalName, isFr }: Pr
         if (!blob) { setMessage(isFr ? 'Export indisponible.' : 'Export unavailable.'); return; }
         const file = new File([blob], 'slaptax-moment.png', { type: 'image/png' });
         try {
-            if (share && navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: 'SLAP$TAX' });
+            if (share && navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: 'SLAP$TAX',text:chaosRecap(moment,userId,isFr)||gameLabel(moment.gameId,isFr) });
             else download(blob, 'png');
         } catch (e) { if (!(e instanceof DOMException && e.name === 'AbortError')) setMessage(isFr ? 'Partage indisponible.' : 'Sharing unavailable.'); }
     }

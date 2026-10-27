@@ -1,5 +1,5 @@
 const BOT = 'practice-bot';
-const ACTIONS = ['attack', 'charge', 'defend'];
+const ACTIONS = ['attack', 'charge', 'defend', 'prank'];
 
 function beginGarde(g) {
     const participants = g.players.length === 1 ? [...g.players, BOT] : [...g.players];
@@ -25,15 +25,21 @@ function settleGarde(g, now) {
     const c = g.garde, [a,b] = c.participants;
     const actions = Object.fromEntries(c.participants.map(id => [id, g.responses[id] || 'miss']));
     const before = { ...c.hp }, chargedBefore = { ...c.charged };
-    const damage = (from, to) => actions[from] === 'attack' && actions[to] !== 'defend' ? (chargedBefore[from] ? 2 : 1) : 0;
+    const damage = (from, to) => {
+        if(actions[from]==='attack'&&actions[to]!=='defend')return (chargedBefore[from]?2:1)+(actions[to]==='prank'?1:0);
+        if(actions[from]==='prank'&&actions[to]==='charge')return 2;
+        if(actions[from]==='defend'&&actions[to]==='attack')return chargedBefore[to]?2:1;
+        return 0;
+    };
     const losses = { [a]: damage(b,a), [b]: damage(a,b) };
+    const gags = Object.fromEntries(c.participants.map(id=>[id,!losses[id]?null:actions[id]==='attack'&&actions[id===a?b:a]==='defend'?'pan':actions[id]==='charge'&&actions[id===a?b:a]==='prank'?'banana':'bonk']));
     for (const id of c.participants) {
         c.hp[id] = Math.max(0, before[id] - losses[id]);
         c.charged[id] = actions[id] === 'charge';
         c.previous[id] = actions[id];
         if (g.players.includes(id)) g.scores[id] = c.hp[id];
     }
-    c.history.push({ exchange: g.attempt, actions, before, hp: { ...c.hp }, damage: losses, chargedBefore });
+    c.history.push({ exchange: g.attempt, actions, before, hp: { ...c.hp }, damage: losses, gags, chargedBefore });
     c.finished = c.hp[a] === 0 || c.hp[b] === 0 || g.attempt >= 8;
     if (c.finished) c.winnerId = c.hp[a] === c.hp[b] ? null : c.hp[a] > c.hp[b] ? a : b;
     g.phase = 'reveal'; g.deadline = now + 1200;

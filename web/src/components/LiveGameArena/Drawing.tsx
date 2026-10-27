@@ -56,6 +56,8 @@ export function Drawing({party,identity,active,isFr,send}: {
         if(enabled&&!cut){const p=path.current.length<2?[...path.current,path.current[0]]:path.current;setSent(true);send('lock',{points:p});}
     }
     const entry=party.drawing?.history[(party.drawing?.history.length||1)-1];
+    const ownResult=entry?.results[identity];
+    const celebration=reveal && ownResult && !ownResult.expired ? cut ? ownResult.error===0 ? (isFr?'PILE DANS LA CIBLE !':'RIGHT ON TARGET!') : (ownResult.error??100)<=2 ? (isFr?'TOUT PRÈS DU PARFAIT !':'SO CLOSE TO PERFECT!') : '' : ownResult.score>=980 ? (isFr?'TRACÉ DE MAÎTRE !':'MASTER STROKE!') : '' : '';
     const intersects=cut&&points.length===2&&party.drawing?.target?.polygon?.some((p)=>{
         const [a,b]=points;return ((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]))>0;
     })&&party.drawing?.target?.polygon?.some((p)=>{
@@ -73,6 +75,7 @@ export function Drawing({party,identity,active,isFr,send}: {
         <div className={styles.caption} role="status">
             {reveal?<><i/>{isFr?'TOI':'YOU'}{Object.keys(party.scores).length>1&&<><i data-rival/>RIVAL</>}<i data-target/>{isFr?'CIBLE':'TARGET'}</>:party.phase==='observe'?<><Eye size={18}/>{isFr?'2 SECONDES':'2 SECONDS'}</>:cut?<><Scissors size={18}/>{points.length===2?(isFr?'COTE CONSERVE':'SELECTED SIDE'):(isFr?'UNE LIGNE':'ONE LINE')}</>:<><Pencil size={18}/>{isFr?'UN SEUL TRAIT':'ONE STROKE'}</>}
         </div>
+        {celebration&&<div className={styles.celebration} role="status">✦ {celebration} ✦</div>}
         {reveal?<div className={styles.results}>{Object.entries(entry?.results||{}).map(([id,result])=><div key={id} data-rival={id!==identity}>
             <span>{id===identity?(isFr?'TOI':'YOU'):'RIVAL'}</span><strong>{result.expired?'--':cut?`${result.percent}%`:`${(result.score/10).toFixed(1)}%`}</strong>
             <small>{result.expired?(isFr?'EXPIRE':'EXPIRED'):cut?`${result.error} ${isFr?'pts d ecart':'pts off'}`:(isFr?'FIDELITE':'ACCURACY')}</small>

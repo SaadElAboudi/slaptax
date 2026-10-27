@@ -1,3 +1,4 @@
+import {paintScenery} from './scenery';
 export interface PartyRun {
     durations?: Array<number | null>;
     errors?: number[];
@@ -7,6 +8,7 @@ export interface PartyRun {
     level?: number;
     bank?: number;
     perfects?: number;
+    perfectStreak?:number;buoy?:boolean;rescues?:number;
     status?: 'playing' | 'crashed' | 'banked';
 }
 
@@ -18,7 +20,11 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 
 export interface PartyState {
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve';
+    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve' | 'brawl';
+    absurd?:AbsurdState;
+    carnival?:CarnivalState;
+    toilet?:ToiletState;
+    table?: TableState;
     mat?: MatState;
     drawing?: DrawingState;
     contrepied?: ContrepiedState;
@@ -65,11 +71,11 @@ export interface ContrepiedState {
     history: Array<{ exchange: number; reward: number; cards: Record<string, number>; expired: string[]; winnerId: string | null }>;
 }
 
-export type GardeAction = 'attack' | 'charge' | 'defend' | 'miss';
+export type GardeAction = 'attack' | 'charge' | 'defend' | 'prank' | 'miss';
 export interface GardeState {
     hp:Record<string,number>; charged:Record<string,boolean>; canDefend:Record<string,boolean>;
     selected?:GardeAction; botId:string|null; winnerId:string|null; finished:boolean;
-    history:Array<{exchange:number;actions:Record<string,GardeAction>;before:Record<string,number>;hp:Record<string,number>;damage:Record<string,number>;chargedBefore:Record<string,boolean>}>;
+    history:Array<{exchange:number;actions:Record<string,GardeAction>;before:Record<string,number>;hp:Record<string,number>;damage:Record<string,number>;gags?:Record<string,'pan'|'banana'|'bonk'|null>;chargedBefore:Record<string,boolean>}>;
 }
 
 export interface PartyMoment {
@@ -92,25 +98,55 @@ export interface DrawingState {
 
 export function paintTower(ctx: CanvasRenderingContext2D, run: PartyRun | undefined, width: number, height: number, color = '#def56a') {
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#1d1d24';
-    ctx.fillRect(0, 0, width, height);
+    paintScenery(ctx, 'warehouse', width, height);
+    // The gantry cable follows the real moving block, never predicts a drop.
+    if(run?.status==='playing'&&run.moving){const x=(run.moving.x+run.moving.width/2)*width;ctx.strokeStyle='#253e47';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,Math.max(12,height-16-(Math.min(12,run.layers?.length||1)+1)*Math.min(24,(height-65)/13)));ctx.stroke();}
     const layers = run?.layers || [{ x: .19, width: .62 }];
     const visible = layers.slice(-12);
     const step = Math.min(24, (height - 65) / 13);
-    ctx.strokeStyle = '#44444f';
+    ctx.strokeStyle = '#a6e1d2';
     for (let row = 1; row <= 13; row++) {
         ctx.beginPath(); ctx.moveTo(0, height - row * step); ctx.lineTo(width, height - row * step); ctx.stroke();
     }
+    const blockFace=(x:number,y:number,w:number,h:number,fill:string,moving=false)=>{
+        ctx.fillStyle='#18264230';ctx.beginPath();ctx.roundRect(x+2,y+4,w,h,5);ctx.fill();
+        ctx.fillStyle=fill;ctx.strokeStyle='#182642';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(x,y,w,h,Math.min(6,h/3));ctx.fill();ctx.stroke();
+        ctx.fillStyle='#ffffff60';ctx.fillRect(x+4,y+3,Math.max(0,w-8),2);
+        if(w>30&&h>10){const mid=x+w/2,eye=Math.min(9,w/6);ctx.fillStyle='#182642';
+            for(const side of [-1,1]){ctx.beginPath();ctx.ellipse(mid+side*eye,y+h*.48,2,3,0,0,Math.PI*2);ctx.fill();}
+            ctx.strokeStyle='#182642';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(mid-3,y+h*.73);ctx.quadraticCurveTo(mid,y+h*(moving?.55:.97),mid+3,y+h*.73);ctx.stroke();
+        }
+    };
     visible.forEach((block, i) => {
-        ctx.fillStyle = i === visible.length - 1 ? color : '#6895a0';
-        ctx.fillRect(block.x * width, height - 16 - (i + 1) * step, block.width * width, step - 3);
+        const palette=['#bc9fee','#ff9d8b','#89dced','#ffdc6e'];
+        blockFace(block.x*width,height-16-(i+1)*step,block.width*width,step-3,i===visible.length-1?color:palette[i%4]);
     });
     if (run?.status === 'playing' && run.moving) {
-        ctx.fillStyle = '#f4d77c';
-        ctx.fillRect(run.moving.x * width, height - 16 - (visible.length + 1) * step, run.moving.width * width, step - 3);
+        blockFace(run.moving.x*width,height-16-(visible.length+1)*step,run.moving.width*width,step-3,'#ffdc6e',true);
     }
     if (run?.status === 'crashed') {
         ctx.fillStyle = '#ffab9c'; ctx.textAlign = 'center'; ctx.font = 'bold 32px sans-serif';
         ctx.fillText('CRASH', width / 2, 44);
     }
+}
+
+export interface TableBody {id:string;bot:boolean;x:number;y:number;vx:number;vy:number;out:boolean;fallAge:number;cooldown:number;kos:number}
+export interface TableState {pulls?:number;cloth?:{phase:string;direction:number};bound:number;elapsed:number;hits:number;lastHit:{x:number;y:number;age:number;strength:number}|null;winnerId:string|null;bodies:TableBody[]}
+
+export interface ToiletState {elapsed:number;flush:'calm'|'warning'|'flush';golden:boolean;bumpers:Array<{x:number;y:number;r:number}>;bodies:Array<{id:string;bot:boolean;slot:number;x:number;y:number;vx:number;vy:number;loot:number;collected:number;flushes:number;cooldown:number;boosting:boolean;stunned:boolean}>;ducks:Array<{id:number;x:number;y:number;value:number}>;event:{kind:'boost'|'bonk'|'steal'|'duck'|'flush';id:string;x:number;y:number;at:number;age:number;value?:number}|null}
+
+export interface CarnivalState {
+ kind:string;elapsed:number;
+ bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;combo:number;misses:number;dodges?:number;revenge?:boolean;shield?:boolean;blocks?:number;volume:number;serial:number;inflating:boolean;x:number;cooldown:number;ducking:boolean;duckCooldown:number;pokeCooldown:number;creamed:boolean}[];
+ shots:{id:string;target:string;aim:number;revenge?:boolean;at:number;landsAt:number;progress:number}[];
+ events:{kind:string;id:string;at:number;value:number;serial:number;age:number}[];
+}
+
+export interface AbsurdState {
+ kind:string;elapsed:number;wind:number;
+ wave:{index:number;gas:number|null;bean:number|null;remaining:number}|null;
+ bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;misses:number;blocks:number;ownGoals:number;pranks:number;stinks:number;beans:number;ammo:number;lane:number;confirmed:boolean;x:number;carX:number;cooldown:number;umbrella:boolean;shieldCooldown:number;proutCooldown:number}[];
+ shots:{id:number;owner:string;x:number;at:number;landsAt:number;progress:number}[];
+ strikes:{id:number;owner:string;target:string;lane:number;remaining:number;at:number;impactAt:number}[];
+ events:{serial:number;kind:string;id:string;at:number;value:number;age:number}[];
 }

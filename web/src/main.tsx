@@ -1,6 +1,7 @@
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/globals.css'
+import './styles/cartoon.css'
 import App from './App'
 const AdminDashboard = lazy(() => import('./components/AdminDashboard/AdminDashboard'));
 

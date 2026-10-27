@@ -20,3 +20,4 @@
 .square[data-selected="true"] { background:#def56a; color:#202517; }
 .promotion { border-radius:8px; background:#292932; border-color:#a6e6f0; }.promotion button { background:#63818c; border-color:#a6e6f0; }
 .status { color:#def56a; font:750 12px system-ui,sans-serif; }.solution { font:750 11px system-ui,sans-serif; }
+.board{border:4px solid #101a38;border-radius:10px;overflow:hidden;box-shadow:0 5px #101a38}.square{background:#ffe9ac;color:#203052}.square[data-dark="true"]{background:#6b9ed0;color:#fff}.square[data-selected="true"]{background:#ffda4b}.top{color:#d6e7ff}.top strong{color:#ffda4b}.status{color:#ffdf78}.promotion{background:#294780;border:3px solid #101a38}

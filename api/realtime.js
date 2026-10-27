@@ -52,11 +52,18 @@ function createRealtimeHub(server, store, service) {
         }
     }
 
+    let closePromise = null;
     function close() {
+        if (closePromise) return closePromise;
         clearInterval(heartbeat);
         sharedArena.close();
         for (const client of wss.clients) client.close(1001, "Server shutting down");
-        wss.close();
+        // An unresponsive browser must not keep HTTP shutdown (and the old
+        // process) alive indefinitely through its upgraded socket.
+        const drain = setTimeout(() => { for (const client of wss.clients) client.terminate(); }, 1000);
+        drain.unref?.();
+        closePromise = new Promise(resolve => wss.close(() => { clearTimeout(drain); resolve(); }));
+        return closePromise;
     }
 
     function getOnlineIds() {

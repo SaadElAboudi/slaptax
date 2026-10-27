@@ -29,7 +29,7 @@ for(const game of ['trace','decoupe'] as const) {
     test(`${game} practice accepts three real strokes and renders a nonblank responsive board`,async({page,request},info)=>{
         test.setTimeout(75000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
         await identify(page,await player(request,'DrawSolo'));await page.goto('/');
-        await page.getByRole('button',{name:`Play ${game.toUpperCase()}`,exact:true}).click();
+        await page.getByRole('button',{name:`Play ${game==='decoupe'?'Chef Snip':'TRACE'}`,exact:true}).click();
         await page.getByRole('button',{name:'Enter the arena'}).click();
         await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase',game==='trace'?'observe':'drawpath');
         const pixels=await page.getByTestId('drawing-canvas').evaluate((el:HTMLCanvasElement)=>{

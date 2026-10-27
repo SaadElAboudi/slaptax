@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-27T13:41:43.637Z",
+  "checks": [
+    {
+      "url": "http://127.0.0.1:5173/",
+      "names": [
+        "Panique aux Toilettes",
+        "Tarte ta Face",
+        "Gonfle ou Pète",
+        "Bagarre de Table",
+        "Pif Paf",
+        "Tour de Trop",
+        "Chef Couic",
+        "Passe ou BOUM"
+      ],
+      "errors": [],
+      "scripts": [
+        "/@vite/client",
+        "/src/main.tsx?t=1793108580456"
+      ]
+    },
+    {
+      "url": "http://127.0.0.1:8787/",
+      "names": [
+        "Panique aux Toilettes",
+        "Tarte ta Face",
+        "Gonfle ou Pète",
+        "Bagarre de Table",
+        "Pif Paf",
+        "Tour de Trop",
+        "Chef Couic",
+        "Passe ou BOUM"
+      ],
+      "errors": [],
+      "scripts": [
+        "/assets/index-DW92Bgvb.js"
+      ]
+    }
+  ],
+  "engine": {
+    "game": "garde",
+    "humanAction": "prank",
+    "authoritativeGags": true,
+    "errors": []
+  },
+  "catalogueCheckedAt": "2026-10-27T13:45:01.535Z"
+}

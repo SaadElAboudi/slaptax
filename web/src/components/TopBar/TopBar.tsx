@@ -2,11 +2,10 @@ import styles from './TopBar.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
 import { useEffect, useState } from 'react';
 import { useMusicPreference } from '../../hooks/useAdaptiveAudio';
-import { Music2, Volume2, Vibrate, X } from 'lucide-react';
-import { ClubAvatar } from '../ClubAvatar/ClubAvatar';
+import { Music2, Volume2, Vibrate, X, Settings2 } from 'lucide-react';
 import { useFeedbackPreferences } from '../../hooks/useFeedbackPreferences';
 
-export function TopBar() {
+export function TopBar({onHome}: {onHome: () => void}) {
     const { wallet, apiOnline, language, toggleLanguage, playerName, setProfile, progression, setCosmetics } = useGameStore();
     const safeWallet = Number(wallet ?? 0);
     const isFr = language === 'fr';
@@ -18,6 +17,12 @@ export function TopBar() {
     useEffect(() => {
         setDraftName(playerName);
     }, [playerName]);
+
+    useEffect(() => {
+        const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setLockerOpen(false); };
+        if (lockerOpen) window.addEventListener('keydown', close);
+        return () => window.removeEventListener('keydown', close);
+    }, [lockerOpen]);
 
     const commitName = () => {
         const next = draftName.trim();
@@ -31,17 +36,36 @@ export function TopBar() {
 
     return (
         <header className={styles.topbar}>
-            <div className={styles.brand}>
+            <button type="button" className={styles.brand} onClick={onHome} aria-label={isFr?'Accueil Slap Tax':'Slap Tax home'}>
                 SLAP<span className={styles.dollar}>$</span>TAX
-            </div>
+            </button>
             <div className={styles.right}>
                 <span className={`${styles.liveDot} ${apiOnline ? styles.live : styles.offline}`}>
-                    {apiOnline ? (isFr ? 'LIVE' : 'LIVE') : 'OFF'}
+                    {apiOnline ? (isFr ? 'Connecté' : 'Online') : (isFr?'Hors ligne':'Offline')}
                 </span>
-                <span className={`${styles.walletChip} ${apiOnline ? styles.online : ''}`}>
-                    SLAP$ {safeWallet.toFixed(2)}
+                <span data-testid="player-wallet" data-balance={safeWallet} className={`${styles.walletChip} ${apiOnline ? styles.online : ''}`}>
+                    <span aria-hidden="true">✦</span> {safeWallet.toLocaleString(isFr?'fr-FR':'en-US',{maximumFractionDigits:2})} <small>{isFr?'crédits démo':'demo credits'}</small>
                 </span>
-                <input
+                <button
+                    className={styles.avatarButton}
+                    type="button"
+                    onClick={() => setLockerOpen((value) => !value)}
+                    aria-label={isFr ? 'Profil et réglages' : 'Profile and settings'}
+                    aria-expanded={lockerOpen}
+                >
+                    <Settings2 size={21}/>
+                </button>
+            </div>
+            {lockerOpen && (
+                <div className={styles.locker} role="dialog" aria-label={isFr?'Profil et réglages':'Profile and settings'}>
+                    <header>
+                        <div>
+                            <span>{isFr ? 'TON PROFIL' : 'YOUR PROFILE'}</span>
+                            <strong>{playerName} {progression ? `· LVL ${progression.level}` : ''}</strong>
+                        </div>
+                        <button type="button" onClick={() => setLockerOpen(false)} aria-label={isFr ? 'Fermer' : 'Close'}><X size={17}/></button>
+                    </header>
+                    <label className={styles.nameLabel}>{isFr?'Ton pseudo':'Your nickname'}                <input
                     className={styles.playerNameInput}
                     type="text"
                     value={draftName}
@@ -57,43 +81,14 @@ export function TopBar() {
                     title={isFr ? 'Modifier le pseudo' : 'Edit nickname'}
                     aria-label={isFr ? 'Nom du joueur' : 'Player name'}
                 />
-                <button
-                    className={styles.avatarButton}
-                    type="button"
-                    onClick={() => setLockerOpen((value) => !value)}
-                    aria-label={isFr ? 'Ouvrir les cosmétiques' : 'Open cosmetics'}
-                    aria-expanded={lockerOpen}
-                >
-                    <ClubAvatar variant={progression?.cosmetics.avatar}/>
-                </button>
-                <button
-                    className={styles.audioButton}
-                    type="button"
-                    onClick={toggleMusic}
-                    aria-label={musicOn ? (isFr ? 'Couper la musique' : 'Mute music') : (isFr ? 'Activer la musique' : 'Enable music')}
-                    aria-pressed={musicOn}
-                >
-                    <Music2 size={17}/>
-                </button>
-                <button className={styles.langBtn} onClick={toggleLanguage} type="button" aria-label={isFr ? 'Changer la langue' : 'Change language'}>
-                    {isFr ? 'FR' : 'EN'}
-                </button>
-            </div>
-            {lockerOpen && progression && (
-                <div className={styles.locker}>
-                    <header>
-                        <div>
-                            <span>{isFr ? 'CASIER JOUEUR' : 'PLAYER LOCKER'}</span>
-                            <strong>LVL {progression.level} · {progression.rank}</strong>
-                        </div>
-                        <button type="button" onClick={() => setLockerOpen(false)} aria-label={isFr ? 'Fermer' : 'Close'}><X size={17}/></button>
-                    </header>
+</label>
+                    <button type="button" className={styles.langBtn} onClick={toggleLanguage}>{isFr?'Langue : français':'Language: English'}</button>
                     <div className={styles.feedbackSettings}>
                         <label><Music2 size={17}/>{isFr?'Musique':'Music'}<input type="checkbox" checked={musicOn} onChange={toggleMusic}/></label>
                         <label><Volume2 size={17}/>{isFr?'Effets sonores':'Sound effects'}<input type="checkbox" checked={soundOn} onChange={toggleSound}/></label>
                         <label><Vibrate size={17}/>{isFr?'Vibrations':'Haptics'}<input type="checkbox" checked={hapticsOn} onChange={toggleHaptics}/></label>
                     </div>
-                    <CosmeticRow
+                    {progression && <><CosmeticRow
                         label={isFr ? 'Avatar' : 'Avatar'}
                         values={['spark', 'visor', 'crown', 'phantom']}
                         unlocked={progression.cosmetics.unlocked.avatars}
@@ -113,7 +108,7 @@ export function TopBar() {
                         unlocked={progression.cosmetics.unlocked.trails}
                         selected={progression.cosmetics.trail}
                         onSelect={(trail) => void setCosmetics({ trail })}
-                    />
+                    /></>}
                 </div>
             )}
         </header>

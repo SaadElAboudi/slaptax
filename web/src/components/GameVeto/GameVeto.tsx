@@ -17,7 +17,7 @@ interface Props {
 export function GameVeto({ veto, userId, isFr, busy, games, tournament, onBan }: Props) {
     const selected = veto.votes[userId];
     return <section className={styles.draft} aria-label={isFr ? 'Bannissement des jeux' : 'Game veto'} data-testid="game-veto">
-        <header><div><span>01 / DRAFT</span><h3>{isFr ? 'Pas sur mon terrain.' : 'Not on my turf.'}</h3></div><Ban size={24} /></header>
+        <header><div><span>{isFr?'AVANT DE JOUER':'BEFORE YOU PLAY'}</span><h3>{isFr ? 'Quel jeu on écarte ?' : 'Which game do we skip?'}</h3></div><Ban size={24} /></header>
         <p>{tournament ? (isFr ? 'Un vote chacun. Le jeu le plus vote est exclu. Egalite : ordre du catalogue.' : 'One vote each. The most voted game is excluded. Ties use catalogue order.') : (isFr ? 'Un bannissement chacun. Les deux jeux sont exclus de la rotation.' : 'One ban each. Both games are removed from the rotation.')}</p>
         <div className={styles.games}>
             {COMPETITIVE_GAMES.map((game) => <button type="button" key={game.id} data-selected={selected === game.id} data-banned={veto.banned.includes(game.id)} disabled={busy} aria-pressed={selected === game.id} onClick={() => onBan(game.id)} aria-label={`${isFr ? 'Bannir' : 'Ban'} ${gameLabel(game.id, isFr)}`}>
@@ -25,7 +25,7 @@ export function GameVeto({ veto, userId, isFr, busy, games, tournament, onBan }:
                 {tournament && <small>{Object.values(veto.votes).filter((id) => id === game.id).length || ''}</small>}
             </button>)}
         </div>
-        <footer role="status"><ShieldCheck size={18} /><span>{veto.complete ? (isFr ? 'Rotation verrouillable' : 'Rotation ready') : selected ? (isFr ? 'Choix enregistre. En attente des autres joueurs.' : 'Choice saved. Waiting for the other players.') : (isFr ? 'Choisis le jeu a exclure.' : 'Choose the game to exclude.')}</span></footer>
+        <footer role="status"><ShieldCheck size={18} /><span>{veto.complete ? (isFr ? 'Les jeux sont choisis. Tu peux te mettre prêt !' : 'Games chosen. You can ready up!') : selected ? (isFr ? 'Choix enregistre. En attente des autres joueurs.' : 'Choice saved. Waiting for the other players.') : (isFr ? 'Choisis le jeu a exclure.' : 'Choose the game to exclude.')}</span></footer>
         {veto.complete && <ol className={styles.rotation}>{games.map((id, index) => <li key={`${id}-${index}`}><small>0{index + 1}</small>{gameLabel(id, isFr)}</li>)}</ol>}
     </section>;
 }

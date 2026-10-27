@@ -25,7 +25,7 @@ test('club home has one social entry and keeps signature practice accessible', a
     await identify(page, await player(request, 'HomePlayer'));
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Good friends. Bad losers.' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Challenge a friend', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: /^With a friend/ })).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: info.outputPath('signature-home.png'), fullPage: true });
     await page.getByRole('button', { name: 'Play solo: Blind Clock', exact: true }).click();

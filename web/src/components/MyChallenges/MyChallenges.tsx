@@ -10,6 +10,7 @@ export const linkScore=(gameId:string,score:number)=>gameId==='chroma'?`${(Math.
 
 export function MyChallenges() {
     const {userId,clientId,language}=useGameStore(),isFr=language==='fr';
+    const [challengeGame,setChallengeGame]=useState('decoupe');
     const [items,setItems]=useState<OwnedLinkChallenge[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
     const [revision,setRevision]=useState(0),[filter,setFilter]=useState('all'),[message,setMessage]=useState('');
     useEffect(()=>{
@@ -25,16 +26,16 @@ export function MyChallenges() {
     },[userId,clientId,revision,isFr]);
     async function share(item:OwnedLinkChallenge,native:boolean) {
         const url=`${location.origin}/?tab=training&link=${item.id}&game=${item.gameId}`;
-        try {if(native&&navigator.share)await navigator.share({title:`${item.gameId.toUpperCase()} - SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
+        try {if(native&&navigator.share)await navigator.share({title:`${gameLabel(item.gameId,isFr)} - SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
             else {await navigator.clipboard.writeText(url);setMessage(isFr?'Lien copie':'Link copied');}}
         catch(e){if((e as Error).name!=='AbortError')setMessage(isFr?'Partage indisponible.':'Sharing unavailable.');}
     }
     const filtered=items.filter(item=>filter==='all'||(filter==='created'?item.isHost:!item.isHost));
     return <section className={styles.panel} data-testid="my-challenges">
         <header><h2>{isFr?'Mes defis':'My challenges'}</h2><button type="button" onClick={()=>setRevision(v=>v+1)} aria-label={isFr?'Actualiser les defis':'Refresh challenges'} title={isFr?'Actualiser les defis':'Refresh challenges'}><RefreshCw size={18}/></button></header>
-        <div className={styles.filters} role="tablist" aria-label={isFr?'Filtrer les defis':'Filter challenges'}>{[['all','Tous','All'],['created','Crees','Created'],['played','Releves','Played']].map(([id,fr,en])=><button type="button" role="tab" aria-selected={filter===id} key={id} onClick={()=>setFilter(id)}>{isFr?fr:en}</button>)}</div>
+        <p>{isFr?'Joue, partage ton score et laisse tes amis tenter de te battre. Chacun joue quand il veut.':'Play, share your score and let your friends try to beat it. Everyone plays in their own time.'}</p><div className={styles.filters} role="tablist" aria-label={isFr?'Filtrer les defis':'Filter challenges'}>{[['all','Tous','All'],['created','Crees','Created'],['played','Releves','Played']].map(([id,fr,en])=><button type="button" role="tab" aria-selected={filter===id} key={id} onClick={()=>setFilter(id)}>{isFr?fr:en}</button>)}</div>
         {error&&<p role="alert">{error}</p>}<p role="status">{message}</p>
-        {loading?<p role="status">{isFr?'Chargement...':'Loading...'}</p>:!filtered.length&&!error?<div className={styles.empty}><p>{isFr?'Aucun defi ici pour le moment.':'No challenges here yet.'}</p><a href="/?tab=training&link=new&game=chroma">{isFr?'Creer un defi':'Create a challenge'}<ArrowRight size={18}/></a></div>:null}
+        {loading?<p role="status">{isFr?'Chargement...':'Loading...'}</p>:!filtered.length&&!error?<div className={styles.empty}><p>{isFr?'Aucun defi ici pour le moment.':'No challenges here yet.'}</p><label>{isFr?'Choisis ton jeu':'Pick your game'}<select value={challengeGame} onChange={e=>setChallengeGame(e.target.value)}>{['decoupe'].map(id=><option key={id} value={id}>{gameLabel(id,isFr)}</option>)}</select></label><a href={`/?tab=training&link=new&game=${challengeGame}`}>{isFr?'Creer un defi':'Create a challenge'}<ArrowRight size={18}/></a></div>:null}
         {filtered.map(item=><article key={item.id} className={styles.challenge} data-testid="owned-challenge">
             <div className={styles.summary}><div className={styles.poster}><GamePoster gameId={item.gameId}/></div><div><h3>{gameLabel(item.gameId,isFr)}</h3><p>{item.isHost?(isFr?'Ton defi':'Your challenge'):item.hostName}</p><time>{new Date(item.createdAt).toLocaleDateString()}</time></div><strong>{item.expired?(isFr?'Expire':'Expired'):item.status==='done'?(isFr?'Termine':'Finished'):item.status==='playing'?(isFr?'En cours':'In progress'):(isFr?'A jouer':'Ready')}</strong></div>
             <p className={styles.count}>{item.finishedCount}/{item.participantCount} {isFr?'participations terminees':'completed entries'}{item.participantCount===1&&item.isHost?' · '+(isFr?'En attente d un ami':'Waiting for a friend'):''}</p>

@@ -19,7 +19,10 @@ export interface GameState {
     progression?: PlayerProgression;
 }
 
+export interface SoloReward {xpGain:number;previousBest:number;newBest:boolean;score:number;dailyCompleted:boolean;badges:string[];level:number;levelUp:boolean;unlocked:Array<{kind:string;id:string}>}
+export interface SoloProgress {plays:number;best:Record<string,number>;badges:string[];daily:{day:string;games:string[];completed:string[];rewarded:boolean;xpPlays:number}}
 export interface PlayerProgression {
+    solo?: SoloProgress;
     xp: number;
     level: number;
     rankedPoints: number;

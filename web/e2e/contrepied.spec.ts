@@ -40,7 +40,7 @@ test('CONTREPIED practice identifies its bot, burns an expired card and never sp
         await expect(game).toHaveAttribute('data-phase', 'reveal');
     }
     await expect(game).toHaveCount(0);
-    await expect(page.getByText('SLAP$ 25.00', { exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
 });
 
 test('CONTREPIED rivals keep committed cards secret and finish five server-scored exchanges', async ({ browser, request }, info) => {
