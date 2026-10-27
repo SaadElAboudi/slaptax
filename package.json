@@ -9,7 +9,7 @@
         "start": "node api/server.js",
         "dev": "node api/server.js",
         "mat:refresh": "node api/scripts/importMatPuzzles.js",
-        "test": "node --test api/tests"
+        "test": "node --test api/tests/*.test.js"
     },
     "engines": {
         "node": ">=18"
