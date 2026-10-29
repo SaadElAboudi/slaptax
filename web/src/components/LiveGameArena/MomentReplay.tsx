@@ -1,3 +1,4 @@
+import {paintSnack} from './Snack/paintSnack';
 import {paintAbsurd} from './Absurd/paintAbsurd';
 import {paintTable} from './Table/paintTable';
 import {chaosRecap} from '../../gameplay/chaosRecap';
@@ -37,7 +38,8 @@ function renderMoment(canvas: HTMLCanvasElement, moment: PartyMoment, state: Par
         const r=state?.mat?.results?.[id];
         ctx.fillText(moment.gameId==='toilet'?`${state?.toilet?.bodies.find(p=>p.id===id)?.loot||0} ${isFr?'canards':'ducks'}`:moment.gameId==='mat' ? r?.mate?`${((r.ms||0)/1000).toFixed(2)} s`:r?(isFr?'MANQUE':'MISSED'):'--' : `${['trace','decoupe'].includes(moment.gameId) ? `${(score/30).toFixed(1)}%` : moment.gameId === 'ricochet' ? score ? ((10000-score)/10).toFixed(1) : '--' : moment.gameId === 'chroma' ? (Math.abs(score)/1000).toFixed(1) : Math.abs(score)}${moment.gameId === 'onesecond' ? ' ms' : moment.gameId === 'chroma' ? ' RGB' : ''}`, x, 274);
     });
-    if(state?.absurd){const surface=document.createElement('canvas');surface.width=600;surface.height=440;const c=surface.getContext('2d');if(c)paintAbsurd(c,state.absurd,players[0],isFr,true);ctx.drawImage(surface,60,315,600,440);
+    if(state?.snack){const surface=document.createElement('canvas');surface.width=900;surface.height=600;const c=surface.getContext('2d');if(c)paintSnack(c,state.snack,players[0],{x:450,y:300,zoom:1},isFr,state.snack.elapsed,true);ctx.drawImage(surface,30,320,660,440);
+    }else if(state?.absurd){const surface=document.createElement('canvas');surface.width=600;surface.height=440;const c=surface.getContext('2d');if(c)paintAbsurd(c,state.absurd,players[0],isFr,true);ctx.drawImage(surface,60,315,600,440);
     }else if(state?.table){const surface=document.createElement('canvas');surface.width=600;surface.height=600;const c=surface.getContext('2d');if(c)paintTable(c,state.table,players[0],null,state.table.elapsed,isFr,true);ctx.drawImage(surface,160,315,400,400);
     }else if(state?.carnival){const surface=document.createElement('canvas');surface.width=600;surface.height=420;const c=surface.getContext('2d');if(c)paintCarnival(c,state.carnival,players[0],isFr);ctx.drawImage(surface,60,340,600,420);
     }else if(moment.gameId==='toilet'&&state?.toilet){const surface=document.createElement('canvas');surface.width=600;surface.height=600;const c=surface.getContext('2d');if(c)paintToilet(c,state.toilet,players[0],state.toilet.elapsed,isFr,true);ctx.drawImage(surface,160,315,400,400);

@@ -1,0 +1,5 @@
+[
+  {"id":"snack","fr":"Braquage du Goûter","en":"Snack Heist","tipFr":"1 + 3 contre 2 + 4. Vole, passe et livre le goûter.","tipEn":"1 + 3 vs 2 + 4. Steal, pass and deliver the snack."},
+  {"id":"pie","fr":"Tarte ta Face","en":"Pie in Your Face","tipFr":"1 contre 2, 3 contre 4. Vise la tête, esquive la riposte.","tipEn":"1 vs 2, 3 vs 4. Aim at faces, dodge the comeback."},
+  {"id":"onemore","fr":"Tour de Trop","en":"One Block Too Far","tipFr":"1 contre 4, 2 contre 3. Sécurise avant le bloc de trop.","tipEn":"1 vs 4, 2 vs 3. Bank before the block too many."}
+]

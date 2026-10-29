@@ -27,10 +27,10 @@ export function HistoryPanel() {
         ...data.history.map((item,index)=>({id:`match:${item.id||index}`,kind:'matches',at:Date.parse(item.timestamp||item.date||'')||0,
             title:item.opponentName||item.mode||item.type||(isFr?'Match':'Match'),
             outcome:typeof item.won==='boolean'?(item.won?'win':'loss'):item.result?.toLowerCase()||'finished',
-            detail:`${Number(item.net||0)>=0?'+':''}SLAP$ ${Number(item.net||0).toFixed(2)}`,href:''})),
+            detail:`${Number(item.net||0)>=0?'+':''}${Number(item.net||0).toLocaleString(isFr?'fr-FR':'en-US',{maximumFractionDigits:2})} ${isFr?'jetons nets':'net tokens'}`,href:''})),
         ...(data.linkHistory||[]).map(item=>({id:item.id,kind:'links',at:item.completedAt,
             title:`${gameLabel(item.gameId,isFr)}${item.opponentName?` · ${item.opponentName}`:''}`,outcome:item.outcome,
-            detail:`${linkScore(item.gameId,item.score)}${item.opponentScore!==null?` / ${linkScore(item.gameId,item.opponentScore)}`:''}`,
+            detail:`${linkScore(item.gameId,item.score,isFr)}${item.opponentScore!==null?` / ${linkScore(item.gameId,item.opponentScore,isFr)}`:''}`,
             href:item.expiresAt>Date.now()?'/?tab=challenges':''})),
         ...solo.map(item=>({id:item.id,kind:'solo',at:item.completedAt,title:gameLabel(item.gameId,isFr),outcome:'practice',detail:`${item.score} pts`,href:''})),
     ].filter(row=>filter==='all'||row.kind===filter).sort((a,b)=>b.at-a.at);

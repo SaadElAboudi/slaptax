@@ -1,0 +1,48 @@
+{
+  "validatedOn": "2026-10-28",
+  "baseCommit": "db72e244f0042d9bb1840161b9ecaebfcda1cf41",
+  "deployment": "local only, uncommitted work",
+  "build": {
+    "main": "index-C72XM4SS.js",
+    "arena": "Snack-KUR4iKJI.js",
+    "rooms": "SnackTeams-C1A_GXnC.js"
+  },
+  "serverTests": {
+    "node": 22,
+    "passed": 247,
+    "failed": 0,
+    "cancelled": 0,
+    "durationMs": 36909.695031,
+    "concurrency": 2
+  },
+  "browser": {
+    "arenaRegressionCasesPassed": 22,
+    "teamDesktopCasesPassed": 3,
+    "teamMobileCasesPassed": 3,
+    "mobileDurationSeconds": 44.9,
+    "teamTraceRecording": false,
+    "mobileThrowInput": "real CDP touch events on the aim stick",
+    "fourIndependentHumanSessions": true,
+    "injectedPositionsOrScores": false,
+    "viewportsChecked": [
+      {
+        "width": 1280,
+        "height": 900
+      },
+      {
+        "width": 320,
+        "height": 650
+      },
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 320,
+        "height": 740
+      }
+    ]
+  },
+  "externalHumanPlaytestConducted": false,
+  "nativeStorePublication": false
+}

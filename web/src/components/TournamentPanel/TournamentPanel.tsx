@@ -1,3 +1,6 @@
+import {publicUrl} from '../../platform/environment';
+import {copyText} from '../../platform/sharing';
+import {preferredGame} from '../../gameplay/gameExperience';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     api,
@@ -39,7 +42,7 @@ export function TournamentPanel() {
     const [spectatorMatch, setSpectatorMatch] = useState<MultiplayerTournamentResponse['spectatorMatch']>(null);
     const [spectating, setSpectating] = useState(false);
     const [roomReady, setRoomReady] = useState(false);
-    const [selectedGames, setSelectedGames] = useState<CompetitiveGameId[]>(COMPETITIVE_GAMES.slice(0,3).map(game=>game.id));
+    const [selectedGames, setSelectedGames] = useState<CompetitiveGameId[]>(()=>{const first=preferredGame('tournament');return [first,...COMPETITIVE_GAMES.map(g=>g.id).filter(id=>id!==first)].slice(0,3);});
     const [inviteCopied, setInviteCopied] = useState(false);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -60,7 +63,7 @@ export function TournamentPanel() {
         const data = await api.listMultiplayerTournaments(userId);
         setTournaments(data.tournaments);
         const active = data.tournaments.find(
-            (entry) => entry.entrants.some((entrant) => entrant.id === userId) && entry.status !== 'done'
+            (entry) => entry.entrants.some((entrant) => entrant.id === userId) && !['done','cancelled'].includes(entry.status)
         );
         if (active && !tournament && !dismissed.current) setTournament(active);
     }, [tournament, userId]);
@@ -137,6 +140,9 @@ export function TournamentPanel() {
         setError('');
         try {
             const data = await api.createMultiplayerTournament(userId, size, visibility, name);
+            const first=preferredGame('tournament');
+            const rotation=[first,...selectedGames.filter(id=>id!==first)].slice(0,3);
+            await api.configureMultiplayerTournament(data.tournament.id,userId,rotation);
             const room = await api.getMultiplayerTournament(data.tournament.id, userId);
             setTournament(room.tournament);
             setSelectedGames(room.tournament.games);
@@ -192,9 +198,9 @@ export function TournamentPanel() {
 
     async function copyRoomLink() {
         if (!tournament?.inviteToken) return;
-        const link = `${window.location.origin}${window.location.pathname}?tab=tournament&room=${encodeURIComponent(tournament.id)}&token=${encodeURIComponent(tournament.inviteToken)}`;
+        const link = `${publicUrl()}?tab=tournament&room=${encodeURIComponent(tournament.id)}&token=${encodeURIComponent(tournament.inviteToken)}`;
         try {
-            await navigator.clipboard.writeText(link);
+            await copyText(link);
             setInviteCopied(true);
         } catch {
             setInviteCopied(false);
@@ -285,6 +291,8 @@ export function TournamentPanel() {
             .flatMap((round) => round.matches)
             .reverse().find((entry) => entry.playerAId === userId || entry.playerBId === userId) || null;
     }, [tournament, userId]);
+
+    if(tournament?.status==='cancelled')return <section className={styles.panel} role="status"><h2>{isFr?'Tournoi interrompu':'Tournament interrupted'}</h2><p>{isFr?'Le tournoi a été fermé après une interruption. Aucune victoire ni mise fictive n’est attribuée. Tu peux créer une nouvelle coupe.':'The tournament was closed after an interruption. No artificial winner or stake is awarded. You can create a new cup.'}</p><button type="button" onClick={()=>void leaveRoom()}>{isFr?'Revenir aux tournois':'Back to tournaments'}</button></section>;
 
     if (recap && userId) return <RoundRecap match={recap} round={recap.rounds[recap.rounds.length - 1]} userId={userId} isFr={isFr} onContinue={() => setRecap(null)} />;
 
@@ -470,7 +478,7 @@ export function TournamentPanel() {
                 <button type="button" onClick={createTournament} disabled={busy}>{isFr ? 'Créer le tournoi' : 'Create tournament'}</button>
             </div>
             <div className={styles.tournamentList}>
-                {tournaments.filter((entry) => entry.status !== 'done').map((entry) => (
+                {tournaments.filter((entry) => !['done','cancelled'].includes(entry.status)).map((entry) => (
                     <button type="button" key={entry.id} onClick={() => setTournament(entry)}>
                         <span>{entry.visibility.toUpperCase()}</span>
                         <strong>{entry.name}</strong>

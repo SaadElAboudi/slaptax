@@ -1,3 +1,4 @@
+import cutRecipes from '../../../shared/cut-recipes.json' with {type:'json'};
 import {paintScenery} from './scenery';
 import type { DrawingState, Point } from './party';
 
@@ -18,9 +19,11 @@ export function paintDrawing(ctx: CanvasRenderingContext2D, state: DrawingState 
         ctx.fillStyle='#e6b77c';ctx.beginPath();ctx.roundRect(size*.035,size*.035,size*.93,size*.93,size*.045);ctx.fill();
         ctx.strokeStyle='#ad754c';ctx.lineWidth=size*.008;ctx.stroke();
         ctx.strokeStyle='#cc995f';ctx.lineWidth=size*.004;for(let y=1;y<9;y++){ctx.beginPath();ctx.moveTo(size*.05,size*y/10);ctx.lineTo(size*.95,size*y/10);ctx.stroke();}
-        paintPath(ctx,target.polygon,'#f8cf7d',size,true);
+        const recipe=cutRecipes.recipes.find(r=>r.id===target.recipe);
+        paintPath(ctx,target.polygon,recipe?.color||'#f8cf7d',size,true);
         ctx.save();ctx.beginPath();target.polygon.forEach(([x,y],i)=>i?ctx.lineTo(x*size,y*size):ctx.moveTo(x*size,y*size));ctx.closePath();ctx.clip();
-        ctx.fillStyle='#c08245';for(let i=0;i<18;i++){const x=(.15+((i*37)%70)/100)*size,y=(.15+((i*23)%70)/100)*size;ctx.beginPath();ctx.ellipse(x,y,size*.009,size*.014,i,0,Math.PI*2);ctx.fill();}
+        ctx.fillStyle=recipe?.detail||'#c08245';for(let i=0;i<18;i++){const x=(.15+((i*37)%70)/100)*size,y=(.15+((i*23)%70)/100)*size;ctx.beginPath();ctx.ellipse(x,y,size*(target.recipe==='fromage'?.025:.009),size*(target.recipe==='fromage'?.025:.014),i,0,Math.PI*2);ctx.fill();}
+        if(target.recipe==='gateau'){ctx.strokeStyle='#fff1d7';ctx.lineWidth=size*.015;for(const y of [.32,.67]){ctx.beginPath();ctx.moveTo(size*.15,size*y);for(let i=1;i<=7;i++)ctx.lineTo(size*(.15+i*.1),size*(y+(i%2?-.025:.025)));ctx.stroke();}}
         const center=target.polygon.reduce((p,q)=>[p[0]+q[0]/target.polygon!.length,p[1]+q[1]/target.polygon!.length] as Point,[0,0] as Point);
         const x=center[0]*size,y=center[1]*size,panic=points.length===2&&!revealing;
         for(const side of [-1,1]){ctx.fillStyle='white';ctx.strokeStyle='#182642';ctx.lineWidth=size*.006;ctx.beginPath();ctx.ellipse(x+side*size*.045,y-size*.025,size*.028,size*.035,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#182642';ctx.beginPath();ctx.arc(x+side*size*.045,y-size*.02,size*.012,0,Math.PI*2);ctx.fill();}

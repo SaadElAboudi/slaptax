@@ -20,7 +20,8 @@ export function useSfx() {
         if (!ctor) return null;
 
         if (!(window as Window & { __slaptaxAudioCtx?: AudioContext }).__slaptaxAudioCtx) {
-            (window as Window & { __slaptaxAudioCtx?: AudioContext }).__slaptaxAudioCtx = new ctor();
+            try {(window as Window & { __slaptaxAudioCtx?: AudioContext }).__slaptaxAudioCtx = new ctor();}
+            catch {return null;}
         }
 
         return (window as Window & { __slaptaxAudioCtx?: AudioContext }).__slaptaxAudioCtx ?? null;
@@ -30,16 +31,17 @@ export function useSfx() {
         const ctx = getCtx();
         if (!ctx) return;
         if (ctx.state === 'suspended') {
-            await ctx.resume();
+            try {await ctx.resume();} catch { /* Audio is optional; never block a game. */ }
         }
     }, [getCtx]);
 
     const playTone = useCallback(
         (freq: number, durationMs: number, gain: number, type: OscillatorType, offsetSec = 0) => {
-            if (!preference(SFX_KEY,true)||document.hidden) return;
+            if (!preference(SFX_KEY,true)||document.hidden||document.documentElement.dataset.appActive==='false') return;
             const ctx = getCtx();
             if (!ctx || ctx.state !== 'running') return;
 
+            try {
             const now = ctx.currentTime + offsetSec;
             const oscillator = ctx.createOscillator();
             const gainNode = ctx.createGain();
@@ -57,6 +59,7 @@ export function useSfx() {
 
             oscillator.start(now);
             oscillator.stop(now + durationMs / 1000 + 0.02);
+            }catch{/* Optional audio must not interrupt input or reward delivery. */}
         },
         [getCtx, soundOn]
     );
@@ -114,6 +117,16 @@ export function useSfx() {
         if(phase==='reveal')playTone(1100,220,.025,'sine',.1);
     },[playTone]);
 
+    const playCluck = useCallback(() => {
+        playTone(420, 65, .025, 'triangle');
+        playTone(640, 55, .022, 'triangle', .075);
+        playTone(320, 100, .025, 'triangle', .15);
+    }, [playTone]);
+    const playEgg = useCallback(() => {
+        playTone(140, 100, .035, 'triangle');
+        playTone(85, 140, .025, 'sine', .04);
+    }, [playTone]);
+
     return {
         soundOn,
         toggleSound,
@@ -124,5 +137,7 @@ export function useSfx() {
         playLoss,
         playFalseStart,
         playColor,
+        playCluck,
+        playEgg,
     };
 }

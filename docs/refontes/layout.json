@@ -1,0 +1,335 @@
+[
+  {
+    "game": "balloon",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "Quitter",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "GONFLE…relâche = points",
+        "y": 599.578125,
+        "bottom": 654.578125
+      },
+      {
+        "label": "COUP DE POMPE !−25 pts · rival +12 %",
+        "y": 599.578125,
+        "bottom": 654.578125
+      },
+      {
+        "label": "SOUPAPE ! · −18 %",
+        "y": 662.578125,
+        "bottom": 706.578125
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-balloon-1366-768.png"
+  },
+  {
+    "game": "lift",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "Quitter",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "GAUCHE",
+        "y": 209.34375,
+        "bottom": 297.796875
+      },
+      {
+        "label": "MILIEU",
+        "y": 209.34375,
+        "bottom": 297.796875
+      },
+      {
+        "label": "DROITE",
+        "y": 209.34375,
+        "bottom": 297.796875
+      },
+      {
+        "label": "PROUT CIBLÉ ! 1 / 2 · 2 haricots = 1 recharge",
+        "y": 315.796875,
+        "bottom": 411.25
+      },
+      {
+        "label": "RETIENS TON SOUFFLE !",
+        "y": 421.25,
+        "bottom": 505.703125
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-lift-1366-768.png"
+  },
+  {
+    "game": "bombpass",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "Quitter",
+        "y": 13.5,
+        "bottom": 53.5
+      },
+      {
+        "label": "",
+        "y": 519.796875,
+        "bottom": 583.796875
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-bombpass-1366-768.png"
+  },
+  {
+    "game": "balloon",
+    "viewport": {
+      "width": 320,
+      "height": 650
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "GONFLE…relâche = points",
+        "y": 327,
+        "bottom": 377
+      },
+      {
+        "label": "COUP DE POMPE !−25 pts · rival +12 %",
+        "y": 327,
+        "bottom": 377
+      },
+      {
+        "label": "SOUPAPE ! · −18 %",
+        "y": 383,
+        "bottom": 427
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-balloon-320-650.png"
+  },
+  {
+    "game": "lift",
+    "viewport": {
+      "width": 320,
+      "height": 650
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "GAUCHE",
+        "y": 316,
+        "bottom": 364
+      },
+      {
+        "label": "MILIEU",
+        "y": 316,
+        "bottom": 364
+      },
+      {
+        "label": "DROITE",
+        "y": 316,
+        "bottom": 364
+      },
+      {
+        "label": "PROUT CIBLÉ ! 1 / 2 · 2 haricots = 1 recharge",
+        "y": 372,
+        "bottom": 422
+      },
+      {
+        "label": "RETIENS TON SOUFFLE !",
+        "y": 428,
+        "bottom": 472
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-lift-320-650.png"
+  },
+  {
+    "game": "bombpass",
+    "viewport": {
+      "width": 320,
+      "height": 650
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "",
+        "y": 403,
+        "bottom": 467
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-bombpass-320-650.png"
+  },
+  {
+    "game": "balloon",
+    "viewport": {
+      "width": 320,
+      "height": 740
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "GONFLE…relâche = points",
+        "y": 367,
+        "bottom": 417
+      },
+      {
+        "label": "COUP DE POMPE !−25 pts · rival +12 %",
+        "y": 367,
+        "bottom": 417
+      },
+      {
+        "label": "SOUPAPE ! · −18 %",
+        "y": 423,
+        "bottom": 467
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-balloon-320-740.png"
+  },
+  {
+    "game": "lift",
+    "viewport": {
+      "width": 320,
+      "height": 740
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "GAUCHE",
+        "y": 343.5,
+        "bottom": 391.5
+      },
+      {
+        "label": "MILIEU",
+        "y": 343.5,
+        "bottom": 391.5
+      },
+      {
+        "label": "DROITE",
+        "y": 343.5,
+        "bottom": 391.5
+      },
+      {
+        "label": "PROUT CIBLÉ ! 1 / 2 · 2 haricots = 1 recharge",
+        "y": 399.5,
+        "bottom": 449.5
+      },
+      {
+        "label": "RETIENS TON SOUFFLE !",
+        "y": 455.5,
+        "bottom": 499.5
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-lift-320-740.png"
+  },
+  {
+    "game": "bombpass",
+    "viewport": {
+      "width": 320,
+      "height": 740
+    },
+    "overflow": false,
+    "buttons": [
+      {
+        "label": "Commandes ?",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "Quitter",
+        "y": 11,
+        "bottom": 49
+      },
+      {
+        "label": "",
+        "y": 403,
+        "bottom": 467
+      }
+    ],
+    "errors": [],
+    "path": "captures/refonte-bombpass-320-740.png"
+  }
+]

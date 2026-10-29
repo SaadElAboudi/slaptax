@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import {isNative,appInvitationUrl} from './platform/environment';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import styles from './App.module.css';
 import { useGameStore, type Tab } from './hooks/useGameStore';
 import { TopBar } from './components/TopBar/TopBar';
@@ -13,6 +14,8 @@ import { useRealtime } from './api/realtime';
 import { api } from './api/client';
 import { LinkChallenge } from './components/TrainingPanel/LinkChallenge';
 import { MyChallenges } from './components/MyChallenges/MyChallenges';
+
+const SnackTeams=lazy(()=>import('./components/SnackTeams/SnackTeams').then(m=>({default:m.SnackTeams})));
 
 function App() {
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
@@ -38,21 +41,23 @@ function App() {
     useEffect(() => {
         bootstrap();
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
-        if (requestedTab && ['training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats', 'challenges'].includes(requestedTab)) {
+        if (requestedTab && ['team','training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats', 'challenges'].includes(requestedTab)) {
             const migratedTab = ['bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric'].includes(requestedTab) ? 'training' : requestedTab;
             setActiveTab(migratedTab as Tab);
             setArenaOpen(true);
         }
 
-        const onFocus = () => refreshLiveState();
+        const onFocus = () => {if(!useGameStore.getState().userId)void bootstrap();else void refreshLiveState();};
         const onVisibility = () => {
             if (!document.hidden) refreshLiveState();
         };
         window.addEventListener('focus', onFocus);
+        window.addEventListener('online',onFocus);
         document.addEventListener('visibilitychange', onVisibility);
 
         return () => {
             window.removeEventListener('focus', onFocus);
+            window.removeEventListener('online',onFocus);
             document.removeEventListener('visibilitychange', onVisibility);
         };
     }, [bootstrap, refreshLiveState]);
@@ -74,7 +79,7 @@ function App() {
             const params = new URLSearchParams(window.location.search);
             const tab = params.get('tab');
             setLinkChallenge(params.get('link'));
-            const valid = Boolean(tab && ['training','defy','tournament','leaderboard','stats','challenges'].includes(tab));
+            const valid = Boolean(tab && ['team','training','defy','tournament','leaderboard','stats','challenges'].includes(tab));
             if (valid) setActiveTab(tab as Tab);
             setArenaOpen(valid);
         };
@@ -85,6 +90,7 @@ function App() {
     function enterArena(tab: Tab) {
         const params = new URLSearchParams(window.location.search);
         params.delete('link');
+        if(tab!=='team')params.delete('room');
         params.set('tab', tab);
         const next = `${window.location.pathname}?${params.toString()}`;
         if (`${window.location.pathname}${window.location.search}` !== next) window.history.pushState({}, '', next);
@@ -104,6 +110,7 @@ function App() {
         params.delete('invite');
         params.delete('room');
         params.delete('token');
+        params.delete('mode');
         const query = params.toString();
         const next = `${window.location.pathname}${query ? `?${query}` : ''}`;
         if (`${window.location.pathname}${window.location.search}` !== next) window.history.pushState({}, '', next);
@@ -111,6 +118,7 @@ function App() {
     }
 
     const sectionLabels: Partial<Record<Tab, string>> = {
+        team:isFr?'Braquage entre amis':'Heist with friends',
         training: isFr ? 'Jouer en solo' : 'Solo play',
         defy: isFr ? 'Avec un ami' : 'Friend Duel',
         tournament: isFr ? 'Tournoi' : 'Tournament',
@@ -120,6 +128,7 @@ function App() {
     };
     const activeGameName = sectionLabels[activeTab] || (isFr ? 'Entrainement' : 'Training');
     const modeStatus: Record<Tab, { label: string; tone: string }> = {
+        team:{label:'2V2',tone:styles.statusLive},
         training: { label: 'SOLO', tone: styles.statusSolo },
         defy: { label: '1V1', tone: styles.statusLive },
         tournament: { label: isFr ? 'COUPE' : 'CUP', tone: styles.statusTournament },
@@ -133,6 +142,7 @@ function App() {
             <div className={styles.tapeBg} aria-hidden />
 
             <TopBar onHome={leaveArena} />
+            {!isNative()&&appInvitationUrl()&&<aside className="native-invitation"><a href={appInvitationUrl()!}>{isFr?'Ouvrir cette invitation dans l’app':'Open this invitation in the app'}</a><span>{isFr?'Si SlapTax est déjà installé sur ton téléphone.':'If SlapTax is already installed on your phone.'}</span></aside>}
 
             <main className={`${styles.container} ${arenaOpen ? styles.arenaMode : styles.homeMode}`}>
                 {linkChallenge ? <LinkChallenge id={linkChallenge}/> : !arenaOpen ? (
@@ -154,6 +164,7 @@ function App() {
 
 
                         <div key={activeTab} className={styles.panelArea}>
+                            {activeTab === 'team' && <Suspense fallback={<p role="status">{isFr?'Ouverture de la cantine…':'Opening the canteen…'}</p>}><SnackTeams /></Suspense>}
                             {activeTab === 'training' && <TrainingPanel />}
                             {activeTab === 'defy' && <FriendDuelPanel />}
                             {activeTab === 'tournament' && <TournamentPanel />}

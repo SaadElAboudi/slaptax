@@ -63,7 +63,7 @@ test('CHROMA link supports an offline host, three private rounds, recap and fres
         await expect(hostReturn.getByTestId('history-row')).toHaveCount(2);
         await expect(hostReturn.getByTestId('history-panel')).toContainText('EGALITE');
         await hostReturn.reload();await expect(hostReturn.getByTestId('history-row')).toHaveCount(2);
-        await expect(hostReturn.getByRole('button',{name:'Historique',exact:true})).toHaveAttribute('aria-current','page');
+        await expect(hostReturn.getByRole('heading',{name:'Historique',exact:true})).toBeVisible();
         await hostReturn.screenshot({path:info.outputPath('link-history.png'),fullPage:true,animations:'disabled'});
         await hostReturn.close();
         await guest.getByRole('link',{name:'Revanche, nouvelles couleurs'}).click();

@@ -1,3 +1,4 @@
+import {paintSnack} from './Snack/paintSnack';
 import {paintAbsurd} from './Absurd/paintAbsurd';
 import {paintTable} from './Table/paintTable';
 import {paintCarnival} from './Carnival/paintCarnival';
@@ -13,12 +14,14 @@ export function RoundEvidence({moment,userId,isFr}:{moment:PartyMoment;userId:st
     const canvas=useRef<HTMLCanvasElement>(null),state=moment.replay[moment.replay.length-1]?.state;
     useEffect(()=>{
         const c=canvas.current?.getContext('2d');if(!c)return;
+        if(state?.snack){c.save();c.scale(c.canvas.width/900,c.canvas.height/600);paintSnack(c,state.snack,userId,{x:450,y:300,zoom:1},isFr,state.snack.elapsed,true);c.restore();}
         if(state?.absurd){c.save();c.scale(c.canvas.width/600,c.canvas.height/440);paintAbsurd(c,state.absurd,userId,isFr,true);c.restore();}
         if(state?.table){c.save();c.scale(c.canvas.width/600,c.canvas.height/600);paintTable(c,state.table,userId,null,state.table.elapsed,isFr,true);c.restore();}
         if(state?.carnival){c.save();c.scale(c.canvas.width/600,c.canvas.height/420);paintCarnival(c,state.carnival,userId,isFr);c.restore();}
         if(state?.toilet){c.save();c.scale(c.canvas.width/600,c.canvas.height/600);paintToilet(c,state.toilet,userId,state.toilet.elapsed,isFr,true);c.restore();}
         (state?.drawing?.history||[]).forEach((entry,i)=>{c.save();c.translate(i*200,0);paintDrawing(c,{history:[entry]},userId,190,'done');c.restore();});
     },[moment,userId]);
+    if(state?.snack)return <div className={styles.evidence} data-testid="round-evidence"><canvas ref={canvas} width={900} height={600} style={{maxWidth:420,margin:'auto',aspectRatio:'3/2',height:'auto'}} aria-label={isFr?'La vraie scène finale du braquage':'The actual final heist scene'}/><div className={styles.legend}>{state.snack.bodies.map(p=><span key={p.id}>{p.id===userId?(isFr?'TOI':'YOU'):p.bot?'BOT':'RIVAL'} : {p.captures}/3 · {p.kos} KO</span>)}</div></div>;
     if(state?.absurd)return <div className={styles.evidence} data-testid="round-evidence"><canvas ref={canvas} width={600} height={440} aria-label={isFr?'La vraie scène finale':'The actual final scene'}/><div className={styles.legend}>{state.absurd.bodies.map(p=><span key={p.id}>{p.id===userId?(isFr?'TOI':'YOU'):p.bot?'BOT':'RIVAL'} : {p.score} pts</span>)}</div></div>;
     if(state?.table)return <div className={styles.evidence} data-testid="round-evidence"><canvas ref={canvas} width={600} height={600} style={{maxWidth:300,margin:'auto',aspectRatio:'1',height:'auto'}} aria-label={isFr?'La vraie scène finale de la bagarre':'The actual final rumble scene'}/></div>;
     if(state?.carnival)return <div className={styles.evidence} data-testid="round-evidence"><canvas ref={canvas} width={600} height={420} aria-label={isFr?'Le dernier état réel de la partie':'The actual final game state'}/><div className={styles.legend}>{state.carnival.bodies.map(p=><span key={p.id}>{p.id===userId?(isFr?'TOI':'YOU'):p.bot?'BOT':'RIVAL'} : {p.score} pts · {p.hits} {moment.gameId==='pie'?(isFr?'touches':'hits'):(isFr?'ballons encaissés':'balloons banked')}</span>)}</div></div>;

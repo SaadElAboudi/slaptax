@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {GameSession} from '../LiveGameArena/GameSession/GameSession';
+import {publicUrl} from '../../platform/environment';
+import {canShareLink,shareLink,copyText} from '../../platform/sharing';
+import {apiUrl,sessionHeaders} from '../../platform/environment';
+import {StackChallenge} from './StackChallenge';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Copy, Share2 } from 'lucide-react';
 import { useGameStore } from '../../hooks/useGameStore';
 import { Drawing } from '../LiveGameArena/Drawing';
@@ -6,13 +11,13 @@ import { Chroma, colorCss } from '../LiveGameArena/Chroma';
 import { GamePoster } from '../LiveGameArena/GamePoster';
 import { MomentReplay } from '../LiveGameArena/MomentReplay';
 import { gameLabel, getCompetitiveGame } from '../../gameplay/catalog';
-import type { DrawingState, PartyState, Point } from '../../gameplay/party';
+import type { DrawingState, PartyState, PartyRun, Point } from '../../gameplay/party';
 import styles from './LinkChallenge.module.css';
 import { useSfx } from '../../hooks/useSfx';
 
-interface Challenge {id:string;gameId:'trace'|'decoupe'|'chroma';hostName:string;expiresAt:number;published:boolean}
+interface Challenge {id:string;gameId:'trace'|'decoupe'|'chroma'|'onemore';hostName:string;expiresAt:number;published:boolean}
 interface ColorRound {attempt:number;color:number[];colors:Record<string,number[]>}
-interface Snapshot {challenge:Challenge;party?:PartyState;result?:{hostId:string;ownScore:number;hostScore:number;ownHistory:DrawingState['history'];hostHistory:DrawingState['history'];ownColors:ColorRound[];hostColors:ColorRound[];isHost:boolean}}
+interface Snapshot {challenge:Challenge;party?:PartyState;result?:{hostId:string;ownRun?:PartyRun;hostRun?:PartyRun;ownScore:number;hostScore:number;ownHistory:DrawingState['history'];hostHistory:DrawingState['history'];ownColors:ColorRound[];hostColors:ColorRound[];isHost:boolean}}
 
 export function LinkChallenge({id}:{id:string}) {
     const {userId,language,playerName}=useGameStore(), isFr=language==='fr';
@@ -21,13 +26,13 @@ export function LinkChallenge({id}:{id:string}) {
     const [challengeId,setChallengeId]=useState(id==='new'?'':id);
     const sequence=useRef(0), mounted=useRef(true);
     const queryGame=new URLSearchParams(location.search).get('game');
-    const requested=queryGame==='chroma'?'chroma':queryGame==='decoupe'?'decoupe':'trace';
+    const requested=queryGame==='onemore'?'onemore':queryGame==='chroma'?'chroma':queryGame==='decoupe'?'decoupe':'trace';
     const gameId=data?.challenge.gameId||requested, game=getCompetitiveGame(gameId)!;
     useEffect(()=>{if(['drawpath','reveal'].includes(data?.party?.phase||''))playDraw();},[data?.party?.turn,data?.party?.phase,playDraw]);
     const request=useCallback(async(operation:string,body:object={})=>{
         const current=++sequence.current;
-        const response=await fetch(`/api/link-challenges${challengeId?`/${challengeId}/${operation}`:''}`,{
-            method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,clientId:localStorage.getItem('slaptax_client_id'),...body}),
+        const response=await fetch(apiUrl(`/api/link-challenges${challengeId?`/${challengeId}/${operation}`:''}`),{
+            method:'POST',headers:{'Content-Type':'application/json',...sessionHeaders()},body:JSON.stringify({userId,clientId:localStorage.getItem('slaptax_client_id'),...body}),
         });
         const result=await response.json();
         if(!response.ok)throw new Error(response.status===410?(isFr?'Ce defi a expire.':'This challenge expired.'):response.status===429?(isFr?'Limite de defis atteinte.':'Challenge limit reached.'):response.status===409?(isFr?'Essai indisponible ou delai depasse.':'Attempt unavailable or deadline reached.'):(isFr?'Defi indisponible. Reessaie.':'Challenge unavailable. Try again.'));
@@ -41,9 +46,9 @@ export function LinkChallenge({id}:{id:string}) {
         const poll=async()=>{
             try{const result=await request('state');if(result.party?.phase==='done')return;}
             catch(e){if(!stopped)setError((e as Error).message);}
-            if(!stopped)timer=window.setTimeout(poll,300);
+            if(!stopped)timer=window.setTimeout(poll,gameId==='onemore'?100:300);
         };void poll();return()=>{stopped=true;clearTimeout(timer);++sequence.current;};
-    },[challengeId,userId,request]);
+    },[challengeId,userId,request,gameId]);
     async function start() {
         if(busy||!userId)return;setBusy(true);
         void activateAudio();
@@ -57,18 +62,19 @@ export function LinkChallenge({id}:{id:string}) {
         try {await request('action',{action,turn:data?.party?.turn,...payload});}
         catch(e){setError((e as Error).message);}
     }
-    const url=`${location.origin}/?tab=training&link=${challengeId}`;
+    const url=`${publicUrl()}?tab=training&link=${challengeId}`;
     async function share(native:boolean) {
-        try{if(native&&navigator.share)await navigator.share({title:`${gameLabel(gameId,isFr)} · SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
-            else {await navigator.clipboard.writeText(url);setMessage(isFr?'Lien copie':'Link copied');}}
+        try{if(native&&canShareLink())await shareLink({title:`${gameLabel(gameId,isFr)} · SLAP$TAX`,text:isFr?'Tu peux faire mieux ?':'Can you beat this?',url});
+            else {await copyText(url);setMessage(isFr?'Lien copie':'Link copied');}}
         catch(e){if((e as Error).name!=='AbortError')setMessage(isFr?'Copie le lien ci-dessous.':'Copy the link below.');}
     }
     const result=data?.result, party=data?.party;
     const hostId=result?.hostId||'';
     const players=result?.isHost?[userId!]:[userId!,hostId];
     const combined=result?.ownHistory.map((entry,i)=>({...entry,results:{...result.hostHistory[i]?.results,...entry.results}}));
-    const scoreText=(score:number)=>gameId==='chroma'?`${(Math.abs(score)/1000).toFixed(1)} RGB`:`${(score/30).toFixed(1)}%`;
+    const scoreText=(score:number)=>gameId==='onemore'?`${score} ${isFr?'blocs':'blocks'}`:gameId==='chroma'?`${(Math.abs(score)/1000).toFixed(1)} RGB`:`${(score/30).toFixed(1)}%`;
     const lastColor=result?.ownColors?.[result.ownColors.length-1], hostColor=result?.hostColors?.[result.hostColors.length-1];
+    const challengeScene=(scene:ReactNode)=>error?scene:<GameSession gameId={gameId} title={gameLabel(gameId,isFr)} isFr={isFr}>{scene}</GameSession>;
     return <section className={styles.panel} data-testid="link-challenge">
         <header><a href="/?tab=training" aria-label={isFr?'Retour':'Back'} title={isFr?'Retour':'Back'}><ArrowLeft size={20}/></a><div><span>{isFr?'DEFI PAR LIEN · SANS MISE':'LINK CHALLENGE · NO STAKES'}</span><h2>{gameLabel(gameId,isFr)}</h2></div></header>
         {error&&<p role="alert" className={styles.error}>{error}</p>}
@@ -89,12 +95,12 @@ export function LinkChallenge({id}:{id:string}) {
             <div className={styles.actions}><button type="button" onClick={()=>void share(true)}><Share2 size={18}/>{isFr?'Partager le defi':'Share challenge'}</button><button type="button" onClick={()=>void share(false)} aria-label={isFr?'Copier le lien':'Copy link'} title={isFr?'Copier le lien':'Copy link'}><Copy size={18}/></button></div>
             <input className={styles.link} readOnly value={url} aria-label={isFr?'Lien du defi':'Challenge link'} onFocus={e=>e.target.select()}/>
             <p role="status">{message}</p>
-            <a className={styles.new} href={`/?tab=training&link=new&game=${gameId}`}>{gameId==='chroma'?(isFr?'Revanche, nouvelles couleurs':'Rematch, new colors'):(isFr?'Nouveau defi, nouvelles formes':'New challenge, new shapes')}<ArrowRight size={18}/></a>
+            <a className={styles.new} href={`/?tab=training&link=new&game=${gameId}`}>{gameId==='chroma'?(isFr?'Revanche, nouvelles couleurs':'Rematch, new colors'):(isFr?'Créer un nouveau challenge':'Create a new challenge')}<ArrowRight size={18}/></a>
             <MomentReplay moment={{gameId,players,scores:{[userId!]:result.ownScore,...(!result.isHost?{[hostId]:result.hostScore}:{})},runs:{},summary:party.summary,
-                replay:[{at:0,state:{...party,drawing:{history:combined||[]},...(lastColor?{feedback:{color:lastColor.color,colors:{...(!result.isHost?hostColor?.colors:{}),...lastColor.colors}}}:{})}}]}} userId={userId!} playerName={playerName} rivalName={data.challenge.hostName} isFr={isFr}/>
-        </>:party?<><div className={styles.round}><span>{isFr?'ESSAI':'ATTEMPT'} {party.attempt}/3</span><b>{isFr?'SCORE RIVAL MASQUE':'RIVAL SCORE HIDDEN'}</b></div>{gameId==='chroma'?<Chroma key={party.turn} party={party} identity={userId||''} active={!error&&!busy} isFr={isFr} send={(a,p)=>void send(a,p)}/>:<Drawing key={party.turn} party={party} identity={userId||''} active={!error&&!busy} isFr={isFr} send={(a,p)=>void send(a,p)}/>}</>:<div className={styles.brief}>
+                replay:[{at:0,state:{...party,...(gameId==='onemore'?{runs:{[userId!]:result.ownRun||{},...(!result.isHost?{[hostId]:result.hostRun||{}}:{})}}:{}),drawing:{history:combined||[]},...(lastColor?{feedback:{color:lastColor.color,colors:{...(!result.isHost?hostColor?.colors:{}),...lastColor.colors}}}:{})}}]}} userId={userId!} playerName={playerName} rivalName={data.challenge.hostName} isFr={isFr}/>
+        </>:party?challengeScene(<><div className={styles.round}><span>{isFr?'ESSAI':'ATTEMPT'} {gameId==='onemore'?(isFr?'TOUR UNIQUE':'ONE TOWER'):`${party.attempt}/3`}</span><b>{isFr?'SCORE RIVAL MASQUE':'RIVAL SCORE HIDDEN'}</b></div>{gameId==='onemore'?<StackChallenge party={party} identity={userId||''} active={!error&&!busy} isFr={isFr} send={a=>void send(a)}/>:gameId==='chroma'?<Chroma key={party.turn} party={party} identity={userId||''} active={!error&&!busy} isFr={isFr} send={(a,p)=>void send(a,p)}/>:<Drawing key={party.turn} party={party} identity={userId||''} active={!error&&!busy} isFr={isFr} send={(a,p)=>void send(a,p)}/>}</>):<div className={styles.brief}>
             <GamePoster gameId={gameId}/><h3>{data?.challenge.published?`${data.challenge.hostName} ${isFr?'te defie':'challenges you'}`:(isFr?'A toi de fixer la barre.':'Set the bar.')}</h3>
-            <p>{isFr?game.ruleFr:game.ruleEn}</p><span>{isFr?'3 ESSAIS · UNE PARTICIPATION · LIEN VALABLE 7 JOURS':'3 ATTEMPTS · ONE ENTRY · LINK VALID FOR 7 DAYS'}</span>
+            <p>{isFr?game.ruleFr:game.ruleEn}</p><span>{gameId==='onemore'?(isFr?'30 SECONDES · UNE TOUR · LIEN VALABLE 7 JOURS':'30 SECONDS · ONE TOWER · LINK VALID FOR 7 DAYS'):(isFr?'3 ESSAIS · UNE PARTICIPATION · LIEN VALABLE 7 JOURS':'3 ATTEMPTS · ONE ENTRY · LINK VALID FOR 7 DAYS')}</span>
             <button type="button" disabled={busy||!userId} onClick={()=>void start()}>{busy?(isFr?'Connexion...':'Connecting...'):challengeId?(isFr?'Entrer dans l arene':'Enter the arena'):(isFr?'Creer mon defi':'Create challenge')}<ArrowRight size={20}/></button>
         </div>}
     </section>;

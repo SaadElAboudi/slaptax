@@ -221,3 +221,13 @@
 .arena[data-game=bombpass] .powerBar span{background:#293e4c;border-color:#152b37}
 @media(max-width:600px){.arena[data-game][data-phase=playing] .header{padding:7px 10px;min-height:54px;gap:6px}.arena[data-game][data-phase=playing] .header h2{font-size:19px}.arena[data-game][data-phase=playing] .header .modeBadge{display:none}.arena[data-game=bombpass] .game{min-height:370px;padding:12px}}
 @media(prefers-reduced-motion:no-preference){.arena[data-phase=playing] .stage{animation:workshopEnter .22s ease-out both}@keyframes workshopEnter{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}}
+.arena[data-game=snack]{--workshop:#294a49;--workshop-light:#45645e;--signal:#ffdb88}.arena[data-game=snack] .header .modeBadge{font-family:inherit}
+.arena[data-game=snack][data-phase=playing]{min-height:0}
+.characterPicker{width:min(660px,100%);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.arena[data-game] .characterPicker button{display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:flex-start;min-width:0;min-height:130px;margin:0;padding:12px 8px;border:3px solid #172e39;border-radius:12px;background:#496967;color:#f6f0d8;box-shadow:0 4px #172e39;cursor:pointer}.arena[data-game] .characterPicker button[aria-pressed=true]{background:#f6dc99;color:#213b44;outline:2px solid #fff1b7;outline-offset:1px}.characterPicker b{font-size:15px}.characterPicker span{font-size:10px}.characterPicker strong{font-size:11px}.characterPicker small{font-size:10px;font-weight:600;line-height:1.35}.arena[data-game=snack] .briefing{gap:10px}.arena[data-game=snack] .poster{height:115px;max-width:210px}.arena[data-game=snack] .briefing h3{font-size:26px}
+@media(max-width:600px){.characterPicker{gap:5px}.arena[data-game] .characterPicker button{padding:10px 4px;min-height:145px}.characterPicker b{font-size:11px}.characterPicker span,.characterPicker small{font-size:9px}.characterPicker strong{font-size:10px}.arena[data-game=snack] .briefing .poster{height:80px;max-width:150px}}
+.arena[data-game=snack] .briefing>.poster{display:none}.characterPicker svg{flex-shrink:0;width:58px;height:58px;filter:drop-shadow(0 3px #172e3933)}
+@media(max-width:600px){.characterPicker svg{width:43px;height:43px}}
+
+.worldLabel{font-size:10px;letter-spacing:.08em;font-weight:900;text-transform:uppercase;color:#ffe19a}.coachTip{padding:10px;border:2px solid #18363d;border-radius:9px;background:#41665f;color:#fff0d3}
+
+.perfectZone{position:absolute;inset-block:0;background:#ffdb78bb;border-inline:2px solid #fff0b0;pointer-events:none}.bombTrack>i{z-index:1}

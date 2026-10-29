@@ -7,20 +7,44 @@
         "dev": "vite",
         "build": "tsc -b && vite build",
         "preview": "vite preview",
-        "qa:e2e": "npm run build && playwright test"
+        "qa:e2e": "npm run build && playwright test",
+        "mobile:build": "node scripts/mobile-build.mjs",
+        "mobile:sync": "npm run mobile:build && cap sync && npm run mobile:check",
+        "mobile:ios": "npm run mobile:sync && cap open ios",
+        "mobile:android": "npm run mobile:sync && cap open android",
+        "mobile:assets": "node scripts/mobile-assets.mjs",
+        "mobile:doctor": "node scripts/mobile-doctor.mjs",
+        "mobile:release-check": "node scripts/mobile-doctor.mjs --release",
+        "build:all": "npm run build && npm run mobile:sync",
+        "mobile:check": "node scripts/mobile-parity.mjs",
+        "test:build-tools": "node --test scripts/tests/*.test.mjs"
     },
     "dependencies": {
+        "@capacitor/android": "^8.5.3",
+        "@capacitor/app": "^8.1.2",
+        "@capacitor/clipboard": "^8.0.1",
+        "@capacitor/core": "^8.5.3",
+        "@capacitor/haptics": "^8.0.2",
+        "@capacitor/ios": "^8.5.3",
+        "@capacitor/network": "^8.0.1",
+        "@capacitor/share": "^8.0.3",
         "lucide-react": "^1.43.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "zustand": "^5.0.3"
     },
     "devDependencies": {
+        "@capacitor/cli": "^8.5.3",
         "@playwright/test": "^1.60.0",
         "@types/react": "^18.3.20",
         "@types/react-dom": "^18.3.5",
         "@vitejs/plugin-react": "^4.3.4",
+        "sharp": "^0.35.5",
         "typescript": "~5.6.2",
-        "vite": "^6.0.7"
+        "vite": "^6.4.5"
+    },
+    "overrides": {
+        "uuid": "^11.1.1",
+        "source-map-js": "^1.2.2"
     }
 }

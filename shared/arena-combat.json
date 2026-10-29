@@ -1,0 +1,19 @@
+{
+  "ammoCapacity": 3,
+  "ammoReloadMs": 1100,
+  "regenDelayMs": 4500,
+  "regenIntervalMs": 1300,
+  "superMax": 100,
+  "chargeHit": 20,
+  "chargeDamageTaken": 7,
+  "chargeBlock": 22,
+  "chargeInterception": 25,
+  "chargePass": 12,
+  "passChargeCooldownMs": 3000,
+  "chargeCapture": 35,
+  "chargeRetainedOnKo": 0.75,
+  "superWindupMs": 380,
+  "superWaveRange": 175,
+  "wardDurationMs": 4000,
+  "wardRange": 180
+}

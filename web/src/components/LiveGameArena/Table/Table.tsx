@@ -1,3 +1,4 @@
+import {startGameLoop} from '../../../gameplay/gameLoop';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowUp,MoveUpRight} from 'lucide-react';
 import type {PartyState,TableState} from '../../../gameplay/party';
@@ -15,7 +16,7 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
   else if(party.phase==='brawl'){history.current.push(structuredClone(party.table));history.current=history.current.slice(-30);}
  },[party.table,party.phase]);
  useEffect(()=>{
-  const c=canvas.current;if(!c)return;let raf=0;
+  const c=canvas.current;if(!c)return;
   const resize=()=>{c.width=Math.max(1,Math.round(c.clientWidth*Math.min(2,devicePixelRatio||1)));c.height=c.width;};resize();
   const observer=new ResizeObserver(resize);observer.observe(c);
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -23,8 +24,8 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
    if(s.party.phase==='done'&&replay.current?.frames.length){const r=replay.current;const frame=Math.max(0,Math.min(r.frames.length-1,Math.floor((now-r.start)/40)));state=r.frames[frame];if(frame===r.frames.length-1){const age=Math.max(0,now-r.start-frame*40);state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}}
    else{const age=Math.min(150,Math.max(0,now-received.current.at));state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}
    ctx.save();ctx.scale(c!.width/600,c!.height/600);paintTable(ctx,state,identity,s.party.phase==='brawl'?s.aim:null,now,s.isFr,motion.matches);ctx.restore();
-  }raf=requestAnimationFrame(draw);}
-  raf=requestAnimationFrame(draw);return()=>{observer.disconnect();cancelAnimationFrame(raf);};
+  }}
+  const stopLoop=startGameLoop(draw);return()=>{observer.disconnect();stopLoop();};
  },[identity]);
  function position(e:React.PointerEvent<HTMLCanvasElement>){const r=e.currentTarget.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*600};}
  function update(e:React.PointerEvent<HTMLCanvasElement>){if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);setAim({dx:dx/(d||1),dy:dy/(d||1),power:Math.min(1,d/130)});}
@@ -35,8 +36,8 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
   <div className={styles.board}><canvas ref={canvas} data-testid="table-canvas" data-player-x={own?.x} data-player-y={own?.y} data-opponents={opponents} tabIndex={0} aria-label={isFr?'Table de jeu. Glisse depuis ton personnage. Flèches pour viser, espace pour te propulser.':'Game table. Drag from your character. Arrow keys aim, space dashes.'}
    onPointerDown={e=>{if(!enabled||!own||e.button!==0)return;const p=position(e);if(Math.hypot(p.x-own.x,p.y-own.y)>85)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);setAim({dx:0,dy:-1,power:0});}}
    onPointerMove={update} onPointerUp={e=>{if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);pointer.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);if(d>12)fire({dx:dx/d,dy:dy/d,power:Math.min(1,d/130)});else setAim(null);}}
-   onPointerCancel={()=>{pointer.current=null;setAim(null);}}
-   onKeyDown={e=>{const a:Record<string,Aim>={ArrowUp:{dx:0,dy:-1,power:.8},ArrowDown:{dx:0,dy:1,power:.8},ArrowLeft:{dx:-1,dy:0,power:.8},ArrowRight:{dx:1,dy:0,power:.8}};if(a[e.key]){e.preventDefault();setAim(a[e.key]);}else if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();fire(aim||{dx:0,dy:-1,power:.8});}}}/>
+   onPointerCancel={()=>{pointer.current=null;setAim(null);}} onLostPointerCapture={()=>{pointer.current=null;setAim(null);}} onBlur={()=>{pointer.current=null;setAim(null);}}
+   onKeyDown={e=>{if(!enabled)return;const a:Record<string,Aim>={ArrowUp:{dx:0,dy:-1,power:.8},ArrowDown:{dx:0,dy:1,power:.8},ArrowLeft:{dx:-1,dy:0,power:.8},ArrowRight:{dx:1,dy:0,power:.8}};if(a[e.key]){e.preventDefault();setAim(a[e.key]);}else if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();fire(aim||{dx:0,dy:-1,power:.8});}}}/>
    {party.phase==='done'&&<span className={styles.replay}>{isFr?'REPLAY · DERNIÈRES SECONDES':'REPLAY · LAST SECONDS'}</span>}
   </div>
   <p className={styles.hint}><MoveUpRight size={18}/>{isFr?'Glisse depuis ton perso. Relâche. BOUM !':'Drag from your character. Release. BOOM!'}</p>

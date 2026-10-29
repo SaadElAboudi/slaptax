@@ -49,12 +49,12 @@ test('balloon: hold input expires, release banks squared volume, pop loses only 
  const g=game('balloon'),p=g.carnival.bodies[0];act(g,'a',{action:'inflate'});tickParty(g,3000);assert.ok(p.volume<11);assert.equal(p.inflating,false);
  // A real maintained hold banks 50% for 125 points.
  for(let t=3000;t<5800;t+=200)act(g,'a',{action:'inflate'},t);tickParty(g,5800);assert.ok(p.volume>50);assert.equal(act(g,'a',{action:'bank'},5801),true);tickParty(g,5850);const saved=g.scores.a;assert.ok(saved>125);assert.equal(p.volume,0);
- for(let t=6100;t<11000;t+=200)act(g,'a',{action:'inflate'},t);tickParty(g,11000);assert.equal(p.misses,1);assert.equal(g.scores.a,saved);
+ for(let t=6100;t<12500;t+=200)act(g,'a',{action:'inflate'},t);tickParty(g,12500);assert.equal(p.misses,1);assert.equal(g.scores.a,saved);
  assert.ok(!('limit' in publicParty(g,'b',11000).carnival.bodies[0]));
 });
 test('balloon: sabotage costs banked points, has a cooldown and can pop a rival balloon',()=>{
- const g=game('balloon'),[a,b]=g.carnival.bodies;a.score=100;b.volume=70;
- assert.equal(act(g,'a',{action:'poke'}),true);assert.equal(a.score,75);assert.equal(b.misses,1);assert.equal(b.volume,0);
+ const g=game('balloon'),[a,b]=g.carnival.bodies;a.score=100;b.volume=95;
+ assert.equal(act(g,'a',{action:'poke'}),true);assert.equal(a.score,75);assert.equal(b.misses,0);tickParty(g,1700);assert.equal(b.misses,1);assert.equal(b.volume,0);
  b.volume=40;assert.equal(act(g,'a',{action:'poke'},1002),false);assert.equal(a.score,75);
  assert.equal(act(g,'b',{action:'poke'},1002),false);
 });
@@ -80,8 +80,8 @@ test('balloon: stale or missing balloon serial cannot inflate or bank a replacem
 test('balloon: risky banks earn one helmet, sabotage consumes it once and costs actual points',()=>{
  const g=game('balloon'),[a,b]=g.carnival.bodies;a.volume=71;act(g,'a',{action:'bank'});assert.equal(a.shield,true);assert.equal(g.scores.a,252);
  a.volume=72;act(g,'a',{action:'bank'},1400);assert.equal(a.shield,true);a.volume=70;b.score=100;
- assert.equal(act(g,'b',{action:'poke'},1500),true);assert.equal(b.score,75);assert.equal(a.volume,70);assert.equal(a.shield,false);assert.equal(a.blocks,1);
- assert.equal(g.carnival.events.at(-1).kind,'blocked');assert.equal(act(g,'b',{action:'poke'},5500),true);assert.equal(a.misses,1);assert.equal(a.blocks,1);
+ assert.equal(act(g,'b',{action:'poke'},1500),true);assert.equal(b.score,75);assert.equal(a.volume,70);assert.equal(a.shield,true);tickParty(g,2200);assert.equal(a.shield,false);assert.equal(a.blocks,1);
+ assert.equal(g.carnival.events.at(-1).kind,'blocked');a.volume=95;assert.equal(act(g,'b',{action:'poke'},5500),true);tickParty(g,6200);assert.equal(a.misses,1);assert.equal(a.blocks,1);
 });
 test('pie: a real dodge earns one larger revenge pie and a hit grants its real bonus',()=>{
  const g=game('pie'),[a,b]=g.carnival.bodies;act(g,'a',{action:'throw',aim:position(1,351)},1001);act(g,'b',{action:'duck'},1200);tickParty(g,1400);
@@ -102,4 +102,38 @@ test('carnival: a paused simulation has frozen visuals and resuming invalidates 
 
 test('pie: the solo bot visibly misses some shots instead of having perfect aim',()=>{
  const g=game('pie',['a']);tickParty(g,20000);const bot=g.carnival.bodies.find(p=>p.bot);assert.ok(bot.hits>0);assert.ok(bot.misses>0);assert.equal(g.scores.a,0);
+});
+
+test('pie: manual placement is bounded, speed limited and can physically evade a real throw',()=>{
+ const g=game('pie'),b=g.carnival.bodies[1];
+ for(const x of [-1,2,NaN,Infinity,'0.5'])assert.equal(act(g,'b',{action:'steer',x}),false);
+ assert.equal(b.manual,false);
+ assert.equal(act(g,'a',{action:'throw',aim:position(1,351)},1001),true);
+ assert.equal(act(g,'b',{action:'steer',x:0},1002),true);
+ const start=b.x;tickParty(g,1050);assert.ok(Math.abs(b.x-start)<=.04500001);assert.ok(b.x>0.08);
+ tickParty(g,1400);assert.equal(g.scores.a,0);assert.equal(g.carnival.events.at(-1).kind,'miss');assert.equal(b.dodges,0);assert.equal(b.revenge,false);
+ tickParty(g,2000);assert.equal(b.x,.08);assert.equal(publicParty(g,'b',2000).carnival.bodies[1].manual,true);
+ act(g,'b',{action:'steer',x:1},2001);tickParty(g,4000);assert.ok(Math.abs(b.x-.92)<1e-12);
+});
+test('pie: stationary manual targets can be hit; late steering cannot erase an impact',()=>{
+ const g=game('pie'),b=g.carnival.bodies[1];act(g,'b',{action:'steer',x:.5},1001);tickParty(g,1500);
+ assert.equal(b.x,.5);act(g,'a',{action:'throw',aim:.5},1501);
+ act(g,'b',{action:'steer',x:0},1870);tickParty(g,1900);assert.equal(g.scores.a,200);
+});
+test('pie: manual movement is deterministic across batching, and a pause cancels the old destination',()=>{
+ const a=game('pie'),b=game('pie');for(const g of [a,b])act(g,'a',{action:'steer',x:0},1001);
+ tickParty(a,1500);for(let time=1050;time<=1500;time+=50)tickParty(b,time);
+ assert.deepEqual(publicParty(a,'a',1500),publicParty(b,'a',1500));
+ act(a,'a',{action:'steer',x:1},1501);tickParty(a,1550);const x=a.carnival.bodies[0].x;
+ pauseParty(a,5000,6550);tickParty(a,7000);assert.equal(a.carnival.bodies[0].x,x);
+});
+
+test('pie: steering between an impact and its next fixed tick never changes the earlier collision',()=>{
+ const g=game('pie'),b=g.carnival.bodies[1];
+ act(g,'a',{action:'throw',aim:position(1,351)},1001);
+ act(g,'b',{action:'steer',x:0},1370);tickParty(g,1400);
+ assert.equal(g.scores.a,200);
+ const h=game('pie');act(h,'b',{action:'steer',x:.5},1001);tickParty(h,1500);
+ act(h,'a',{action:'throw',aim:.6199},1501);act(h,'b',{action:'steer',x:0},1870);tickParty(h,1900);
+ assert.equal(h.scores.a,100);
 });

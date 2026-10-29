@@ -81,3 +81,13 @@ test('HTTP endpoint is private and connected tabs count once, invalid sessions d
         await new Promise(resolve => server.close(resolve));
     }
 });
+
+test('night counters distinguish rooms, participations and shares without exposing members',()=>{
+ const store=memoryStore(),db=store.read();
+ db.productEvents=[{type:'night_created',userId:'secret',properties:{room:'private-code'}},
+  ...['a','b','c','d'].flatMap(userId=>['night_started','night_completed','night_rematch'].map(type=>({type,userId,properties:{room:'private-code'}}))),
+  {type:'result_shared',properties:{source:'friend_night'}},{type:'result_shared',properties:{source:'other'}}];
+ store.write(db);const result=createMonitoring(store).snapshot({onlinePlayers:0});
+ assert.equal(result.nights.startedRooms,1);assert.equal(result.nights.startedParticipations,4);assert.equal(result.nights.completedParticipations,4);assert.equal(result.nights.rematchParticipations,4);assert.equal(result.nights.sharedResults,1);
+ assert.equal(JSON.stringify(result).includes('private-code'),false);assert.equal(JSON.stringify(result).includes('secret'),false);
+});

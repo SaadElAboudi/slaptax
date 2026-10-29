@@ -1,0 +1,31 @@
+{
+  "id": "12-chrono-duel",
+  "day": 12,
+  "game": "onesecond",
+  "series": "Entre amis",
+  "hook": "Lequel de vous a une horloge dans la tête ?",
+  "duration": 18,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Pas de montre. Pas de chrono visible. Juste vous deux et cinq secondes.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Lequel de vous a une horloge dans la tête ?"
+    },
+    {
+      "from": 3,
+      "to": 15,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 15,
+      "to": 18,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

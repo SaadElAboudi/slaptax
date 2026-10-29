@@ -11,6 +11,7 @@ export function SoloVictory({result,best,isFr}:{result:{score:number;soloReward?
   <div className={styles.stars} aria-label={isFr?`${medal==='gold'?3:medal==='silver'?2:medal==='bronze'?1:0} étoiles`:`${medal==='gold'?3:medal==='silver'?2:medal==='bronze'?1:0} stars`}>{[400,700,900].map(n=><span key={n} data-earned={result.score>=n}>★</span>)}</div>
   {r&&<div className={styles.receipt} role="status">
    {r.xpGain>0&&<strong>+{r.xpGain} XP</strong>}
+   {!!r.tokensEarned&&<strong>+{r.tokensEarned} {isFr?'jetons':'tokens'}</strong>}
    {r.newBest&&r.previousBest>0&&<span>{isFr?`Record battu : +${result.score-r.previousBest} pts`:`Personal best: +${result.score-r.previousBest} pts`}</span>}
    {r.levelUp&&<b>{isFr?'Niveau':'Level'} {r.level} !</b>}
    {r.dailyCompleted&&<span>{isFr?'Parcours terminé · bonus de 90 XP inclus !':'Route complete · 90 XP bonus included!'}</span>}

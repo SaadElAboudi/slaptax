@@ -1,0 +1,11 @@
+{
+  "durationMs": 60000,
+  "deliveriesToWin": 3,
+  "carryLimitMs": 5500,
+  "fleeSpeed": 105,
+  "eggIntervalMs": 7000,
+  "frenzyIntervalMs": 3500,
+  "frenzyLastMs": 15000,
+  "eggWarningMs": 1400,
+  "eggRadius": 100
+}

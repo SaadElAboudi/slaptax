@@ -12,7 +12,7 @@ for(const id of ['pigeon','lift']){
  test(`${id}: pauses preserve simulation, pending effects and replay evidence`,()=>{const g=game(id);act(g,'a',{action:id==='pigeon'?'drop':'prout'});tickParty(g,1200);const before=publicParty(g,'a',1200).absurd;pauseParty(g,5000,6200);const after=publicParty(g,'a',6200).absurd;assert.equal(after.elapsed,before.elapsed);assert.equal(after.bodies[0].score,before.bodies[0].score);if(id==='pigeon')assert.equal(after.shots[0].progress,before.shots[0].progress);else assert.equal(after.strikes[0].remaining,before.strikes[0].remaining);recordParty(g,6200,true);assert.ok(partyMoment(g).replay.at(-1).state.absurd);});
 }
 test('pigeon: bounded steering and cooldowns, no client teleports or scores',()=>{const g=game('pigeon'),p=g.absurd.bodies[0];for(const x of [NaN,Infinity,-1,2,'0.5'])assert.equal(act(g,'a',{action:'steer',x}),false);assert.equal(act(g,'a',{action:'steer',x:1}),true);assert.equal(p.x,150);tickParty(g,1200);assert.ok(p.x>150&&p.x<550);assert.equal(act(g,'a',{action:'drop'},1201),true);assert.equal(act(g,'a',{action:'drop'},1202),false);assert.equal(act(g,'a',{action:'umbrella'},1202),true);assert.equal(act(g,'a',{action:'umbrella'},1203),false);});
-test('pigeon: actual flight drift lands a bullseye on the rival, not instantly on fire',()=>{const g=game('pigeon');aim(g,1);assert.equal(act(g,'a',{action:'drop'},1000),true);tickParty(g,1850);assert.equal(g.scores.a,0);tickParty(g,1900);assert.equal(g.scores.a,180);assert.equal(g.absurd.bodies[0].hits,1);assert.equal(g.absurd.events.at(-1).kind,'splat');});
+test('pigeon: actual flight drift lands a bullseye on the rival, not instantly on fire',()=>{const g=game('pigeon');aim(g,1);assert.equal(act(g,'a',{action:'drop'},1000),true);tickParty(g,1850);assert.equal(g.scores.a,0);tickParty(g,1900);assert.equal(g.scores.a,180);assert.equal(g.absurd.bodies[0].hits,1);assert.equal(g.absurd.events.at(-1).kind,'bullseye');});
 test('pigeon: own goals cost real points and umbrella protection rewards the defender',()=>{
  const g=game('pigeon'),p=aim(g,0);p.score=100;act(g,'a',{action:'drop'},1000);tickParty(g,1900);assert.equal(g.scores.a,50);assert.equal(p.ownGoals,1);
  const h=game('pigeon');aim(h,1);act(h,'a',{action:'drop'},1000);act(h,'b',{action:'umbrella'},1500);tickParty(h,1900);assert.equal(h.scores.a,0);assert.equal(h.scores.b,40);assert.equal(h.absurd.bodies[1].blocks,1);
@@ -20,7 +20,7 @@ test('pigeon: own goals cost real points and umbrella protection rewards the def
 test('lift: hidden gas is revealed only during warning; safe confirmations earn beans and refill ammo',()=>{
  const g=game('lift');assert.equal(publicParty(g,'a',1000).absurd.wave.gas,null);tickParty(g,1900);assert.equal(publicParty(g,'a',1900).absurd.wave.gas,0);
  act(g,'a',{action:'lane',lane:1},2000);tickParty(g,2600);assert.equal(g.scores.a,120);assert.equal(g.scores.b,0);assert.equal(g.absurd.bodies[0].beans,1);
- act(g,'a',{action:'lane',lane:1},3400);tickParty(g,3900);assert.equal(g.scores.a,240);assert.equal(g.absurd.bodies[0].ammo,2);tickParty(g,5200);assert.equal(g.scores.a,240);
+ act(g,'a',{action:'lane',lane:1},3400);tickParty(g,3900);assert.equal(g.scores.a,250);assert.equal(g.absurd.bodies[0].ammo,2);g.absurd.bodies[0].lane=2;tickParty(g,5200);assert.equal(g.scores.a,250);
 });
 test('lift: lane validation, movement cooldown, targeted fart warning and real dodge',()=>{
  const g=game('lift');for(const lane of [-1,3,NaN,1.2,'1'])assert.equal(act(g,'a',{action:'lane',lane}),false);

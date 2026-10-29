@@ -5,10 +5,14 @@ services:
     region: frankfurt
     plan: free
     branch: main
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
+      - key: APP_DISTRIBUTION
+        value: store
+      - key: NODE_ENV
+        value: production
       - key: NODE_VERSION
         value: "22"
       - key: HOST

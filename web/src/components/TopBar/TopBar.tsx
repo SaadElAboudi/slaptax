@@ -1,3 +1,5 @@
+import {TokenWallet} from '../TokenWallet/TokenWallet';
+import {AccountControls} from '../AccountControls/AccountControls';
 import styles from './TopBar.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
 import { useEffect, useState } from 'react';
@@ -11,6 +13,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
     const isFr = language === 'fr';
     const [draftName, setDraftName] = useState(playerName);
     const [lockerOpen, setLockerOpen] = useState(false);
+    const [tokensOpen,setTokensOpen]=useState(false);
     const { musicOn, toggleMusic } = useMusicPreference();
     const {soundOn,toggleSound,hapticsOn,toggleHaptics}=useFeedbackPreferences();
 
@@ -43,9 +46,9 @@ export function TopBar({onHome}: {onHome: () => void}) {
                 <span className={`${styles.liveDot} ${apiOnline ? styles.live : styles.offline}`}>
                     {apiOnline ? (isFr ? 'Connecté' : 'Online') : (isFr?'Hors ligne':'Offline')}
                 </span>
-                <span data-testid="player-wallet" data-balance={safeWallet} className={`${styles.walletChip} ${apiOnline ? styles.online : ''}`}>
-                    <span aria-hidden="true">✦</span> {safeWallet.toLocaleString(isFr?'fr-FR':'en-US',{maximumFractionDigits:2})} <small>{isFr?'crédits démo':'demo credits'}</small>
-                </span>
+                <button type="button" disabled={!apiOnline} aria-label={isFr?'Ouvrir mes jetons':'Open my tokens'} onClick={()=>{setLockerOpen(false);setTokensOpen(true);}} data-testid="player-wallet" data-balance={safeWallet} className={`${styles.walletChip} ${apiOnline ? styles.online : ''}`}>
+                    <span aria-hidden="true">✦</span> {safeWallet.toLocaleString(isFr?'fr-FR':'en-US',{maximumFractionDigits:2})} <small title={isFr?'Jetons gratuits, sans valeur monétaire':'Free tokens with no monetary value'}>{isFr?'jetons':'tokens'}</small>
+                </button>
                 <button
                     className={styles.avatarButton}
                     type="button"
@@ -56,6 +59,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
                     <Settings2 size={21}/>
                 </button>
             </div>
+            {tokensOpen&&<TokenWallet onClose={()=>setTokensOpen(false)}/>}
             {lockerOpen && (
                 <div className={styles.locker} role="dialog" aria-label={isFr?'Profil et réglages':'Profile and settings'}>
                     <header>
@@ -109,6 +113,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
                         selected={progression.cosmetics.trail}
                         onSelect={(trail) => void setCosmetics({ trail })}
                     /></>}
+                    <AccountControls/>
                 </div>
             )}
         </header>

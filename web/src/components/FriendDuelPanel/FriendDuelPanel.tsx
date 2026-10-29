@@ -1,3 +1,7 @@
+import {StakeQuote} from '../TokenWallet/StakeQuote';
+import {publicUrl} from '../../platform/environment';
+import {canShareLink,shareLink as shareNativeLink,copyText} from '../../platform/sharing';
+import {preferredGame as initialPreferredGame} from '../../gameplay/gameExperience';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Challenge, type DuelRoomState, type LiveDuelMatch, type OpenInvite, type RivalryResponse, type UserListEntry } from '../../api/client';
 import { useRealtime } from '../../api/realtime';
@@ -132,12 +136,7 @@ export function FriendDuelPanel() {
     const [opponentId, setOpponentId] = useState('');
     const [stake, setStake] = useState(5);
     const [message, setMessage] = useState('');
-    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>(() => {
-        try {
-            const stored = localStorage.getItem('slaptax_duel_game');
-            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'toilet';
-        } catch { return 'toilet'; }
-    });
+    const [preferredGame, setPreferredGame] = useState<CompetitiveGameId>(()=>initialPreferredGame('duel'));
     const [bestOf, setBestOf] = useState(3);
     const [duelId, setDuelId] = useState<string | null>(null);
     const [pendingChallengeId, setPendingChallengeId] = useState<string | null>(null);
@@ -174,6 +173,7 @@ export function FriendDuelPanel() {
     const incoming = challenges.filter((challenge) => challenge.direction === 'incoming' && challenge.status === 'pending');
     const outgoing = challenges.filter((challenge) => challenge.direction === 'outgoing' && challenge.status === 'pending');
     const affordableStakes = STAKES.filter((value) => value <= Math.min(Number(wallet), stakeCap));
+    useEffect(()=>{if(!affordableStakes.includes(stake))setStake(affordableStakes[0]||2);},[wallet,stakeCap,stake]);
     const myRole = match?.challengerId === userId ? 'challenger' : 'opponent';
     const rivalRole = myRole === 'challenger' ? 'opponent' : 'challenger';
     const submitted = !!(match && userId && match.submittedBy[String(match.currentRound)]?.includes(userId));
@@ -257,7 +257,7 @@ export function FriendDuelPanel() {
                 if (cancelled) return;
                 if (data.match.status === 'cancelled') {
                     setDuelId(null); setMatch(null); setRoom(null); setPendingChallengeId(null); seenRoundsRef.current = null;
-                    setError(isFr ? 'Le salon a ete ferme.' : 'The room was closed.'); return;
+                    setError(data.match.cancellationReason?(isFr?'Partie interrompue : ta mise a été remboursée.':'Match interrupted: your stake was refunded.'):(isFr?'Le salon a été fermé.':'The room was closed.'));void refreshLiveState();return;
                 }
                 const previousCount = seenRoundsRef.current;
                 if (previousCount == null) {
@@ -325,11 +325,11 @@ export function FriendDuelPanel() {
         setError('');
         try {
             const created = await api.createOpenInvite(userId, stake, createDraft(preferredGame), message, bestOf);
-            const link = `${window.location.origin}${window.location.pathname}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
+            const link = `${publicUrl()}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
             setInviteLink(link);
             setPendingChallengeId(created.challenge.id);
             try {
-                await navigator.clipboard.writeText(link);
+                await copyText(link);
                 setLinkCopied(true);
                 void api.trackProductEvent('invite_link_copied', userId, { source: 'invite_created' }).catch(() => undefined);
             } catch {
@@ -386,7 +386,7 @@ export function FriendDuelPanel() {
     async function copyInviteLink() {
         if (!inviteLink) return;
         try {
-            await navigator.clipboard.writeText(inviteLink);
+            await copyText(inviteLink);
             setLinkCopied(true);
             if (userId) void api.trackProductEvent('invite_link_copied', userId, { source: 'invite_panel' }).catch(() => undefined);
         } catch {
@@ -493,7 +493,7 @@ export function FriendDuelPanel() {
 
     async function ensureShareLink(moment: ShareMoment) {
         if (shareLink) return shareLink;
-        if (!match || !userId) return window.location.origin;
+        if (!match || !userId) return publicUrl();
 
         const replayGame = match.games[match.currentRound - 1] || match.rounds[match.rounds.length - 1]?.gameId || 'bounce';
         const shareStake = affordableStakes.includes(match.stake) ? match.stake : affordableStakes[0] || 2;
@@ -504,7 +504,7 @@ export function FriendDuelPanel() {
             `${moment.labelEn}: ${match.score[myRole]}-${match.score[rivalRole]}`,
             bestOf
         );
-        const link = `${window.location.origin}${window.location.pathname}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
+        const link = `${publicUrl()}?tab=defy&invite=${encodeURIComponent(created.challenge.id)}`;
         setShareLink(link);
         void api.trackProductEvent('share_card_created', userId, {
             duelId: match.duelId,
@@ -517,7 +517,7 @@ export function FriendDuelPanel() {
     async function copyShareLink(moment: ShareMoment) {
         try {
             const link = await ensureShareLink(moment);
-            await navigator.clipboard.writeText(link);
+            await copyText(link);
             setShareCopied(true);
             if (userId && match) {
                 void api.trackProductEvent('share_link_copied', userId, {
@@ -537,17 +537,17 @@ export function FriendDuelPanel() {
             const label = isFr ? moment.labelFr : moment.labelEn;
             const headline = isFr ? moment.headlineFr : moment.headlineEn;
             const text = `${label} - SLAP$TAX ${match.score[myRole]}-${match.score[rivalRole]} vs ${match.opponentName}. ${headline}`;
-            if (navigator.share) {
-                await navigator.share({ title: 'SLAP$TAX', text, url: link });
+            if (canShareLink()) {
+                await shareNativeLink({ title: 'SLAP$TAX', text, url: link });
             } else {
-                await navigator.clipboard.writeText(`${text} ${link}`);
+                await copyText(`${text} ${link}`);
                 setShareCopied(true);
             }
             if (userId) {
                 void api.trackProductEvent('result_shared', userId, {
                     duelId: match.duelId,
                     moment: moment.kind,
-                    hasInviteLink: link !== window.location.origin,
+                    hasInviteLink: link !== publicUrl(),
                 }).catch(() => undefined);
             }
         } catch (cause) {
@@ -654,7 +654,7 @@ export function FriendDuelPanel() {
                     <div className={styles.rematchBuilder}>
                         <div className={styles.rematchOptions}>
                             <label>
-                                <span>{isFr ? 'Crédits démo par joueur' : 'Demo credits per player'}</span>
+                                <span>{isFr ? 'Jetons misés par joueur' : 'Tokens staked per player'}</span>
                                 <select value={rematchStake} onChange={(event) => setRematchStake(Number(event.target.value))}>
                                     <option value={match.stake}>{isFr ? 'Même mise' : 'Same stake'} · SLAP$ {match.stake}</option>
                                     {doubledStake && doubledStake <= Number(wallet) && (
@@ -683,7 +683,7 @@ export function FriendDuelPanel() {
             <header><span>{decisiveGame} / {isFr?'LE VERDICT':'THE VERDICT'}</span><span>{isFr?'PARTIE TERMINEE':'MATCH COMPLETE'}</span></header>
             <div className={club.faceoff}><div><ClubAvatar variant={avatar}/><span>{playerName}</span><strong>{match.score[myRole]}</strong></div><b>VS</b><div><ClubAvatar rival/><span>{match.opponentName}</span><strong>{match.score[rivalRole]}</strong></div></div>
             <h2>{won?(isFr?'Tu peux chambrer.':'Bragging rights: yours.'):(isFr?'Une revanche ?':'Another round?')}</h2>
-            <p>{shareHeadline}</p>
+            <p>{shareHeadline}</p><p data-testid="token-match-receipt">{isFr?'Jetons nets : ':'Net tokens: '}{match.tokenSettlement?`${match.tokenSettlement.net>=0?'+':''}${match.tokenSettlement.net.toLocaleString(isFr?'fr-FR':'en-US')} · ${isFr?'versement':'payout'} ${won?match.tokenSettlement.payout:0}`:(isFr?'Voir le journal des jetons.':'See your token journal.')}</p>
             <div className={club.rematch}>{rematchControls}</div>
             <div className={club.share}><button type="button" onClick={()=>void shareResult(shareMoment)}><Share2 size={18}/>{isFr?'Partager le moment':'Share moment'}</button><button type="button" title={isFr?'Copier le lien':'Copy link'} aria-label={isFr?'Copier le lien':'Copy link'} onClick={()=>void copyShareLink(shareMoment)}><Link size={18}/></button><span role="status">{shareCopied?(isFr?'Lien copie':'Link copied'):''}</span></div>
             {shareLink&&<input readOnly value={shareLink} aria-label={isFr?'Lien de revanche':'Rematch link'}/>}
@@ -701,7 +701,7 @@ export function FriendDuelPanel() {
                         <span>{shareLabel}</span>
                         <strong>SLAP$TAX</strong>
                     </div>
-                    <h3>{shareHeadline}</h3>
+                    <h3>{shareHeadline}</h3><p data-testid="token-match-receipt">{isFr?'Jetons : ':'Tokens: '}{match.tokenSettlement?`${match.tokenSettlement.net>=0?'+':''}${match.tokenSettlement.net.toLocaleString(isFr?'fr-FR':'en-US')} ${isFr?'net · versement':'net · payout'} ${won?match.tokenSettlement.payout:0}`:(isFr?'Voir le journal des jetons pour le détail.':'See your token journal for details.')}</p>
                     <div className={styles.shareMomentScore}>
                         <div>
                             <small>{isFr ? 'TOI' : 'YOU'}</small>
@@ -851,6 +851,7 @@ export function FriendDuelPanel() {
                 </div>
             ) : (
                 <div className={styles.setup}>
+                    <StakeQuote stake={stake} isFr={isFr}/>{Number(wallet)<2&&<p role="status">{isFr?'Plus assez de jetons ? Ouvre ton solde en haut pour récupérer un bonus. Les modes gratuits restent accessibles.':'Low on tokens? Open your balance above to claim a bonus. Free modes remain available.'}</p>}
                     <div className={styles.setupIntro}><strong>{isFr?'1. Choisis ton jeu':'1. Pick your game'}</strong><span>{isFr?'Ton favori entre dans la rotation, sauf si ton ami le bannit.':'Your favorite joins the rotation unless your friend bans it.'}</span></div>
                     <details className={styles.gamePicker}><summary>{isFr?'Jeu favori':'Favorite game'}<strong>{gameLabel(preferredGame,isFr)} ▾</strong></summary>
                     <div className={styles.gameDraft}>
@@ -872,7 +873,7 @@ export function FriendDuelPanel() {
                     <div className={styles.setupIntro}><strong>{isFr?'2. Invite ton ami':'2. Invite your friend'}</strong><span>{isFr?'Crée un lien et envoie-le à ton ami. Vous jouez ensemble, en direct.':'Create a link and send it to a friend. Play together, live.'}</span></div>
                     <details className={styles.matchOptions}><summary>{isFr?'Options de partie et invitation directe':'Match options and direct invitation'}</summary>
                     <div className={styles.fields}>
-                        <label>{isFr ? 'Crédits démo par joueur' : 'Demo credits per player'}
+                        <label>{isFr ? 'Jetons misés par joueur' : 'Tokens staked per player'}
                             <select value={stake} onChange={(event) => setStake(Number(event.target.value))}>
                                 {affordableStakes.map((value) => <option key={value} value={value}>SLAP$ {value}</option>)}
                             </select>
@@ -896,7 +897,7 @@ export function FriendDuelPanel() {
                     <input aria-label={isFr?'Message pour ton ami':'Message for your friend'} value={message} onChange={(event) => setMessage(event.target.value)} placeholder={isFr?'Un message pour ton ami (facultatif)':'A message for your friend (optional)'} maxLength={140}/>
                     </details>
                     <div className={styles.setupActions}>
-                        <button className={styles.primary} type="button" onClick={createInviteLink} disabled={busy || !userId}>
+                        <button className={styles.primary} type="button" onClick={createInviteLink} disabled={busy || !userId || Number(wallet)<stake}>
                             {busy ? (isFr ? 'Création...' : 'Creating...') : (isFr ? 'Créer et copier le lien' : 'Create and copy link')}
                         </button>
                         <button className={styles.secondary} type="button" onClick={sendDirectChallenge} disabled={busy || !opponentId}>

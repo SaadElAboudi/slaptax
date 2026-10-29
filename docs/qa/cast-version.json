@@ -1,0 +1,218 @@
+[
+  {
+    "character": "flan",
+    "width": 1280,
+    "height": 900,
+    "errors": [],
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "label": "Arène : ZQSD ou flèches pour bouger, souris pour viser, clic pour frapper, espace pour esquiver, E pour le pouvoir.",
+        "inside": true,
+        "bottom": 694
+      },
+      {
+        "tag": "DIV",
+        "label": "Déplacement",
+        "inside": true,
+        "bottom": 836.59375
+      },
+      {
+        "tag": "DIV",
+        "label": "Visée, relâche pour frapper",
+        "inside": true,
+        "bottom": 836.59375
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 807.59375
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 807.59375
+      },
+      {
+        "tag": "BUTTON",
+        "label": "BOING !",
+        "inside": true,
+        "bottom": 807.59375
+      },
+      {
+        "tag": "INPUT",
+        "label": null,
+        "inside": true,
+        "bottom": 869.59375
+      }
+    ],
+    "actualCharacter": "flan",
+    "maxHp": 4,
+    "skillCooldown": 6205,
+    "botCharacter": "pickle"
+  },
+  {
+    "character": "pickle",
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "label": "Arène : ZQSD ou flèches pour bouger, souris pour viser, clic pour frapper, espace pour esquiver, E pour le pouvoir.",
+        "inside": true,
+        "bottom": 523
+      },
+      {
+        "tag": "DIV",
+        "label": "Déplacement",
+        "inside": true,
+        "bottom": 671
+      },
+      {
+        "tag": "DIV",
+        "label": "Visée, relâche pour frapper",
+        "inside": true,
+        "bottom": 671
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 599
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 649
+      },
+      {
+        "tag": "BUTTON",
+        "label": "SAUMURE",
+        "inside": true,
+        "bottom": 699
+      },
+      {
+        "tag": "INPUT",
+        "label": null,
+        "inside": true,
+        "bottom": 728
+      }
+    ],
+    "actualCharacter": "pickle",
+    "maxHp": 4,
+    "skillCooldown": 7392,
+    "botCharacter": "toast"
+  },
+  {
+    "character": "toast",
+    "width": 320,
+    "height": 740,
+    "errors": [],
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "label": "Arène : ZQSD ou flèches pour bouger, souris pour viser, clic pour frapper, espace pour esquiver, E pour le pouvoir.",
+        "inside": true,
+        "bottom": 419
+      },
+      {
+        "tag": "DIV",
+        "label": "Déplacement",
+        "inside": true,
+        "bottom": 567
+      },
+      {
+        "tag": "DIV",
+        "label": "Visée, relâche pour frapper",
+        "inside": true,
+        "bottom": 567
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 495
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 545
+      },
+      {
+        "tag": "BUTTON",
+        "label": "CROÛTE !",
+        "inside": true,
+        "bottom": 595
+      },
+      {
+        "tag": "INPUT",
+        "label": null,
+        "inside": true,
+        "bottom": 624
+      }
+    ],
+    "actualCharacter": "toast",
+    "maxHp": 5,
+    "skillCooldown": 7171,
+    "botCharacter": "flan"
+  },
+  {
+    "character": "pickle",
+    "width": 320,
+    "height": 650,
+    "errors": [],
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "label": "Arène : ZQSD ou flèches pour bouger, souris pour viser, clic pour frapper, espace pour esquiver, E pour le pouvoir.",
+        "inside": true,
+        "bottom": 330
+      },
+      {
+        "tag": "DIV",
+        "label": "Déplacement",
+        "inside": true,
+        "bottom": 478
+      },
+      {
+        "tag": "DIV",
+        "label": "Visée, relâche pour frapper",
+        "inside": true,
+        "bottom": 478
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 406
+      },
+      {
+        "tag": "BUTTON",
+        "label": null,
+        "inside": true,
+        "bottom": 456
+      },
+      {
+        "tag": "BUTTON",
+        "label": "SAUMURE",
+        "inside": true,
+        "bottom": 506
+      },
+      {
+        "tag": "INPUT",
+        "label": null,
+        "inside": true,
+        "bottom": 532
+      }
+    ],
+    "actualCharacter": "pickle",
+    "maxHp": 4,
+    "skillCooldown": 7439,
+    "botCharacter": "toast"
+  }
+]

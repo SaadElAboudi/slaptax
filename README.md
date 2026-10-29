@@ -5,6 +5,12 @@ EN: Mobile social competition platform built around fast mini-games, 1v1 friend 
 
 Tagline: `Tape. Encaisse. Encaisse encore.`
 
+Nouvelle arène : **[Poule Position](docs/POULE_POSITION.md)** — un poulet royal à capturer, des lancers et des œufs géants. [Validation web/mobile](docs/qa/poule-position-validation.md).
+
+[Qualité des douze jeux : commandes, rendu et retours de jeu](docs/QUALITE_JEUX.md).
+
+[Combat tactique de l’arène : réserves, récupération et trois supers](docs/COMBAT_ARENE.md).
+
 ## Why This Project
 
 FR: Les jeux casual existent deja. Ce qui manque, c'est une experience qui combine en meme temps:
@@ -65,12 +71,13 @@ EN: This repository now contains a playable MVP:
 FR: Le projet reste un prototype produit. Les soldes, mises et gains sont des credits de demo (`SLAP$`), pas de l'argent reel.  
 EN: This is still a product prototype. Balances, stakes, and payouts are demo credits (`SLAP$`), not real money.
 
-## Business Model Snapshot
+## Économie actuelle des jetons
 
-FR/EN:
-- Tournament fee target: `~6% to 8%`.
-- Direct challenge fee target: `~12% to 15%`.
-- Core logic: the platform wins when players play, not through ads-first design.
+Les jetons sont fictifs et gratuits. Les duels en direct conservent la mise et le gain :
+15 % du pot est retiré, le gagnant reçoit 85 % du pot, mise comprise. Les modes sans
+mise restent disponibles. Bonus quotidien, entraînements récompensés plafonnés et
+coup de pouce limité sont détaillés dans [les règles des jetons](docs/ECONOMIE_JETONS.md).
+Les points de manche, l'XP, le rang et les jetons sont distincts.
 
 ## Repo Map
 
@@ -243,3 +250,18 @@ EN: Any real-money gameplay or wallet operation requires proper legal review, pa
 
 Project: `SLAP$TAX`
 Please feel free to reach out
+
+## Applications iOS et Android
+
+Les projets natifs, scripts de compilation et fiches des stores sont préparés : voir [mobile/README.md](mobile/README.md). Studio proposé : Gignoski Games ; support : gignoski@gmail.com. Les builds mobiles nécessitent Node 22+, le mode serveur `APP_DISTRIBUTION=store`, un backend de la même révision et les signatures propres à chaque store. La préparation du dépôt ne constitue pas une publication.
+
+## Développement commun web et apps
+
+Les jeux partagent le même code sur le site, Android et iOS. Après une évolution,
+utiliser `npm run build:all` (Node 22+) pour construire le web et synchroniser les
+deux projets natifs. `npm run mobile:check` détecte les sources ou bundles
+obsolètes. Voir [le guide mobile](mobile/README.md) et [les consignes du dépôt](AGENTS.md).
+Les binaires et leur distribution nécessitent ensuite une compilation et une signature.
+
+La [soirée entre amis](docs/SOIREE_ENTRE_AMIS.md) propose trois manches à quatre,
+un score cumulé et une revanche dans le même salon. Les jeux bonus restent accessibles.

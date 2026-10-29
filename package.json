@@ -5,11 +5,14 @@
     "description": "SLAPTAX MVP API server",
     "main": "api/server.js",
     "scripts": {
-        "build": "npm --prefix web ci && npm --prefix web run build",
+        "build": "npm --prefix web ci --include=dev && npm --prefix web run build",
         "start": "node api/server.js",
         "dev": "node api/server.js",
         "mat:refresh": "node api/scripts/importMatPuzzles.js",
-        "test": "node --test api/tests/*.test.js"
+        "test": "node --test api/tests/*.test.js",
+        "build:all": "npm --prefix web run build:all",
+        "mobile:sync": "npm --prefix web run mobile:sync",
+        "mobile:check": "npm --prefix web run mobile:check"
     },
     "engines": {
         "node": ">=18"

@@ -1,0 +1,31 @@
+{
+  "id": "09-trace-confiance",
+  "day": 9,
+  "game": "trace",
+  "series": "Entre amis",
+  "hook": "« J’ai une mémoire parfaite. »",
+  "duration": 18,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Il disait avoir une mémoire parfaite. On a vérifié. À ton tour.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "« J’ai une mémoire parfaite. »"
+    },
+    {
+      "from": 3,
+      "to": 15,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 15,
+      "to": 18,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

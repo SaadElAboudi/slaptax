@@ -1,0 +1,47 @@
+{
+  "id": "01-decoupe-37",
+  "day": 1,
+  "game": "decoupe",
+  "series": "Défi solo",
+  "hook": "Découpe exactement 37 %.",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Choisis le côté que tu gardes. Valide. Quarante-trois virgule trois pour cent. Tu fais mieux ? À toi de jouer sur Slap Tax.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 2.7,
+      "text": "Découpe 37 %. À vue d’œil."
+    },
+    {
+      "from": 2.7,
+      "to": 4.5,
+      "text": "Trace une ligne."
+    },
+    {
+      "from": 4.5,
+      "to": 6.5,
+      "text": "Choisis le côté à garder."
+    },
+    {
+      "from": 6.5,
+      "to": 7.033333333333333,
+      "text": "Valide ta coupe."
+    },
+    {
+      "from": 7.033333333333333,
+      "to": 12,
+      "text": "43,3 % gardés. 6,3 points d’écart."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Tu fais mieux ? À toi de jouer."
+    }
+  ],
+  "renderer": "decoupe-engine-demo"
+}

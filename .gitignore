@@ -16,3 +16,32 @@ data/*.tmp
 
 # macOS
 .DS_Store
+
+# Mobile: generated assets/builds and local signing configuration
+web/.env*.local
+web/ios/App/App/public/
+web/ios/App/App/capacitor.config.json
+web/ios/DerivedData/
+web/android/.gradle/
+web/android/local.properties
+web/android/**/build/
+web/android/app/src/main/assets/public/
+web/android/app/src/main/assets/capacitor.config.json
+web/android/app/src/main/assets/capacitor.plugins.json
+web/android/capacitor-cordova-android-plugins/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+web/android/keystore.properties
+mobile/artifacts/
+
+# Local environment and Apple upload keys
+.env
+.env.*
+!.env.example
+!web/.env.mobile.example
+*.p8
+
+# Separate native web bundle (never served as the website)
+web/dist-mobile/

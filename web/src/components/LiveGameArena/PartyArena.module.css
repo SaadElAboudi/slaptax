@@ -101,3 +101,13 @@
 .arena[data-game] .stackSurface canvas{display:block}
 .arena[data-game] .stackMoment{color:#ffe39a;font-size:19px;min-height:26px}
 @media(max-width:600px){.arena[data-game]{padding:8px 10px 12px;gap:6px}.arena[data-game=onemore] .stackSurface canvas{height:min(320px,max(200px,calc(100svh - 400px)))}}
+.arena[data-game=snack]>.hud{display:none}.arena[data-game=snack]{padding:10px 12px 14px}
+/* A distinct palette surrounds each world; hitboxes and canvas geometry stay exact. */
+.arena[data-game=pie]{background:#263f52}.arena[data-game=balloon]{background:#49354d}.arena[data-game=lift]{background:#334c45}.arena[data-game=pigeon]{background:#294353}.arena[data-game=toilet]{background:#26474c}.arena[data-game=table]{background:#433b48}.arena[data-game=chicken]{background:#3c3854}.arena[data-game=snack]{background:#29443f}.arena[data-game=garde]{background:#39364c}.arena[data-game=decoupe]{background:#314949}.arena[data-game=onemore]{background:#29464c}
+.arena[data-game] button:focus-visible{outline:3px solid #fff2b9;outline-offset:3px}.arena[data-game] button{font-variant-numeric:tabular-nums}
+:global([data-game-session=onemore]) .stackSurface{width:min(650px,100%)}
+:global([data-game-session=onemore]) .stackSurface canvas{height:clamp(210px,calc(100svh - 360px),540px)}
+:global([data-game-session=onemore]) .stackFooter{width:min(650px,100%)}
+:global([data-game-session]) .feedback:empty{display:none}
+
+:global([data-game-session=onemore]) .stackSurface canvas{height:clamp(210px,calc(100svh - 420px),490px)}

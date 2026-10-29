@@ -1,0 +1,31 @@
+{
+  "id": "16-garde-lecture",
+  "day": 16,
+  "game": "garde",
+  "series": "Entre amis",
+  "hook": "Il va attaquer. Ou il veut que tu le croies.",
+  "duration": 20,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Attaquer, défendre ou charger ? Le problème, c’est qu’il te connaît.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Il va attaquer. Ou il veut que tu le croies."
+    },
+    {
+      "from": 3,
+      "to": 17,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 17,
+      "to": 20,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

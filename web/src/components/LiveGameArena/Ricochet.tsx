@@ -1,3 +1,4 @@
+import {startGameLoop} from '../../gameplay/gameLoop';
 import {useEffect,useRef,useState} from 'react';
 import {Check,Send} from 'lucide-react';
 import type {PartyState,RicochetBoard} from '../../gameplay/party';
@@ -14,7 +15,7 @@ export function Ricochet({party,identity,active,isFr,send}:{party:PartyState;ide
     useEffect(()=>{
         const surface=canvas.current;if(!surface)return;
         const resize=()=>{const size=Math.round(surface.clientWidth*Math.min(2,devicePixelRatio||1));surface.width=size;surface.height=size;};
-        resize();const observer=new ResizeObserver(resize);observer.observe(surface);let raf=0;
+        resize();const observer=new ResizeObserver(resize);observer.observe(surface);
         const draw=(now:number)=>{
             const ctx=surface.getContext('2d'),s=state.current,f=frames.current,t=Math.min(1,(now-f.at)/50);
             let board=f.after;
@@ -22,9 +23,9 @@ export function Ricochet({party,identity,active,isFr,send}:{party:PartyState;ide
                 const prev=f.before?.pucks.find((v)=>v.id===p.id);return prev ? {...p,x:prev.x+(p.x-prev.x)*t,y:prev.y+(p.y-prev.y)*t}:p;
             })};
             if(ctx)paintRicochet(ctx,board,identity,surface.width,surface.height,s.party.phase==='aim' ? {angle:s.angle,power:s.power}:undefined);
-            raf=requestAnimationFrame(draw);
+
         };
-        raf=requestAnimationFrame(draw);return()=>{cancelAnimationFrame(raf);observer.disconnect();};
+        const stopLoop=startGameLoop(draw);return()=>{stopLoop();observer.disconnect();};
     },[identity]);
     function aim(e:React.PointerEvent<HTMLCanvasElement>) {
         if(!enabled)return;

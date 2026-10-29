@@ -1,4 +1,5 @@
 function getStats(history) {
+    history=(history||[]).filter(h=>['WIN','LOSS'].includes(h.result));
     const matches = history.length;
     const wins = history.filter((h) => h.result === "WIN").length;
     const losses = matches - wins;

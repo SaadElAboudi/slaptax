@@ -35,3 +35,8 @@
 .fighter{z-index:1}.armor{background:transparent;border:0;box-shadow:none}.charge{background:#29454b;color:#fff0bf;border-radius:6px;padding:4px 5px}.health{color:#f7efd9}.controls button{border-color:#152b37;box-shadow:0 4px #152b37,inset 0 2px #ffffff44}.status{color:#f0edda}.vs{background:#f7d382;color:#203b43;border:3px solid #152b37;box-shadow:0 3px #152b37}
 @media(max-width:600px){.field{min-height:170px}.armor{height:100px;width:95px}.prop{top:65px;width:60px;height:60px}.controls button{min-height:62px}}
 @media(max-width:600px) and (max-height:700px){.field{min-height:138px}.armor{height:78px;width:80px}.prop{top:47px;width:53px;height:53px}}
+:global([data-game-session]) .game{max-width:760px;outline:none}
+:global([data-game-session]) .field{min-height:clamp(180px,34svh,340px);border:3px solid #203746;border-radius:24px;background:radial-gradient(ellipse at 50% 80%,#b2a88a33,#263c4b88);box-shadow:inset 0 -14px #172e3b44,0 6px #172e3b}
+:global([data-game-session]) .controls button{min-height:84px;border-radius:14px}
+:global([data-game-session]) .game:focus-visible{outline:3px solid #ffe69f;outline-offset:4px;border-radius:14px}
+@media(max-width:600px){:global([data-game-session]) .field{min-height:180px}:global([data-game-session]) .controls button{min-height:76px}}

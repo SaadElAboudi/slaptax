@@ -2,3 +2,5 @@
 /* Keep the dash control in view on short screens as well as the board. */
 .game{max-width:min(540px,max(220px,calc(100svh - 440px)))}
 .game{max-width:min(560px,max(220px,calc(100svh - 335px)));gap:8px}.board{border-color:#152b37;box-shadow:0 5px #152b37}.game header>span{background:#253e46;border-color:#152b37}.hint{margin:3px 0}.warning{margin:3px 0}.footer button{background:#ffdb88;border-color:#152b37}
+:global([data-game-session]) .game{max-width:min(720px,max(210px,calc(100svh - 255px)))}
+@media(max-width:600px){:global([data-game-session]) .game{max-width:min(100%,max(210px,calc(100svh - 255px)))}}

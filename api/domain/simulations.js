@@ -2,6 +2,8 @@ const selection=require('../../shared/game-selection.json');
 const { toMoney2 } = require("../shared/money");
 
 const P2P_GAME_LIBRARY = {
+    chicken:{label:'Poultry Panic',metric:[0,1000],elite:900,hard:650},
+    snack:{label:'Snack Heist',metric:[0,1000],elite:900,hard:650},
     pigeon:{label:'Pigeon Express',metric:[0,4000],elite:3200,hard:2400},
     lift:{label:'Elevator of Farts',metric:[0,3000],elite:2600,hard:1800},
     pie:{label:'Pie in Your Face',metric:[0,5000],elite:4000,hard:3000},

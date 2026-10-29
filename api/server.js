@@ -5,7 +5,7 @@ const { createService } = require("./application/service");
 const { createStore } = require("./infrastructure/store");
 const { createRequestHandler } = require("./http/router");
 const { createRealtimeHub } = require("./realtime");
-const { json } = require("./http/io");
+const { json,parseBody } = require("./http/io");
 const { createMonitoring, adminAuthorized } = require('./application/monitoring');
 
 const PORT = Number(process.env.PORT || 8787);
@@ -58,15 +58,18 @@ function serveWebApp(req, res, distPath = WEB_DIST_PATH) {
 }
 
 function createServer(options = {}) {
+    if(process.env.NODE_ENV==='production'&&!options.store&&!options.databaseUrl&&!process.env.DATABASE_URL)throw new Error('Production requires DATABASE_URL for persistent token balances.');
     const store = options.store || createStore(options);
-    const service = createService(store);
-    const handleRequest = createRequestHandler(service);
+    const storeDistribution=options.storeDistribution??(process.env.APP_DISTRIBUTION==='store'||process.env.NODE_ENV==='production');
+    const service = createService(store,{storeDistribution});
+    const ready=store.ready.then(async()=>{service.recoverInterruptedDuels();if(store.flush)await store.flush();});
+    const handleRequest = createRequestHandler(service,{storeDistribution,flush:()=>store.flush?.(),onAccountDeleted:(userId)=>server.realtime.removeUser(userId)});
     const monitoring = createMonitoring(store);
     const adminToken = options.adminToken ?? process.env.ADMIN_TOKEN;
 
     const server = http.createServer(async (req, res) => {
         try {
-            await store.ready;
+            await ready;
             const url = new URL(req.url, "http://localhost");
             if (url.pathname.startsWith('/api/admin/')) {
                 res.setHeader('Cache-Control', 'no-store');
@@ -75,6 +78,19 @@ function createServer(options = {}) {
                     json(res, 401, { error: 'Acces administrateur refuse.' });
                     return;
                 }
+                if(req.method==='GET'&&url.pathname==='/api/admin/token-audit'){json(res,200,require('./domain/tokens').audit(store.read()));return;}
+                const reportAction=url.pathname.match(/^\/api\/admin\/player-reports\/([^/]+)\/resolve$/);
+                if(req.method==='POST'&&reportAction){
+                    const body=await parseBody(req),db=store.read(),report=db.playerReports?.find(r=>r.id===reportAction[1]);
+                    if(!report){json(res,404,{error:'Report not found'});return;}
+                    if(!['dismiss','suspend'].includes(body.action)){json(res,400,{error:'Choose dismiss or suspend'});return;}
+                    report.status='resolved';report.resolution=body.action;report.resolvedAt=Date.now();
+                    if(body.action==='suspend'){const target=db.users.find(u=>u.id===report.targetId);if(target){target.suspended=true;target.playerName='Joueur suspendu';}for(const challenge of db.challenges||[])if(challenge.challengerId===report.targetId)challenge.message='';}
+                    store.write(db);if(store.flush)await store.flush();
+                    if(body.action==='suspend')for(const client of server.realtime.wss.clients)if(client.userId===report.targetId)client.terminate();
+                    json(res,200,{ok:true});return;
+                }
+                if(req.method==='GET'&&url.pathname==='/api/admin/player-reports'){json(res,200,{reports:store.read().playerReports||[]});return;}
                 if (req.method === 'GET' && url.pathname === '/api/admin/monitoring') {
                     json(res, 200, monitoring.snapshot(server.realtime.getPresence()));
                 } else json(res, 404, { error: 'Not found' });
@@ -100,12 +116,14 @@ function createServer(options = {}) {
             if (serveWebApp(req, res, options.webDistPath || WEB_DIST_PATH)) return;
             json(res, 404, { error: "Web build not found. Run npm run build." });
         } catch (err) {
-            json(res, 500, { error: err.message || "Internal server error" });
+            process.stderr.write(`Request failed: ${err.message}\n`);json(res, [400,413].includes(err.statusCode)?err.statusCode:500, { error:[400,413].includes(err.statusCode)?err.message:"Service temporairement indisponible. Réessaie sans recréer ton profil." });
         }
     });
+    server.requestTimeout=15000;server.headersTimeout=10000;
     server.store = store;
+    server.ready=ready;
     server.monitoring = monitoring;
-    server.realtime = createRealtimeHub(server, store, service);
+    server.realtime = createRealtimeHub(server, store, service,{storeDistribution});
     // HTTP close waits for upgraded sockets: drain them before waiting for it.
     const closeHttp = server.close.bind(server);
     server.close = function closeWithRealtime(callback) {
@@ -115,12 +133,13 @@ function createServer(options = {}) {
     service.getPresence = () => server.realtime.getPresence();
     const health=service.getHealth;
     service.getHealth=()=>({...health(),mat:server.realtime.sharedArena.matPool.health()});
+    const recoveryTimer=setInterval(()=>{ready.then(async()=>{if(service.expireStalledDuels()){if(store.flush)await store.flush();server.realtime.broadcast({type:'state.changed',scope:'/api/tokens/refund'});}}).catch(error=>process.stderr.write(`Recovery persistence error: ${error.message}\n`));},15000);recoveryTimer.unref();
     const metricsTimer = setInterval(() => {
         store.ready.then(() => monitoring.flush()).catch(error => process.stderr.write(`Monitoring persistence error: ${error.message}\n`));
     }, 30000);
     metricsTimer.unref();
     server.on("close", () => {
-        clearInterval(metricsTimer);
+        clearInterval(metricsTimer);clearInterval(recoveryTimer);
         monitoring.flush();
         server.realtime.close();
     });
@@ -130,7 +149,7 @@ function createServer(options = {}) {
 if (require.main === module) {
     const server = createServer();
     const stopMatRefresh=require('./infrastructure/matRefresh').startMatRefresh(server.realtime.sharedArena.matPool);
-    server.store.ready
+    server.ready
         .then(() => {
             server.listen(PORT, HOST, () => {
                 process.stdout.write(`SLAP$TAX API listening on http://${HOST}:${PORT} (${server.store.kind})\n`);

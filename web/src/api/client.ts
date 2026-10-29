@@ -1,3 +1,4 @@
+import {apiBase as getBase,sessionHeaders} from '../platform/environment';
 import type { CompetitiveGameId } from '../gameplay/catalog';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,7 +20,7 @@ export interface GameState {
     progression?: PlayerProgression;
 }
 
-export interface SoloReward {xpGain:number;previousBest:number;newBest:boolean;score:number;dailyCompleted:boolean;badges:string[];level:number;levelUp:boolean;unlocked:Array<{kind:string;id:string}>}
+export interface SoloReward {tokensEarned?:number;xpGain:number;previousBest:number;newBest:boolean;score:number;dailyCompleted:boolean;badges:string[];level:number;levelUp:boolean;unlocked:Array<{kind:string;id:string}>}
 export interface SoloProgress {plays:number;best:Record<string,number>;badges:string[];daily:{day:string;games:string[];completed:string[];rewarded:boolean;xpPlays:number}}
 export interface PlayerProgression {
     solo?: SoloProgress;
@@ -294,6 +295,9 @@ export interface LiveDuelMatch {
     opponentId: string;
     opponentName: string;
     stake: number;
+    tokenQuote?:TokenQuote;
+    tokenSettlement?:{payout:number;fee:number;net:number}|null;
+    cancellationReason?:string|null;
     games: CompetitiveGameId[];
     currentRound: number;
     score: { challenger: number; opponent: number };
@@ -370,7 +374,7 @@ export interface MultiplayerTournament {
     hostId: string;
     size: 4 | 8 | 16;
     visibility: 'public' | 'private';
-    status: 'waiting' | 'playing' | 'done';
+    status: 'waiting' | 'playing' | 'done' | 'cancelled';
     entrants: Array<{ id: string; name: string; online: boolean; bot: boolean; ready: boolean }>;
     readyBy: Record<string, boolean>;
     games: CompetitiveGameId[];
@@ -485,15 +489,6 @@ export type ProductEventType =
 
 // ─── Client ───────────────────────────────────────────────────────────────────
 
-const DEFAULT_BASE = '';
-
-function getBase(): string {
-    try {
-        return localStorage.getItem('slaptax_api_base') || DEFAULT_BASE;
-    } catch {
-        return DEFAULT_BASE;
-    }
-}
 
 async function req<T>(
     method: string,
@@ -502,9 +497,12 @@ async function req<T>(
     base?: string
 ): Promise<T> {
     const apiBase = base ?? getBase();
+    const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),15000);
+    try{
     const res = await fetch(`${apiBase}${path}`, {
+        signal:controller.signal,
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',...sessionHeaders() },
         body: body !== undefined ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) {
@@ -518,10 +516,18 @@ async function req<T>(
         }
         throw new Error(detail || `Request failed (${res.status})`);
     }
-    return res.json() as Promise<T>;
+    return await res.json() as T;
+    }catch(error){if(controller.signal.aborted)throw new Error('Connexion trop lente. Vérifie le résultat avant de réessayer.');throw error;}finally{window.clearTimeout(timeout);}
 }
 
+export interface TokenQuote {version:number;stake:number;pot:number;fee:number;payout:number;net:number;feePercent:number}
+export interface TokenWallet {ok:boolean;balance:number;openingBalance:number;held:number;policy:{welcome:number;dailyBonus:number;practiceReward:number;practiceDailyLimit:number;rescueBonus:number;minimumStake:number;feePercent:number};quotes:TokenQuote[];rewards:{dailyAvailable:boolean;rescueAvailable:boolean;practiceEarned:number;nextResetAt:number};journal:Array<{id:string;reason:string;delta:number;balance:number;at:string;reference:string|null}>}
+
 export const api = {
+    getTokenWallet:()=>req<TokenWallet>('GET','/api/tokens'),
+    claimTokenReward:(kind:'daily'|'rescue')=>req<TokenWallet&{claimed:boolean;amount:number}>('POST','/api/tokens/claim',{kind}),
+    playerSafety:(body:{userId:string;clientId:string;action:'list'|'block'|'unblock'|'report';targetId?:string;reason?:string})=>req<{ok:boolean;blockedUsers:string[]}>('POST','/api/player-safety',body),
+    deleteAccount:(userId:string,clientId:string)=>req<{ok:boolean}>('POST','/api/account/delete',{userId,clientId,confirm:true}),
     health: (base?: string) => req<HealthResponse>('GET', '/api/health', undefined, base),
 
     getState: (userId?: string | null, clientId?: string | null) => {
@@ -592,8 +598,8 @@ export const api = {
     createDuel: (challengerId: string, opponentId: string, stake: number, draft?: unknown) =>
         req<CreateDuelResponse>('POST', '/api/duels', { challengerId, opponentId, stake, draft }),
 
-    joinMatchmaking: (userId: string, stake: number) =>
-        req<{ ok: boolean; status: 'waiting' | 'matched'; duel?: P2PDuel }>('POST', '/api/matchmaking/join', { userId, stake }),
+    joinMatchmaking: (userId: string, stake: number, gameId?:string) =>
+        req<{ ok: boolean; status: 'waiting' | 'matched'; duel?: P2PDuel }>('POST', '/api/matchmaking/join', { userId, stake, gameId }),
 
     getMatchmakingStatus: (userId: string) =>
         req<{ ok: boolean; status: 'idle' | 'waiting' | 'matched'; joinedAt?: string | null; duel?: P2PDuel }>(

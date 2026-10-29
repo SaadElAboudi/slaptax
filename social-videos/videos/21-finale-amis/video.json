@@ -1,0 +1,31 @@
+{
+  "id": "21-finale-amis",
+  "day": 21,
+  "game": "rotation",
+  "series": "Entre amis",
+  "hook": "Bons amis. Mauvais perdants.",
+  "duration": 24,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Trois jeux. Deux potes. Un seul qui va en reparler toute la semaine. Défie le tien.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Bons amis. Mauvais perdants."
+    },
+    {
+      "from": 3,
+      "to": 21,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 21,
+      "to": 24,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+const tokens=require('../domain/tokens');
+const {createPlayerSafety,blockedPair}=require('./playerSafety');
+const {createAccountDeletion}=require('./accountDeletion');
 const {applySoloRun,publicSolo,ensureSolo} = require('../domain/soloProgression');
 const { getStats } = require("../domain/stats");
 const {
@@ -15,14 +18,12 @@ const { PARTY_IDS } = require('../games/partyGames');
 const { GAME_POOL, newVeto, tournamentVeto, pruneQueue } = require('../domain/veto');
 const { createLinkChallenges } = require('./linkChallenges');
 
-const ALLOWED_STAKES = [2, 5, 10, 20];
+const ALLOWED_STAKES = tokens.policy.stakes;
 const ALLOWED_TOURNAMENT_SIZES = [4, 8, 16];
 
-const MAX_DAILY_GAIN = 200; // SLAP$ max a user can earn in one calendar day
-const WALLET_FLOOR = 2;     // auto-credit threshold (lowest allowed stake)
-const WALLET_FLOOR_CREDIT = 10; // SLAP$ given when wallet hits floor
-
 const DRAFT_GAMES = [
+    {id:'snack',label:'Snack Heist'},
+    {id:'chicken',label:'Poultry Panic'},
     {id:'pigeon',label:'Pigeon Express'},{id:'lift',label:'Elevator of Farts'},
     {id:'pie',label:'Pie in Your Face'},{id:'balloon',label:'Pump or Pop'},
     {id:'toilet',label:'Toilet Panic'},
@@ -256,43 +257,21 @@ function rankFromPoints(points) {
     return "Rookie";
 }
 
-function awardCompetitiveProgress(user, gameId, won, matchWon = false) {
-    const progression = ensureUserProgression(user);
-    const mastery = progression.mastery[gameId] || { xp: 0, wins: 0, plays: 0 };
-    const xpGain = 35 + (won ? 35 : 0) + (matchWon ? 55 : 0);
-    progression.xp += xpGain;
-    progression.level = Math.max(1, Math.floor(Math.sqrt(progression.xp / 120)) + 1);
-    progression.rankedPoints = Math.max(0, progression.rankedPoints + (matchWon ? 42 : won ? 12 : -18));
-    mastery.xp += 24 + (won ? 28 : 0);
-    mastery.plays += 1;
-    if (won) mastery.wins += 1;
-    progression.mastery[gameId] = mastery;
+function awardCompetitiveProgress(user,gameId,won){
+ const p=ensureUserProgression(user),m=p.mastery[gameId]||{xp:0,wins:0,plays:0};
+ const xpGain=won?70:35;p.xp+=xpGain;m.xp+=won?52:24;m.plays++;if(won)m.wins++;p.mastery[gameId]=m;
+ p.level=Math.max(1,Math.floor(Math.sqrt(p.xp/120))+1);
+ if(m.wins>=10&&!p.badges.includes(`${gameId}:specialist`))p.badges.push(`${gameId}:specialist`);
+ return {xpGain,level:p.level,rank:rankFromPoints(p.rankedPoints),mastery:m};
+}
 
-    if (matchWon) {
-        progression.winStreak += 1;
-        progression.bestStreak = Math.max(progression.bestStreak, progression.winStreak);
-        const today = getTodayKeyUtc();
-        if (progression.firstWinDay !== today) {
-            progression.firstWinDay = today;
-            progression.xp += 100;
-        }
-    } else if (matchWon === false && !won) {
-        progression.winStreak = 0;
-    }
-
-    const badges = new Set(progression.badges);
-    if (mastery.wins >= 10) badges.add(`${gameId}:specialist`);
-    if (progression.bestStreak >= 3) badges.add("hot-streak");
-    if (progression.bestStreak >= 10) badges.add("unstoppable");
-    if (progression.level >= 10) badges.add("arena-regular");
-    progression.badges = [...badges];
-
-    return {
-        xpGain,
-        level: progression.level,
-        rank: rankFromPoints(progression.rankedPoints),
-        mastery: progression.mastery[gameId],
-    };
+function awardMatchProgress(user,won){
+ const p=ensureUserProgression(user);p.xp+=won?55:15;p.rankedPoints=Math.max(0,p.rankedPoints+(won?42:-18));
+ p.winStreak=won?p.winStreak+1:0;p.bestStreak=Math.max(p.bestStreak,p.winStreak);
+ if(won&&p.firstWinDay!==getTodayKeyUtc()){p.firstWinDay=getTodayKeyUtc();p.xp+=100;}
+ if(p.bestStreak>=3&&!p.badges.includes('hot-streak'))p.badges.push('hot-streak');
+ if(p.bestStreak>=10&&!p.badges.includes('unstoppable'))p.badges.push('unstoppable');
+ p.level=Math.max(1,Math.floor(Math.sqrt(p.xp/120))+1);if(p.level>=10&&!p.badges.includes('arena-regular'))p.badges.push('arena-regular');
 }
 
 function advanceDailyTask(user, taskId, amount = 1) {
@@ -372,30 +351,6 @@ function recordProductEvent(db, type, userId, properties = {}) {
 }
 
 /** Total net gains today (UTC day) for a user. */
-function dailyGainToday(user) {
-    const todayPrefix = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-    return user.history.reduce((sum, h) => {
-        if (h.date && h.date.startsWith(todayPrefix) && h.net > 0) {
-            return sum + h.net;
-        }
-        return sum;
-    }, 0);
-}
-
-/** Apply wallet floor: if wallet < WALLET_FLOOR, top up to WALLET_FLOOR_CREDIT. */
-function applyWalletFloor(user) {
-    if (user.wallet < WALLET_FLOOR) {
-        user.wallet = toMoney2(user.wallet + WALLET_FLOOR_CREDIT);
-        pushHistory(user, {
-            type: "FLOOR_CREDIT",
-            result: "CREDIT",
-            stake: 0,
-            net: WALLET_FLOOR_CREDIT,
-            note: "Wallet floor auto-credit",
-        });
-    }
-}
-
 function getActiveUser(db) {
     return db.users.find((u) => u.id === db.activeUserId) || db.users[0];
 }
@@ -584,6 +539,9 @@ function publicDuelMatch(duel, userId, db) {
         opponentId: duel.opponentId,
         opponentName: usersById[opponentId]?.playerName || "Rival",
         stake: duel.stake,
+        tokenQuote:duel.tokenQuote||tokens.quote(duel.stake),
+        tokenSettlement:duel.tokenEscrow?.status==='settled'?{payout:duel.tokenEscrow.payout,fee:duel.tokenEscrow.fee,net:userId===duel.winnerId?duel.tokenQuote.net:-duel.stake}:null,
+        cancellationReason:duel.cancellationReason||null,
         games: duel.games || [],
         currentRound: duel.currentRound || 1,
         score: duel.score || { challenger: 0, opponent: 0 },
@@ -619,20 +577,20 @@ function publicDuelMatch(duel, userId, db) {
 }
 
 function settleLiveDuel(db, duel, winnerId) {
+    if(duel.status==='done'||duel.tokenEscrow?.status==='settled')return;
     const challenger = db.users.find((user) => user.id === duel.challengerId);
     const opponent = db.users.find((user) => user.id === duel.opponentId);
     const loserId = winnerId === duel.challengerId ? duel.opponentId : duel.challengerId;
     const winner = winnerId === challenger.id ? challenger : opponent;
     const stake = duel.stake;
-    const payout = toMoney2(stake * 2 * 0.85);
-    const gainToday = dailyGainToday(winner);
-    const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
-    const cappedPayout = toMoney2(Math.min(payout, stake + allowedGain));
+    const payout = (duel.tokenQuote||tokens.quote(stake)).payout;
+
+    const cappedPayout = payout;
     const winnerNet = toMoney2(cappedPayout - stake);
     const loserNet = toMoney2(-stake);
     const capApplied = cappedPayout < payout;
 
-    winner.wallet = toMoney2(winner.wallet + cappedPayout);
+    tokens.settle(db,duel,winnerId);
     pushHistory(challenger, {
         type: "DUEL_P2P",
         result: winnerId === challenger.id ? "WIN" : "LOSS",
@@ -654,8 +612,6 @@ function settleLiveDuel(db, duel, winnerId) {
         ...(winnerId === opponent.id && capApplied ? { capApplied: true } : {}),
     });
 
-    applyWalletFloor(challenger);
-    applyWalletFloor(opponent);
     duel.status = "done";
     duel.winnerId = winnerId;
     duel.loserId = loserId;
@@ -680,8 +636,7 @@ function settleLiveDuel(db, duel, winnerId) {
     db.rivalries[pairKey].last5 = db.rivalries[pairKey].last5.slice(0, 5);
 
     const finalGame = duel.rounds.at(-1)?.gameId || duel.games?.[duel.currentRound - 1] || "bounce";
-    awardCompetitiveProgress(winner, finalGame, true, true);
-    awardCompetitiveProgress(winnerId === challenger.id ? opponent : challenger, finalGame, false, false);
+    if(!/forfeit|no-show|disconnect/.test(duel.rounds.at(-1)?.detail||'')){awardMatchProgress(winner,true);awardMatchProgress(winnerId===challenger.id?opponent:challenger,false);}
     advanceDailyTask(challenger, "duel_complete");
     advanceDailyTask(opponent, "duel_complete");
     advanceMultiplayerTournament(db, duel);
@@ -715,7 +670,7 @@ function statePayload(db, userId, clientId) {
         schemaVersion: SCHEMA_VERSION,
         currency: db.currency || "SLAP$",
         activeUserId: activeUser.id,
-        users: db.users.map((u) => ({
+        users: db.users.filter(u=>!u.suspended).map((u) => ({
             id: u.id,
             playerName: u.playerName,
             wallet: u.wallet,
@@ -740,11 +695,40 @@ function statePayload(db, userId, clientId) {
     };
 }
 
-function createService(store) {
+function createService(store,options={}) {
     return {
         ...createLinkChallenges(store),
+        ...createAccountDeletion(store),
+        ...createPlayerSafety(store),
+        getTokenWallet(userId,clientId){
+            if(!this.authenticateSession(userId,clientId))return {error:'Session unavailable',code:403};
+            const db=store.read(),user=db.users.find(u=>u.id===userId),result=tokens.snapshot(user,db);store.write(db);return result;
+        },
+        claimTokenReward(userId,clientId,kind){
+            if(!this.authenticateSession(userId,clientId))return {error:'Session unavailable',code:403};
+            const db=store.read(),user=db.users.find(u=>u.id===userId),receipt=tokens.claim(user,db,kind);if(receipt.error)return receipt;
+            store.write(db);return {...tokens.snapshot(user,db),...receipt};
+        },
+        expireStalledDuels(now=Date.now()){
+            const db=store.read(),stale=(db.duels||[]).filter(d=>d.status==='playing'&&now-Date.parse(d.roundStartedAt||d.startedAt||d.createdAt)>20*60000);
+            const ids=new Set(stale.map(d=>d.id)),tournaments=new Set(stale.map(d=>d.tournamentId).filter(Boolean));let count=0;
+            for(const d of db.duels||[])if(['playing','pending'].includes(d.status)&&(ids.has(d.id)||tournaments.has(d.tournamentId))){if(d.status==='playing')tokens.refund(db,d,'inactive_timeout');d.status='cancelled';d.cancellationReason='inactive_timeout';count++;}
+            for(const t of db.tournaments||[])if(tournaments.has(t.id)){t.status='cancelled';t.cancellationReason='inactive_timeout';}
+            if(count)store.write(db);return count;
+        },
+        recoverInterruptedDuels(){
+            const db=store.read(),active=(db.tournaments||[]).filter(t=>t.status==='playing'),tournaments=new Set(active.map(t=>t.id));let count=0;
+            for(const d of db.duels||[])if(d.status==='playing'||d.status==='pending'&&tournaments.has(d.tournamentId)){
+                if(d.status==='playing')tokens.refund(db,d,'server_restart');d.status='cancelled';d.cancellationReason='server_restart';count++;
+            }
+            for(const t of active){
+                if(t.kind!=='multiplayer'&&!t.tokenRefunded&&t.stake>0){const user=db.users.find(u=>u.id===t.userId);if(user)tokens.post(user,t.stake,`tournament:${t.id}:refund`,'refund',t.id);t.tokenRefunded=true;}
+                t.status='cancelled';t.cancellationReason='server_restart';count++;
+            }
+            if(count)store.write(db);return count;
+        },
         getHealth() {
-            return { ok: true, service: "slaptax-mvp-api", schemaVersion: SCHEMA_VERSION };
+            return { ok: true, service: "slaptax-mvp-api", schemaVersion: SCHEMA_VERSION,distribution:(options.storeDistribution??process.env.APP_DISTRIBUTION==='store')?'store':'web',release:process.env.SLAPTAX_RELEASE||process.env.RENDER_GIT_COMMIT||null,features:{accountDeletion:true,nativeReady:true,tokenLedger:true},tokenEconomyVersion:tokens.policy.version };
         },
 
         getState(userId, clientId) {
@@ -777,13 +761,14 @@ function createService(store) {
                 user = {
                     id: crypto.randomUUID(),
                     playerName: name,
-                    wallet: 25,
+                    wallet: tokens.policy.welcome,
                     stake: 5,
                     history: [],
                 };
                 db.users.push(user);
             }
 
+            if(user.suspended)return {error:'Ce profil est suspendu. Contacte gignoski@gmail.com.',code:403};
             user.playerName = name;
 
             db.clientSessions[cid] = user.id;
@@ -978,6 +963,7 @@ function createService(store) {
                 (entry) => entry.id === tournamentId && entry.kind === "multiplayer"
             );
             if (!tournament) return { error: "Tournament not found", code: 404 };
+            if((tournament.entrants||[]).some(id=>blockedPair(db,id,userId)))return {error:'Ce salon contient un joueur bloqué.',code:403};
             if (tournament.status !== "waiting") return { error: "Tournament already started", code: 409 };
             if (!db.users.some((user) => user.id === userId)) return { error: "User not found", code: 404 };
             if (
@@ -1154,7 +1140,7 @@ function createService(store) {
             const activeUser = resolveUserByIdentity(db, userId, clientId);
             return {
                 activeUserId: activeUser.id,
-                users: db.users.map((u) => ({
+                users: db.users.filter(u=>!u.suspended).map((u) => ({
                     id: u.id,
                     playerName: u.playerName,
                     wallet: u.wallet,
@@ -1176,7 +1162,7 @@ function createService(store) {
             const user = {
                 id: crypto.randomUUID(),
                 playerName: name,
-                wallet: 25,
+                wallet: tokens.policy.welcome,
                 stake: 5,
                 history: [],
             };
@@ -1231,7 +1217,7 @@ function createService(store) {
             }
             const db = store.read();
             const activeUser = getActiveUser(db);
-            activeUser.wallet = toMoney2(activeUser.wallet + numericAmount);
+            tokens.post(activeUser, (numericAmount), crypto.randomUUID(), 'legacy_credit');
             store.write(db);
             return { ok: true, wallet: activeUser.wallet, activeUserId: db.activeUserId };
         },
@@ -1239,7 +1225,7 @@ function createService(store) {
         playDuel(stake) {
             const db = store.read();
             const activeUser = getActiveUser(db);
-            const numericStake = Number(stake || activeUser.stake);
+            const numericStake = Number(stake ?? activeUser.stake);
 
             if (!ALLOWED_STAKES.includes(numericStake)) {
                 return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
@@ -1248,15 +1234,14 @@ function createService(store) {
                 return { error: "Insufficient wallet balance", code: 400 };
             }
 
-            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
+            tokens.post(activeUser, -(numericStake), crypto.randomUUID(), 'stake');
             const stats = getStats(activeUser.history);
             const duel = simulateDuel(numericStake, stats);
 
             if (duel.won) {
-                const gainToday = dailyGainToday(activeUser);
-                const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
-                const cappedPayout = toMoney2(Math.min(duel.payout, numericStake + allowedGain));
-                activeUser.wallet = toMoney2(activeUser.wallet + cappedPayout);
+
+                            const cappedPayout = duel.payout;
+                tokens.post(activeUser, (cappedPayout), crypto.randomUUID(), 'legacy_credit');
                 duel.net = toMoney2(cappedPayout - numericStake);
             }
 
@@ -1267,7 +1252,6 @@ function createService(store) {
                 net: duel.net,
             });
 
-            applyWalletFloor(activeUser);
 
             store.write(db);
 
@@ -1285,7 +1269,7 @@ function createService(store) {
             const activeUser = userId
                 ? (db.users.find((u) => u.id === userId) || getActiveUser(db))
                 : getActiveUser(db);
-            const numericStake = Number(stake || activeUser.stake);
+            const numericStake = Number(stake ?? activeUser.stake);
             const didWin = won === true || won === "true" || won === 1 || won === "1";
 
             if (!ALLOWED_STAKES.includes(numericStake)) {
@@ -1295,17 +1279,16 @@ function createService(store) {
                 return { error: "Insufficient wallet balance", code: 400 };
             }
 
-            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
-            const payout = toMoney2(numericStake * 2 * 0.85);
+            tokens.post(activeUser, -(numericStake), crypto.randomUUID(), 'stake');
+            const payout = tokens.quote(numericStake).payout;
             const winnerNet = toMoney2(payout - numericStake);
             const loserNet = toMoney2(-numericStake);
 
             let net = loserNet;
             if (didWin) {
-                const gainToday = dailyGainToday(activeUser);
-                const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
-                const cappedPayout = toMoney2(Math.min(payout, numericStake + allowedGain));
-                activeUser.wallet = toMoney2(activeUser.wallet + cappedPayout);
+
+                            const cappedPayout = payout;
+                tokens.post(activeUser, (cappedPayout), crypto.randomUUID(), 'legacy_credit');
                 net = toMoney2(cappedPayout - numericStake);
             }
 
@@ -1325,7 +1308,6 @@ function createService(store) {
                 note: "Reflex Best-of-3",
             });
 
-            applyWalletFloor(activeUser);
             store.write(db);
 
             return {
@@ -1341,7 +1323,7 @@ function createService(store) {
             const db = store.read();
             const activeUser = getActiveUser(db);
             const tournamentSize = Number(size || 8);
-            const numericStake = Number(stake || activeUser.stake);
+            const numericStake = Number(stake ?? activeUser.stake);
 
             if (!ALLOWED_TOURNAMENT_SIZES.includes(tournamentSize)) {
                 return { error: "size must be one of 8, 16, 32", code: 400 };
@@ -1355,7 +1337,7 @@ function createService(store) {
                 return { error: "Insufficient wallet balance", code: 400 };
             }
 
-            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
+            tokens.post(activeUser, -(numericStake), crypto.randomUUID(), 'stake');
             const entrants = [
                 activeUser,
                 ...db.users.filter((user) => user.id !== activeUser.id),
@@ -1374,7 +1356,7 @@ function createService(store) {
             );
 
             if (tournament.champion) {
-                activeUser.wallet = toMoney2(activeUser.wallet + tournament.payout);
+                tokens.post(activeUser, (tournament.payout), crypto.randomUUID(), 'legacy_credit');
             }
 
             pushHistory(activeUser, {
@@ -1400,7 +1382,7 @@ function createService(store) {
             ensureCollections(db);
             const activeUser = resolveUserByIdentity(db, userId, null);
             const tournamentSize = Number(size || 8);
-            const numericStake = Number(stake || activeUser.stake);
+            const numericStake = Number(stake ?? activeUser.stake);
 
             if (!ALLOWED_TOURNAMENT_SIZES.includes(tournamentSize)) {
                 return { error: "size must be one of 8, 16, 32", code: 400 };
@@ -1415,7 +1397,7 @@ function createService(store) {
             const safeDraft = draft && normalizeDraftSide(draft);
             if (draft && !safeDraft) return { error: "Invalid tournament draft", code: 400 };
 
-            activeUser.wallet = toMoney2(activeUser.wallet - numericStake);
+            tokens.post(activeUser, -(numericStake), crypto.randomUUID(), 'stake');
             const games = resolveTournamentGames(safeDraft).slice(0, Math.log2(tournamentSize));
             const tournament = {
                 id: crypto.randomUUID(),
@@ -1478,7 +1460,6 @@ function createService(store) {
                 net: tournament.net,
                 note: `Abandoned live tournament ${tournament.size} players`,
             });
-            applyWalletFloor(user);
             store.write(db);
             return { ok: true, tournament, wallet: user.wallet };
         },
@@ -1529,7 +1510,7 @@ function createService(store) {
             if (!won || round >= tournament.roundsTotal) {
                 const champion = won && round >= tournament.roundsTotal;
                 const payout = champion ? toMoney2(tournament.size * tournament.stake * 0.72) : 0;
-                if (champion) user.wallet = toMoney2(user.wallet + payout);
+                if (champion) tokens.post(user, (payout), crypto.randomUUID(), 'legacy_credit');
                 tournament.status = "done";
                 tournament.champion = champion;
                 tournament.payout = payout;
@@ -1542,8 +1523,7 @@ function createService(store) {
                     net: tournament.net,
                     note: `Live tournament ${tournament.size} players`,
                 });
-                applyWalletFloor(user);
-            } else {
+                } else {
                 tournament.currentRound += 1;
                 tournament.attemptToken = newAttemptToken();
                 tournament.roundStartedAt = new Date().toISOString();
@@ -1569,9 +1549,10 @@ function createService(store) {
 
             if (!challenger) return { error: "challengerId not found", code: 404 };
             if (!opponent) return { error: "opponentId not found", code: 404 };
+            if(blockedPair(db,challengerId,opponentId))return {error:'Ce joueur ne peut plus être défié.',code:403};
             if (challengerId === opponentId) return { error: "Cannot challenge yourself", code: 400 };
 
-            const numericStake = Number(stake || challenger.stake);
+            const numericStake = Number(stake ?? challenger.stake);
             if (!ALLOWED_STAKES.includes(numericStake)) {
                 return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
             }
@@ -1597,6 +1578,7 @@ function createService(store) {
                 challengerId,
                 opponentId,
                 stake: numericStake,
+                tokenQuote:tokens.quote(numericStake),
                 status: "pending",
                 bestOf: normalizedBestOf,
                 draft: normalizedDraft,
@@ -1609,7 +1591,7 @@ function createService(store) {
             return { ok: true, duel, draftSummary: summarizeDraft(normalizedDraft) };
         },
 
-        joinMatchmaking(userId, stake = 2) {
+        joinMatchmaking(userId, stake = 2, gameId = null) {
             const db = store.read();
             ensureCollections(db);
             const user = db.users.find((entry) => entry.id === userId);
@@ -1617,6 +1599,8 @@ function createService(store) {
             const numericStake = Number(stake);
             if (!ALLOWED_STAKES.includes(numericStake)) return { error: "Invalid stake", code: 400 };
             if (user.wallet < numericStake) return { error: 'Insufficient wallet balance', code: 400 };
+            const preferred = gameId ? normalizeDraftGameId(gameId) : null;
+            if(gameId&&!preferred)return {error:'Unknown game',code:400};
             pruneQueue(db);
             const active = db.duels.find(
                 (duel) => isDuelParticipant(duel, userId) && ["pending", "playing"].includes(duel.status)
@@ -1624,19 +1608,19 @@ function createService(store) {
             if (active) return { ok: true, status: "matched", duel: active };
 
             const rival = db.matchmakingQueue.find(
-                (entry) => entry.userId !== userId && entry.stake === numericStake
+                (entry) => entry.userId !== userId && !blockedPair(db,userId,entry.userId) && entry.stake === numericStake && (entry.gameId||null) === preferred
             );
             if (!rival) {
-                const previous = db.matchmakingQueue.find((entry) => entry.userId === userId && entry.stake === numericStake);
+                const previous = db.matchmakingQueue.find((entry) => entry.userId === userId && entry.stake === numericStake && (entry.gameId||null) === preferred);
                 db.matchmakingQueue = db.matchmakingQueue.filter((entry) => entry.userId !== userId);
-                db.matchmakingQueue.push({ userId, stake: numericStake, joinedAt: previous?.joinedAt || new Date().toISOString(), lastSeenAt: new Date().toISOString() });
+                db.matchmakingQueue.push({ userId, gameId:preferred, stake: numericStake, joinedAt: previous?.joinedAt || new Date().toISOString(), lastSeenAt: new Date().toISOString() });
                 recordProductEvent(db, "matchmaking_joined", userId, { stake: numericStake });
                 store.write(db);
                 return { ok: true, status: "waiting" };
             }
 
             store.write(db);
-            const created = this.createDuel(rival.userId, userId, numericStake, null, 3);
+            const created = this.createDuel(rival.userId, userId, numericStake, preferred?buildPreferredDraft(preferred):null, preferred?1:3);
             if (!created.ok) return created;
             const persisted = store.read();
             ensureCollections(persisted);
@@ -1696,7 +1680,7 @@ function createService(store) {
             if (!opponent) return { error: "opponentId not found", code: 404 };
             if (challengerId === opponentId) return { error: "Cannot challenge yourself", code: 400 };
 
-            const numericStake = Number(stake || challenger.stake);
+            const numericStake = Number(stake ?? challenger.stake);
             if (!ALLOWED_STAKES.includes(numericStake)) {
                 return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
             }
@@ -1737,7 +1721,7 @@ function createService(store) {
             const challenger = db.users.find((user) => user.id === challengerId);
             if (!challenger) return { error: "challengerId not found", code: 404 };
 
-            const numericStake = Number(stake || challenger.stake);
+            const numericStake = Number(stake ?? challenger.stake);
             if (!ALLOWED_STAKES.includes(numericStake)) {
                 return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
             }
@@ -1804,25 +1788,11 @@ function createService(store) {
             if (challenge.challengerId === userId) return { error: "Cannot claim your own invite", code: 400 };
             if (!db.users.some((user) => user.id === userId)) return { error: "userId not found", code: 404 };
 
-            const duel = {
-                id: crypto.randomUUID(),
-                challengerId: challenge.challengerId,
-                opponentId: userId,
-                stake: challenge.stake,
-                status: "pending",
-                bestOf: challenge.bestOf || 3,
-                draft: challenge.draft,
-                room: { readyBy: {}, readyCountdownAt: null },
-                createdAt: new Date().toISOString(),
-            };
-            db.duels.push(duel);
-            challenge.status = "accepted";
-            challenge.opponentId = userId;
-            challenge.respondedAt = new Date().toISOString();
-            challenge.respondedBy = userId;
-            challenge.duelId = duel.id;
-            store.write(db);
-            return { ok: true, challenge, duel };
+            const created=this.createDuel(challenge.challengerId,userId,challenge.stake,challenge.draft,challenge.bestOf||3);
+            if(!created.ok)return created;
+            const next=store.read(),accepted=next.challenges.find(c=>c.id===challengeId);
+            Object.assign(accepted,{status:'accepted',opponentId:userId,respondedAt:new Date().toISOString(),respondedBy:userId,duelId:created.duel.id});
+            store.write(next);return {ok:true,challenge:accepted,duel:created.duel};
         },
 
         listChallenges(userId, status = "pending") {
@@ -1925,8 +1895,8 @@ function createService(store) {
             if (challenger.wallet < stake) return { error: "Challenger has insufficient wallet balance", code: 400 };
             if (opponent.wallet < stake) return { error: "Opponent has insufficient wallet balance", code: 400 };
 
-            challenger.wallet = toMoney2(challenger.wallet - stake);
-            opponent.wallet = toMoney2(opponent.wallet - stake);
+            tokens.post(challenger, -(stake), crypto.randomUUID(), 'stake');
+            tokens.post(opponent, -(stake), crypto.randomUUID(), 'stake');
 
             const challengerStats = getStats(challenger.history);
             const opponentStats = getStats(opponent.history);
@@ -1937,19 +1907,17 @@ function createService(store) {
             const winner = db.users.find((u) => u.id === winnerId);
             const loser = db.users.find((u) => u.id === loserId);
 
-            const payout = toMoney2(stake * 2 * 0.85);
+            const payout = tokens.quote(stake).payout;
             const winnerNet = toMoney2(payout - stake);
             const loserNet = toMoney2(-stake);
 
-            // Anti-inflation: cap daily gains
             const winnerBeforeCap = winner;
-            const gainToday = dailyGainToday(winnerBeforeCap);
-            const allowedGain = Math.max(0, toMoney2(MAX_DAILY_GAIN - gainToday));
-            const cappedPayout = toMoney2(Math.min(payout, stake + allowedGain));
+
+                    const cappedPayout = payout;
             const cappedWinnerNet = toMoney2(cappedPayout - stake);
             const capApplied = cappedPayout < payout;
 
-            winner.wallet = toMoney2(winner.wallet + cappedPayout);
+            tokens.post(winner, (cappedPayout), crypto.randomUUID(), 'legacy_credit');
 
             const date = new Date().toISOString();
             pushHistory(challenger, {
@@ -1974,8 +1942,6 @@ function createService(store) {
             });
 
             // Wallet floor guard
-            applyWalletFloor(challenger);
-            applyWalletFloor(opponent);
 
             duel.status = "done";
             duel.winnerId = winnerId;
@@ -2167,8 +2133,7 @@ function createService(store) {
                 return { error: "A player has insufficient wallet balance", code: 400 };
             }
 
-            challenger.wallet = toMoney2(challenger.wallet - duel.stake);
-            opponent.wallet = toMoney2(opponent.wallet - duel.stake);
+            if(!tokens.reserve(db,duel))return {error:'Jetons insuffisants. Récupère un bonus ou joue sans mise.',code:409};
             duel.status = "playing";
             const resolvedGames = (duel.tournamentId || duel.veto) && Array.isArray(duel.games)
                 ? duel.games
@@ -2317,10 +2282,11 @@ function createService(store) {
             };
 
             const winner = db.users.find((user) => user.id === winnerId);
-            if (winner) awardCompetitiveProgress(winner, gameId, true);
+            const earnedRound=!/forfeit|no-show|disconnect/.test(String(detail.reason||''));
+            if (winner&&earnedRound) awardCompetitiveProgress(winner, gameId, true);
             const loser = db.users.find((user) => user.id === loserId);
-            if (loser) awardCompetitiveProgress(loser, gameId, false);
-            if (winner) {
+            if (loser&&earnedRound) awardCompetitiveProgress(loser, gameId, false);
+            if (winner&&earnedRound) {
                 advanceDailyTask(winner, "round_wins");
                 if (String(detail.reason || "").includes("perfect")) {
                     advanceDailyTask(winner, "perfect_rounds");
@@ -2368,7 +2334,7 @@ function createService(store) {
                         match: publicDuelMatch(original, userId, db),
                     };
                 }
-                const proposedStake = Number(options.stake || original.stake);
+                const proposedStake = Number(options.stake ?? original.stake);
                 if (!ALLOWED_STAKES.includes(proposedStake)) {
                     return { error: "stake must be one of 2, 5, 10, 20", code: 400 };
                 }
@@ -2689,13 +2655,14 @@ function createService(store) {
             if(!receipt)return null;
             ensureUserProgression(user);
             const unlocked=Object.entries(user.progression.cosmetics.unlocked).flatMap(([kind,values])=>values.filter(value=>!before[kind].includes(value)).map(value=>({kind,id:value})));
+            const tokensEarned=tokens.practiceReward(user,id);
             store.write(db);
-            return {...receipt,level:user.progression.level,levelUp:user.progression.level>previousLevel,unlocked};
+            return {...receipt,tokensEarned,level:user.progression.level,levelUp:user.progression.level>previousLevel,unlocked};
         },
 
         getLeaderboard() {
             const db = store.read();
-            const board = db.users.map((u) => {
+            const board = db.users.filter(u=>!u.suspended).map((u) => {
                 const stats = getStats(u.history);
                 return {
                     id: u.id,

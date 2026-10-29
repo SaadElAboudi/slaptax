@@ -4,8 +4,8 @@ const {GAME_POOL,tournamentVeto}=require('../domain/veto');
 const {resolveP2PGames,resolveTournamentGames,P2P_GAME_LIBRARY}=require('../domain/simulations');
 const {publicSolo,applySoloRun}=require('../domain/soloProgression');
 const now=Date.parse('2026-10-27T12:00:00Z');
-test('all automatic duel and tournament rotations use the ten selected games and current names',()=>{
- assert.equal(selection.length,10);assert.equal(new Set(GAME_POOL).size,10);
+test('all automatic duel and tournament rotations use the main arena and current bonus games and current names',()=>{
+ assert.equal(selection.length,12);assert.equal(new Set(GAME_POOL).size,selection.length);
  assert.deepEqual(GAME_POOL,selection.map(game=>game.id));
  for(let i=0;i<50;i++){
   for(const id of [...resolveP2PGames(),...resolveTournamentGames(),...tournamentVeto({a:'table',b:'garde'},['a','b']).games])assert.ok(GAME_POOL.includes(id),id);

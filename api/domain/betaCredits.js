@@ -1,3 +1,4 @@
+const {post}=require('./tokens');
 const GRANT_ID = 'beta-september-2026';
 const GRANT_AMOUNT = 100;
 
@@ -9,7 +10,7 @@ function grantBetaCredits(state, now = new Date().toISOString()) {
     }
     for (const user of state.users || []) {
         if (user.creditGrants?.[GRANT_ID]) continue;
-        user.wallet = Math.round((user.wallet + GRANT_AMOUNT) * 100) / 100;
+        post(user,GRANT_AMOUNT,GRANT_ID,'legacy_credit');
         user.creditGrants = { ...user.creditGrants, [GRANT_ID]: { amount: GRANT_AMOUNT, at: now } };
         credited++;
     }

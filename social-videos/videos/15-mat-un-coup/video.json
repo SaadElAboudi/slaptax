@@ -1,0 +1,31 @@
+{
+  "id": "15-mat-un-coup",
+  "day": 15,
+  "game": "mat",
+  "series": "Défi solo",
+  "hook": "Mat en un coup. Tu le vois ?",
+  "duration": 18,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Un seul coup pour gagner. Tu l’as vu avant moi ?",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Mat en un coup. Tu le vois ?"
+    },
+    {
+      "from": 3,
+      "to": 15,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 15,
+      "to": 18,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

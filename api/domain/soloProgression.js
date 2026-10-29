@@ -14,7 +14,7 @@ function ensureSolo(user,now=Date.now()){
 }
 function normalizePractice(game,id){
  const raw=game.scores[id]||0;
- const score=game.id==='pigeon'?raw/3:game.id==='lift'?raw/2.5:game.id==='pie'?raw/4:game.id==='balloon'?raw/2:game.id==='toilet'?raw/10:game.id==='table'?raw:game.id==='mat'?(game.mat?.results[id]?.mate?500+raw/40:0):game.id==='garde'?(game.garde?.winnerId===id?1000:game.garde?.winnerId===null?500:0):['trace','decoupe'].includes(game.id)?raw/3:game.id==='contrepied'?raw*1000/15:game.id==='ricochet'?raw/10:game.id==='chroma'?Math.max(0,1000+raw/(3*255*Math.sqrt(3))):game.id==='onesecond'?Math.max(0,1000+raw/3):game.id==='onemore'?raw*50:raw*1000/3;
+ const score=['snack','chicken'].includes(game.id)?raw:game.id==='pigeon'?raw/3:game.id==='lift'?raw/2.5:game.id==='pie'?raw/4:game.id==='balloon'?raw/2:game.id==='toilet'?raw/10:game.id==='table'?raw:game.id==='mat'?(game.mat?.results[id]?.mate?500+raw/40:0):game.id==='garde'?(game.garde?.winnerId===id?1000:game.garde?.winnerId===null?500:0):['trace','decoupe'].includes(game.id)?raw/3:game.id==='contrepied'?raw*1000/15:game.id==='ricochet'?raw/10:game.id==='chroma'?Math.max(0,1000+raw/(3*255*Math.sqrt(3))):game.id==='onesecond'?Math.max(0,1000+raw/3):game.id==='onemore'?raw*50:raw*1000/3;
  return Math.max(0,Math.min(1000,Math.round(score)));
 }
 function applySoloRun(user,{id,gameId,score},now=Date.now()){

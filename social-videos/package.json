@@ -1,0 +1,26 @@
+{
+  "name": "slaptax-social-videos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "node scripts/prepare.mjs",
+    "check": "node scripts/prepare.mjs --check",
+    "studio": "node scripts/prepare.mjs && remotion studio src/index.jsx",
+    "render": "node scripts/render.mjs",
+    "voice": "node --env-file=.env scripts/voice.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.366",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.366"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "1.1.0",
+    "@ffprobe-installer/ffprobe": "2.1.2"
+  }
+}

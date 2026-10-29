@@ -1,0 +1,31 @@
+{
+  "id": "02-trace-memoire",
+  "day": 2,
+  "game": "trace",
+  "series": "Défi solo",
+  "hook": "Tu as deux secondes pour retenir ça.",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Regarde bien. Maintenant, refais cette forme de mémoire. À toi de jouer.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Tu as deux secondes pour retenir ça."
+    },
+    {
+      "from": 3,
+      "to": 12,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

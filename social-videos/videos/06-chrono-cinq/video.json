@@ -1,0 +1,31 @@
+{
+  "id": "06-chrono-cinq",
+  "day": 6,
+  "game": "onesecond",
+  "series": "Défi solo",
+  "hook": "Compte cinq secondes. Sans chrono.",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Cinq secondes. Facile ? Compte dans ta tête, puis vérifie dans Slap Tax.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Compte cinq secondes. Sans chrono."
+    },
+    {
+      "from": 3,
+      "to": 12,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

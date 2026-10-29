@@ -1,5 +1,19 @@
 [
  {
+  "id": "snack",
+  "labelFr": "Braquage du Goûter",
+  "labelEn": "Snack Heist",
+  "hookFr": "Vole le goûter. Esquive les baffes. Rentre au dépôt.",
+  "hookEn": "Grab the snack. Dodge the slaps. Bring it home."
+ },
+ {
+  "id": "chicken",
+  "labelFr": "Poule Position",
+  "labelEn": "Poultry Panic",
+  "hookFr": "Vole le poulet royal. Lance-le avant qu’il se rebelle. Gare aux œufs géants !",
+  "hookEn": "Steal the royal chicken. Throw before it escapes. Dodge the giant eggs!"
+ },
+ {
   "id": "toilet",
   "labelFr": "Panique aux Toilettes",
   "labelEn": "Toilet Panic",

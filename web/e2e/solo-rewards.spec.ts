@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-test('a real banked tower earns one server reward, persists badges and leaves the wallet intact',async({page},info)=>{
+test('a real banked tower earns one server reward, persists badges and credits the capped practice token reward',async({page},info)=>{
  test.setTimeout(45000);
  await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');localStorage.setItem('slaptax_training_game','onemore');});
  await page.goto('/?tab=training');
@@ -15,14 +15,15 @@ test('a real banked tower earns one server reward, persists badges and leaves th
  const victory=page.getByTestId('solo-victory');await expect(victory).toBeVisible();
  await expect(victory.getByRole('progressbar',{name:'Score de maîtrise'})).toHaveAttribute('aria-valuenow','50');
  await expect(victory).toContainText('+15 XP');await expect(victory).toContainText('Premier pas');
- await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
+ await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','27');
  await page.screenshot({path:info.outputPath('reward.png'),fullPage:true});
  const userId=await page.evaluate(()=>localStorage.getItem('slaptax_user_id'));
  await page.getByRole('button',{name:'Accueil Slap Tax'}).click();await page.reload();
  await expect(page.getByTestId('solo-journey')).toBeVisible();
  await page.getByTestId('solo-journey').locator('summary').filter({hasText:'Ma collection'}).click();
  await expect(page.getByTestId('solo-journey').locator('article[data-earned="true"]')).toContainText(['Premier pas']);
- const state=await (await page.request.get(`/api/state?userId=${userId}&clientId=${await page.evaluate(()=>localStorage.getItem('slaptax_client_id'))}`)).json();
+ const clientId=await page.evaluate(()=>localStorage.getItem('slaptax_client_id'));
+ const state=await (await page.request.get(`/api/state?userId=${userId}&clientId=${clientId}`,{headers:{'X-SlapTax-User':userId||'','X-SlapTax-Client':clientId||''}})).json();
  expect(state.progression.solo.plays).toBe(1);expect(state.progression.xp).toBe(15);
  await page.screenshot({path:info.outputPath('collection.png'),fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

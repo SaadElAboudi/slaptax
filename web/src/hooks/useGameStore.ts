@@ -1,9 +1,11 @@
+import {newRandomId as newInstallationId} from '../platform/identity';
+import {apiBase as defaultApiBase} from '../platform/environment';
 import { create } from 'zustand';
 import { api, type HistoryEntry, type LeaderboardEntry, type PlayerProgression } from '../api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
+export type Tab = 'team' | 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
 export type DifficultyMode = 'casual' | 'standard' | 'hardcore';
@@ -61,7 +63,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => ({
     // Server
-    apiBase: (() => { try { return localStorage.getItem('slaptax_api_base') || ''; } catch { return ''; } })(),
+    apiBase: defaultApiBase(),
     apiOnline: false,
     setApiBase: (base) => {
         try { localStorage.setItem('slaptax_api_base', base); } catch { /* ignore */ }
@@ -97,11 +99,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
         try {
             const existing = localStorage.getItem('slaptax_client_id');
             if (existing) return existing;
-            const created = crypto.randomUUID();
+            const created = newInstallationId();
             localStorage.setItem('slaptax_client_id', created);
             return created;
         } catch {
-            return `client-${Math.random().toString(36).slice(2)}`;
+            return newInstallationId();
         }
     })(),
     playerName: (() => { try { return localStorage.getItem('slaptax_player_name') || 'Player'; } catch { return 'Player'; } })(),

@@ -1,0 +1,31 @@
+{
+  "id": "10-feinte-rival",
+  "day": 10,
+  "game": "falsestart",
+  "series": "Moment décisif",
+  "hook": "Il savait que j’allais appuyer.",
+  "duration": 12,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Le plus dur, c’est de ne rien faire. Surtout contre lui.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Il savait que j’allais appuyer."
+    },
+    {
+      "from": 3,
+      "to": 9,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 9,
+      "to": 12,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

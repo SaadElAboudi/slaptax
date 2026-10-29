@@ -13,7 +13,7 @@ export function Garde({party,identity,active,isFr,send}:{party:PartyState;identi
     const reveal=['reveal','done'].includes(party.phase),last=reveal?c.history[c.history.length-1]:undefined;
     const locked=party.answered.includes(identity),enabled=active&&participant&&party.phase==='choose'&&!locked;
     const names={[self]:participant?(isFr?'TOI':'YOU'):(isFr?'JOUEUR 1':'PLAYER 1'),[rival]:rival===c.botId?(isFr?'BOT D ENTRAINEMENT':'PRACTICE BOT'):'RIVAL'};
-    return <section className={styles.game} data-testid="garde" data-phase={party.phase}>
+    return <section className={styles.game} data-testid="garde" data-phase={party.phase} tabIndex={0} onKeyDown={e=>{if(!enabled||e.repeat||['BUTTON','INPUT'].includes((e.target as HTMLElement).tagName))return;const action=({1:'attack',2:'charge',3:'defend',4:'prank'} as const)[Number(e.key) as 1|2|3|4];if(action){e.preventDefault();if(action!=='defend'||c.canDefend[self])send(action);}}}>
         <header><span>{c.botId?(isFr?'ENTRAINEMENT CONTRE UN BOT':'PRACTICE AGAINST A BOT'):(isFr?'CHOIX SIMULTANES':'SIMULTANEOUS PICKS')}</span><strong>{Math.ceil(party.remaining/1000)}<small> s</small></strong></header>
         <div className={styles.health}>{[self,rival].map((id,index)=><div key={id} data-rival={Boolean(index)}><span>{names[id]}<b><Heart size={14}/><span data-testid={index?'rival-hp':'self-hp'}>{c.hp[id]}</span>/6</b></span><div className={styles.pips} aria-label={`${names[id]} ${c.hp[id]} ${isFr?'PV':'HP'}`}>{Array.from({length:6},(_,i)=><i key={i} data-filled={i<c.hp[id]}/>)}</div></div>)}</div>
         <div className={styles.field} data-reveal={reveal}>

@@ -1,3 +1,4 @@
+const CUT=require('../../shared/cut-recipes.json');
 const { Vertices } = require('matter-js');
 
 const validPoints = (points, min = 2, max = 128) => Array.isArray(points) && points.length >= min && points.length <= max
@@ -44,8 +45,13 @@ function clip(polygon, line, side) {
     }
     return result;
 }
-function cutResult(polygon, target, line, side) {
-    if (!validPoints(line, 2, 2) || ![1, -1].includes(side) || distance(...line) < .05) return null;
+function cutDirectionAllowed(line,axis='free') {
+    if(!validPoints(line,2,2)||distance(...line)<.05)return false;
+    const dx=line[1][0]-line[0][0],dy=line[1][1]-line[0][1],len=Math.hypot(dx,dy),tolerance=Math.sin(CUT.angleToleranceDegrees*Math.PI/180);
+    return axis==='free'||axis==='vertical'&&Math.abs(dx)/len<=tolerance||axis==='diagonal'&&Math.abs(dx-dy)/(len*Math.SQRT2)<=tolerance;
+}
+function cutResult(polygon, target, line, side, axis='free') {
+    if (!cutDirectionAllowed(line,axis) || ![1, -1].includes(side)) return null;
     const piece = clip(polygon, line, side);
     const fraction = area(piece) / area(polygon);
     if (fraction <= 0 || fraction >= 1) return null;
@@ -56,13 +62,13 @@ function cutResult(polygon, target, line, side) {
 
 function drawingTarget(gameId, attempt, random) {
     if (gameId === 'decoupe') {
-        const count = 4 + attempt;
+        const recipe=CUT.recipes[Math.min(2,Math.max(0,attempt-1))],count=recipe.sides;
         const angle = random(0, 360) * Math.PI / 180;
         const polygon = Array.from({ length: count }, (_, i) => {
             const t = angle + i * Math.PI * 2 / count;
             return [.5 + Math.cos(t) * .37, .5 + Math.sin(t) * .32];
         });
-        return { polygon, percent: random(25, 76) };
+        return { polygon, percent: random(25, 76), recipe:recipe.id, axis:recipe.axis };
     }
     const shapes = [
         [[[.2,.7],[.5,.25],[.8,.7]], [[.2,.3],[.2,.7],[.8,.7]]],
@@ -97,7 +103,7 @@ function actDrawing(g, id, action, now) {
         const points = action.points.map((p) => [...p]);
         g.responses[id] = { points, score: traceScore(g.drawing.target.path, points) };
     } else {
-        const result = cutResult(g.drawing.target.polygon, g.drawing.target.percent, action.points, action.side);
+        const result = cutResult(g.drawing.target.polygon, g.drawing.target.percent, action.points, action.side, g.drawing.target.axis);
         if (!result) return false;
         g.responses[id] = { ...result, points: action.points.map((p) => [...p]), side: action.side };
     }
@@ -120,4 +126,4 @@ function publicDrawing(g) {
     const visible = g.id === 'trace' ? g.phase === 'observe' : g.phase === 'drawpath';
     return JSON.parse(JSON.stringify({ target: visible ? g.drawing.target : undefined, history: g.drawing.history }));
 }
-module.exports = { validPoints, sample, traceScore, cutResult, drawingTarget, prepareDrawing, actDrawing, tickDrawing, publicDrawing };
+module.exports = { cutDirectionAllowed, validPoints, sample, traceScore, cutResult, drawingTarget, prepareDrawing, actDrawing, tickDrawing, publicDrawing };

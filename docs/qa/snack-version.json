@@ -1,0 +1,174 @@
+[
+  {
+    "width": 1280,
+    "height": 900,
+    "errors": [],
+    "bodyCount": 2,
+    "botCount": 1,
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "INPUT",
+        "inside": true
+      }
+    ],
+    "resolution": {
+      "backing": [
+        714,
+        476
+      ],
+      "display": [
+        714,
+        476
+      ]
+    }
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "errors": [],
+    "bodyCount": 2,
+    "botCount": 1,
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "INPUT",
+        "inside": true
+      }
+    ],
+    "resolution": {
+      "backing": [
+        668,
+        668
+      ],
+      "display": [
+        334,
+        334
+      ]
+    }
+  },
+  {
+    "width": 320,
+    "height": 740,
+    "errors": [],
+    "bodyCount": 2,
+    "botCount": 1,
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "INPUT",
+        "inside": true
+      }
+    ],
+    "resolution": {
+      "backing": [
+        538,
+        538
+      ],
+      "display": [
+        269,
+        269
+      ]
+    }
+  },
+  {
+    "width": 320,
+    "height": 650,
+    "errors": [],
+    "bodyCount": 2,
+    "botCount": 1,
+    "controls": [
+      {
+        "tag": "CANVAS",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "DIV",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "BUTTON",
+        "inside": true
+      },
+      {
+        "tag": "INPUT",
+        "inside": true
+      }
+    ],
+    "resolution": {
+      "backing": [
+        540,
+        360
+      ],
+      "display": [
+        270,
+        180
+      ]
+    }
+  }
+]

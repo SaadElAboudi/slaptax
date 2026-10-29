@@ -1,3 +1,9 @@
+import refinementRules from '../../../../shared/party-refinement.json';
+import {GameSession} from './GameSession/GameSession';
+import {startGameLoop} from '../../gameplay/gameLoop';
+import {gameWorld,gameTip} from '../../gameplay/gameExperience';
+import {SnackPortrait} from './Snack/SnackPortrait';
+import {SNACK_CHARACTERS,chosenSnackCharacter} from '../../gameplay/snackCharacters';
 import {GameReaction} from './GameReaction';
 import type {SoloReward} from '../../api/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -42,6 +48,9 @@ const SYMBOLS = ['◆', '●', '▲', '■', '✦'];
 
 export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr, duelSession, onStart, onComplete }: LiveGameArenaProps) {
     const [phase, setPhase] = useState<'briefing' | 'countdown' | 'playing' | 'complete'>('briefing');
+    const [touchDevice,setTouchDevice]=useState(()=>matchMedia('(pointer:coarse)').matches);
+    useEffect(()=>{const media=matchMedia('(pointer:coarse)'),sync=()=>setTouchDevice(media.matches);media.addEventListener('change',sync);return()=>media.removeEventListener('change',sync);},[]);
+    const [snackCast,setSnackCast]=useState(chosenSnackCharacter);
     const [countdown, setCountdown] = useState(3);
     const [result, setResult] = useState<{ score: number; detail: string } | null>(null);
     const startRef = useRef(0);
@@ -49,6 +58,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const completionTimer = useRef(0);
     const onCompleteRef = useRef(onComplete);
     const { activateAudio, playReady, playWin, playLoss, playDraw } = useSfx();
+    const identityReady=useGameStore(state=>Boolean(state.userId)&&state.apiOnline);
     const playerName = useGameStore((state) => state.playerName);
     const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
     const usesSharedArena = Boolean(duelSession) || isPartyGame(gameId);
@@ -56,6 +66,8 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     useEffect(() => () => window.clearTimeout(completionTimer.current), []);
 
     function begin() {
+        if(!identityReady)return;
+        window.scrollTo({top:0,left:0,behavior:'instant'});
         onStart?.();
         void activateAudio();
         playReady(Math.min(1, round / 3));
@@ -102,9 +114,10 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
         completionTimer.current = window.setTimeout(() => onCompleteRef.current({ score, metric, authoritative, soloReward }), 1600);
     }, [playLoss, playWin, playDraw, gameId, round]);
 
-    return (
+    const sessionView=phase==='playing'&&(!['snack','chicken'].includes(gameId)||touchDevice);
+    const view=(
         <section className={styles.arena} data-game={gameId} data-mode={mode} data-phase={phase} data-focus={phase === 'playing' || phase === 'countdown'}>
-            <header className={styles.header}>
+            {!sessionView&&<header className={styles.header}>
                 <div>
                     <span>{isFr ? `MANCHE ${round}` : `ROUND ${round}`}</span>
                     <h2>{gameLabel(gameId, isFr)}</h2>
@@ -119,7 +132,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     </div>
                 )}
                 {mode === 'training' && phase === 'playing' && <button type="button" className={styles.exitPractice} onClick={() => setPhase('briefing')} aria-label={isFr ? 'Quitter l exercice' : 'Exit practice'} title={isFr ? 'Quitter l exercice' : 'Exit practice'}><X size={20} /></button>}
-            </header>
+            </header>}
 
             <div className={`${styles.series} ${mode === 'training' ? styles.trainingSeries : ''}`}>
                 {series.map((entry, index) => (
@@ -133,14 +146,15 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                 <div className={styles.briefing}>
                     <div className={styles.poster}><GamePoster gameId={gameId} /></div>
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
-                    <h3>{gameLabel(gameId, isFr)}</h3>
+                    <span className={styles.worldLabel}>{gameWorld(gameId,isFr)}</span><h3>{gameLabel(gameId, isFr)}</h3>
+                    {['snack','chicken'].includes(gameId)&&<div className={styles.characterPicker} role="group" aria-label={isFr?'Choisis ton combattant':'Choose your fighter'}>{SNACK_CHARACTERS.map(c=><button key={c.id} type="button" aria-pressed={snackCast===c.id} onClick={()=>{setSnackCast(c.id as typeof snackCast);try{localStorage.setItem('slaptax_snack_character',c.id);}catch{/* Selection is optional on restricted storage. */}}}><SnackPortrait character={c.id}/><b>{c.name}</b><span>{c.hp} {isFr?'PV':'HP'} · {isFr?c.roleFr:c.roleEn}</span><strong>{isFr?c.powerFr:c.powerEn}</strong><small>SUPER · {isFr?c.superFr:c.superEn}</small><small>{isFr?c.descriptionFr:c.descriptionEn}</small></button>)}</div>}
                     <div className={styles.ruleSteps}>{briefSteps(gameId,isFr).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
-                    <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p></details>
+                    <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p><p className={styles.coachTip}><strong>{isFr?'ASTUCE DU RIVAL : ':'RIVAL TIP: '}</strong>{gameTip(gameId,isFr)}</p></details>
                     <div className={styles.briefStats}>
-                        <span>{gameId==='pigeon'?(isFr?'24 s · LIVRAISON':'24 s · DELIVERY'):gameId==='lift'?(isFr?'22 s · ESQUIVE':'22 s · DODGE'):['pie','balloon'].includes(gameId)?'22 s · DUEL':gameId==='toilet'?(isFr?'25 s · CANARDS ET TURBO':'25 s · DUCKS AND TURBO'):gameId==='table'?(isFr?'20 s · COLLISIONS':'20 s · BUMPS'):gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
+                        <span>{gameId==='chicken'?(isFr?'60 s · POULET ROYAL':'60 s · ROYAL CHICKEN'):gameId==='snack'?(isFr?'90 s · 3 LIVRAISONS':'90 s · 3 DELIVERIES'):gameId==='pigeon'?(isFr?'24 s · LIVRAISON':'24 s · DELIVERY'):gameId==='lift'?(isFr?'22 s · ESQUIVE':'22 s · DODGE'):['pie','balloon'].includes(gameId)?'22 s · DUEL':gameId==='toilet'?(isFr?'25 s · CANARDS ET TURBO':'25 s · DUCKS AND TURBO'):gameId==='table'?(isFr?'20 s · COLLISIONS':'20 s · BUMPS'):gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
-                    <button type="button" onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
+                    <button type="button" disabled={!identityReady} onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
                 </div>
             )}
 
@@ -149,7 +163,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
             {phase === 'playing' && (
                 <div className={styles.stage}>
                     {!isPartyGame(gameId)&&duelSession&&<GameReaction gameId={gameId} isFr={isFr}/>}
-                    {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} /> : duelSession && usesSharedArena ? (
+                    {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} snackCharacter={snackCast} /> : duelSession && usesSharedArena ? (
                         <SharedArenaRound round={round} gameId={gameId} isFr={isFr} finish={finish} session={duelSession} />
                     ) : gameId === 'bounce' ? (
                         <BounceRound round={round} isFr={isFr} finish={finish} />
@@ -177,6 +191,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
             )}
         </section>
     );
+    return sessionView?<GameSession gameId={gameId} title={gameLabel(gameId,isFr)} isFr={isFr} onExit={mode==='training'?()=>setPhase('briefing'):undefined}>{view}</GameSession>:view;
 }
 
 interface SharedArenaState {
@@ -235,7 +250,7 @@ interface SharedArenaState {
     marker?: number;
     safeCenter?: number;
     safeWidth?: number;
-    abilities?: Record<string, { shield: number; feint?: number; jam?: number }>;
+    abilities?: Record<string, { shield: number; streak?:number;perfects?:number;feint?: number; jam?: number }>;
     lastAction?: { userId: string; action: string; targetId?: string; at: number } | null;
 }
 
@@ -606,7 +621,7 @@ function SharedArenaRound({
                 {interruption && <div className={styles.connectionNotice} role="status">{interruption}</div>}
                 <div className={styles.liveHud}>
                     <span>{holding ? (isFr ? 'TU AS LA BOMBE' : 'YOU HOLD THE BOMB') : (isFr ? 'CHEZ LE RIVAL' : 'RIVAL HOLDS IT')}</span>
-                    <span>PASSES <strong data-testid="bomb-passes">{state?.passes || 0}</strong></span>
+                    <span>PASSES <strong data-testid="bomb-passes">{state?.passes || 0}</strong></span><span>{isFr?'PRÉCISION':'PRECISION'} {ability?.streak||0}/3 · {isFr?'BOUCLIER':'SHIELD'} {ability?.shield||0}</span>
                 </div>
                 <div className={`${styles.bombCore} ${fuse < 2.5 ? styles.bombCritical : ''}`}>
                     <span className={styles.bombOrb}><i className={styles.bombEyes} aria-hidden="true"/><b>{fuse.toFixed(1)}</b></span>
@@ -627,6 +642,7 @@ function SharedArenaRound({
                             width: `${(state?.safeWidth || .2) * 100}%`,
                         }}
                     />
+                    <span className={styles.perfectZone} style={{left:`${((state?.safeCenter??.5)-(state?.safeWidth??.2)*refinementRules.bomb.perfectFraction)*100}%`,width:`${(state?.safeWidth??.2)*refinementRules.bomb.perfectFraction*200}%`}}/>
                     <i style={{ left: `${(state?.marker || 0) * 100}%` }} />
                 </button>
                 <div className={styles.powerBar}>
@@ -810,7 +826,7 @@ function BounceRound({ round, isFr, finish }: RoundProps) {
                     state.rally += 1;
                     setRally(state.rally);
                     setSpeed(nextSpeed / 300);
-                    navigator.vibrate?.(12);
+                    hapticPulse(12);
                 } else if (now - started < openingGraceMs) {
                     // Give touch players one readable opening exchange before a miss can end the round.
                     const recoverySpeed = Math.max(255, Math.hypot(state.vx, state.vy));
@@ -973,8 +989,8 @@ function SymbolRound({ round, isFr, finish }: RoundProps) {
 }
 
 function BombRound({ round, isFr, finish }: RoundProps) {
-    const [view, setView] = useState({ marker: 0, passes: 0, fuse: 8, perfects: 0, center: 50 });
-    const run = useRef({ started: 0, deadline: 0, passes: 0, perfects: 0, center: 50, lastTap: 0, done: false });
+    const [view, setView] = useState({ marker: 0, passes: 0, fuse: 8, perfects: 0, center: 50, shields:1, streak:0 });
+    const run = useRef({ started: 0, deadline: 0, passes: 0, perfects: 0, center: 50, shields:1, streak:0, lastTap: 0, done: false });
     const markerAt = (now: number) => {
         const wave = ((now - run.current.started) / 1000 * (85 + run.current.passes * 7)) % 200;
         return wave <= 100 ? wave : 200 - wave;
@@ -983,20 +999,19 @@ function BombRound({ round, isFr, finish }: RoundProps) {
         const current = run.current;
         current.started = performance.now();
         current.deadline = current.started + 8500 - round * 450;
-        let frame = 0;
+
         const tick = (now: number) => {
             if (current.done) return;
             const fuse = Math.max(0, (current.deadline - now) / 1000);
-            setView({ marker: markerAt(now), passes: current.passes, fuse, perfects: current.perfects, center: current.center });
+            setView({ marker: markerAt(now), passes: current.passes, fuse, perfects: current.perfects, center: current.center,shields:current.shields,streak:current.streak });
             if (!fuse) {
                 current.done = true;
                 finish(current.passes * 90 + current.perfects * 15, `${current.passes} passes · BOOM`);
                 return;
             }
-            frame = requestAnimationFrame(tick);
+
         };
-        frame = requestAnimationFrame(tick);
-        return () => cancelAnimationFrame(frame);
+        return startGameLoop(tick);
     }, [finish, round]);
 
     function pass() {
@@ -1006,15 +1021,13 @@ function BombRound({ round, isFr, finish }: RoundProps) {
         current.lastTap = now;
         const distance = Math.abs(markerAt(now) - current.center);
         if (distance > Math.max(11, 27 - current.passes * 2.4) / 2) {
-            current.done = true;
-            finish(current.passes * 90 + current.perfects * 15, isFr ? 'Hors zone !' : 'Outside the zone!');
-            return;
+            if(current.shields){current.shields=0;current.streak=0;}else{current.done = true;finish(current.passes * 90 + current.perfects * 15, isFr ? 'Hors zone !' : 'Outside the zone!');return;}
         }
-        if (distance < 4) current.perfects++;
+        const perfect=distance<=Math.max(11,27-current.passes*2.4)*refinementRules.bomb.perfectFraction;current.streak=perfect?current.streak+1:0;if(perfect)current.perfects++;if(current.streak>=refinementRules.bomb.perfectsForShield){current.shields=1;current.streak=0;}
         current.passes++;
         current.deadline = Math.min(now + 9000, current.deadline + 720);
         current.center = 22 + Math.random() * 56;
-        navigator.vibrate?.(20);
+        hapticPulse(20);
         if (current.passes >= 8 + round) {
             current.done = true;
             finish(850 + current.perfects * 15, `${current.passes} passes · ${current.perfects} perfect`);
@@ -1031,9 +1044,9 @@ function BombRound({ round, isFr, finish }: RoundProps) {
             </div>
             <button type="button" className={styles.bombTrack} data-testid="bomb-track" onClick={pass} disabled={performance.now() - run.current.lastTap < 180} aria-label={isFr ? 'Passer la bombe' : 'Pass the bomb'}>
                 <span className={styles.safeZone} style={{ left: `${view.center - Math.max(11, 27 - view.passes * 2.4) / 2}%`, width: `${Math.max(11, 27 - view.passes * 2.4)}%` }} />
-                <i style={{ left: `${view.marker}%` }} />
+                <span className={styles.perfectZone} style={{left:`${view.center-Math.max(11,27-view.passes*2.4)*refinementRules.bomb.perfectFraction}%`,width:`${Math.max(11,27-view.passes*2.4)*refinementRules.bomb.perfectFraction*2}%`}}/><i style={{ left: `${view.marker}%` }} />
             </button>
-            <p>{isFr ? 'Dans la zone : passe. Au centre : perfect.' : 'Inside: pass. Dead center: perfect.'}</p>
+            <p data-testid="bomb-precision">{isFr?'Au centre : parfait. Trois parfaits consécutifs rendent un bouclier.':'Hit the center. Three consecutive perfect passes restore one shield.'} · {view.streak}/3 · {isFr?'BOUCLIER':'SHIELD'} {view.shields}</p>
         </div>
     );
 }
@@ -1244,10 +1257,12 @@ function makeQuestion(round: number) {
 }
 
 function briefSteps(gameId: CompetitiveGameId,fr:boolean):string[]{
+ if(gameId==='chicken')return fr?['Attrape le poulet et rapporte-le à ton poulailler.','Lance-le avant sa rébellion à 5,5 secondes.','Évite les zones d’œufs géants.']:['Catch the chicken and bring it to your coop.','Throw before it rebels at 5.5 seconds.','Dodge the giant egg warning zones.'];
+ if(gameId==='snack')return fr?['Déplace-toi au stick gauche.','Vise, frappe et esquive.','Ramène 3 goûters à ton dépôt.']:['Move with the left stick.','Aim, slap and evade.','Bring 3 snacks to your depot.'];
  const steps:Record<string,[string[],string[]]>={
  pigeon:[['Glisse pour piloter ton pigeon.','Largue devant la voiture rose : vent et chute comptent !','Protège ta voiture jaune avec le parasol.'],['Slide to fly your pigeon.','Drop ahead of the pink car: wind and flight time matter!','Cover your yellow car with the umbrella.']],
  lift:[['Choisis une place à chaque passage.','Évite le nuage. Ramasse les haricots.','Prout ciblé : vise ton pote, puis esquive le sien !'],['Pick a spot each wave.','Dodge the cloud. Collect beans.','Targeted fart: trap your friend, dodge theirs!']],
- pie:[['Touche devant la tête du rival pour lancer.','ENTARTE ! Anticipe son déplacement.','ESQUIVE quand sa tarte arrive.'],['Tap ahead of the rival to throw.','THROW! Lead their movement.','DUCK when their pie arrives.']],
+ pie:[['Glisse en bas pour bouger, touche en haut pour lancer.','ENTARTE ! Anticipe son déplacement.','ESQUIVE quand sa tarte arrive.'],['Drag below to move, tap above to throw.','THROW! Lead their movement.','DUCK when their pie arrives.']],
  balloon:[['Maintiens GONFLE pour gonfler.','Relâche pour encaisser avant le PAAF.','Dépense 25 points pour gonfler le ballon adverse.'],['Hold PUMP to inflate.','Release to bank before it POPS.','Spend 25 points to inflate the rival balloon.']],
  toilet:[['Pilote ta toilette.','Ramasse et vole les canards.','Évite la chasse. PROUT pour t’échapper !'],['Drive your toilet.','Collect and steal ducks.','Dodge the flush. FART to escape!']],
  table:[['Glisse depuis ton perso.','Relâche pour te propulser.','Anticipe les coups de nappe. Reste sur la table !'],['Drag from your character.','Release to dash.','Watch the tablecloth pulls. Stay on the table!']],

@@ -1,3 +1,5 @@
+const TOWER=require('../../shared/party-refinement.json').tower;
+const {beginSnack,actSnack,tickSnack,publicSnack,pauseSnack}=require('./snack');
 const {beginAbsurd,actAbsurd,tickAbsurd,publicAbsurd,pauseAbsurd}=require('./absurd');
 const {beginCarnival,actCarnival,tickCarnival,publicCarnival,pauseCarnival}=require('./carnival');
 const {beginToilet,actToilet,tickToilet,publicToilet,pauseToilet}=require('./toilet');
@@ -9,11 +11,11 @@ const {prepareDrawing,actDrawing,tickDrawing,publicDrawing} = require('./drawing
 const {beginGarde,prepareGarde,actGarde,tickGarde,publicGarde} = require('./garde');
 const {prepareMat,actMat,tickMat,publicMat} = require('./mat');
 
-const PARTY_IDS = ['pigeon','lift','pie','balloon','toilet','table','falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'];
+const PARTY_IDS = ['chicken','snack','pigeon','lift','pie','balloon','toilet','table','falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 function createParty(id, players, random = (min, max) => randomInt(min, max)) {
-    if (!PARTY_IDS.includes(id) || players.length < 1 || players.length > 2) throw new Error('Invalid party');
+    if (new Set(players).size!==players.length || id==='snack'&&players.length===3 || !PARTY_IDS.includes(id) || players.length < 1 || players.length > (id==='snack'?4:2)) throw new Error('Invalid party');
     return { id, players, random, phase: 'ready', turn: 0, attempt: 0, deadline: 0,
         scores: Object.fromEntries(players.map((p) => [p, 0])), runs: {}, feints: {}, traps: {},
         ready: [], replay: [], lastFrame: 0, winnerId: null, summary: '', started: 0 };
@@ -30,7 +32,7 @@ function beginParty(g, now) {
     if (g.id === 'contrepied') beginContrepied(g);
     if (g.id === 'garde') beginGarde(g);
     if(g.id === 'ricochet') {g.pucks=[];g.frames=[];}
-    g.runs = Object.fromEntries(g.players.map((p) => [p, { errors: [], durations: [], layers: [{ x: .19, width: .62 }], status: 'playing', level: 0, bank: 0, perfects: 0, perfectStreak:0, buoy:false, rescues:0, motionAt: now }]));
+    g.runs = Object.fromEntries(g.players.map((p) => [p, { errors: [], durations: [], layers: [{ x: .19, width: .62 }], status: 'playing', level: 0, bank: 0, perfects: 0, perfectStreak:0, buoy:false, rescues:0, repairs:0, motionAt: now }]));
     nextAttempt(g, now);
 }
 
@@ -40,7 +42,8 @@ function nextAttempt(g, now) {
     g.responses = {};
     g.traps = {};
     g.feedback = {};
-    if(['pigeon','lift'].includes(g.id)){beginAbsurd(g,now);
+    if(['snack','chicken'].includes(g.id)){beginSnack(g,now);
+    }else if(['pigeon','lift'].includes(g.id)){beginAbsurd(g,now);
     }else if(['pie','balloon'].includes(g.id)){beginCarnival(g,now);
     } else if(g.id==='toilet'){beginToilet(g,now);
     } else if (g.id === 'table') {
@@ -139,6 +142,7 @@ function actParty(g, id, action, now) {
     }
     if (['done', 'ready', 'reveal', 'prepare'].includes(g.phase)) return false;
     if (now >= g.deadline) { tickParty(g, now); return false; }
+    if(['snack','chicken'].includes(g.id))return actSnack(g,id,action,now);
     if(['pigeon','lift'].includes(g.id))return actAbsurd(g,id,action,now);
     if(['pie','balloon'].includes(g.id))return actCarnival(g,id,action,now);
     if(g.id==='toilet')return actToilet(g,id,action,now);
@@ -178,7 +182,13 @@ function actParty(g, id, action, now) {
     } else {
         const run = g.runs[id];
         if (run.status !== 'playing') return false;
-        if (action.action === 'bank') {
+        if (action.action === 'repair') {
+            const base=run.layers.at(-1);
+            if(!run.buoy||base.width>=TOWER.initialWidth-1e-9)return false;
+            const width=Math.min(TOWER.initialWidth,base.width+TOWER.repairGain),center=base.x+base.width/2;
+            run.layers[run.layers.length-1]={x:clamp(center-width/2,0,1-width),width};
+            run.buoy=false;run.repairs=(run.repairs||0)+1;run.perfectStreak=0;run.motionAt=now;
+        } else if (action.action === 'bank') {
             if (!run.level) return false;
             run.status = 'banked';
             run.bank = run.level;
@@ -188,19 +198,19 @@ function actParty(g, id, action, now) {
             const base = run.layers.at(-1);
             const x = Math.max(moving.x, base.x);
             const overlap = Math.min(moving.x + moving.width, base.x + base.width) - x;
-            if(overlap < .055 && run.buoy){
+            if(overlap < TOWER.minOverlap && run.buoy){
                 run.buoy=false;run.rescues++;run.perfectStreak=0;run.motionAt=now;
-            } else if (overlap < .055) {
+            } else if (overlap < TOWER.minOverlap) {
                 run.status = 'crashed';
                 run.bank = 0;
                 g.scores[id] = 0;
             } else {
-                const perfect = Math.abs(moving.x - base.x) < .022;
+                const perfect = Math.abs(moving.x - base.x) < TOWER.perfectTolerance;
                 run.layers.push(perfect ? { ...base } : { x, width: overlap });
                 run.level++;
                 if (perfect) run.perfects++;
                 run.perfectStreak=perfect?(run.perfectStreak||0)+1:0;
-                if(run.perfectStreak>=3&&!run.rescues)run.buoy=true;
+                if(run.perfectStreak>=TOWER.perfectsForBuoy&&!run.rescues&&!run.repairs)run.buoy=true;
                 run.motionAt = now;
                 if (run.level === 20) { run.status = 'banked'; run.bank = 20; g.scores[id] = 20; }
             }
@@ -227,6 +237,7 @@ function tickParty(g, now) {
     if(['pigeon','lift'].includes(g.id)){tickAbsurd(g,now,conclude);return;}
     if(['pie','balloon'].includes(g.id)){tickCarnival(g,now,conclude);return;}
     if(g.id==='toilet'){tickToilet(g,now);return;}
+    if(['snack','chicken'].includes(g.id)){tickSnack(g,now);return;}
     if(g.id === 'table') {tickTable(g,now);return;}
     if(g.id === 'ricochet') {tickRicochet(g,now,conclude,nextAttempt);return;}
     if(g.id === 'contrepied') {tickContrepied(g,now,conclude,nextAttempt);return;}
@@ -281,6 +292,7 @@ function publicParty(g, viewer, now) {
     if(['pigeon','lift'].includes(g.id))state.absurd=publicAbsurd(g,now);
     if(['pie','balloon'].includes(g.id))state.carnival=publicCarnival(g,now);
     if(g.id==='toilet')state.toilet=publicToilet(g,now);
+    if(['snack','chicken'].includes(g.id))state.snack=publicSnack(g,now);
     if(g.id === 'table') state.table=publicTable(g,now);
     if(g.id === 'ricochet') state.board=publicRicochet(g);
     if(g.id === 'contrepied') state.contrepied=publicContrepied(g,viewer);
@@ -291,7 +303,7 @@ function publicParty(g, viewer, now) {
         const run = g.runs[id];
         if (!run) continue;
         state.runs[id] = g.id === 'onemore'
-            ? { layers: run.layers, level: run.level, bank: run.bank, perfects: run.perfects, perfectStreak:run.perfectStreak,buoy:run.buoy,rescues:run.rescues,status: run.status, moving: movingBlock(g, id, now), motion: { ageMs: Math.max(0, now - run.motionAt), speed: .65 + run.level * .07 } }
+            ? { layers: run.layers, level: run.level, bank: run.bank, perfects: run.perfects, perfectStreak:run.perfectStreak,buoy:run.buoy,rescues:run.rescues,repairs:run.repairs,status: run.status, moving: movingBlock(g, id, now), motion: { ageMs: Math.max(0, now - run.motionAt), speed: .65 + run.level * .07 } }
             : { durations: run.durations, errors: run.errors };
     }
     return state;
@@ -310,6 +322,7 @@ function pauseParty(g, delta, now = Date.now()) {
     if(['pigeon','lift'].includes(g.id))pauseAbsurd(g,delta);
     if(['pie','balloon'].includes(g.id))pauseCarnival(g,delta);
     if(g.id==='toilet')pauseToilet(g,delta);
+    if(['snack','chicken'].includes(g.id))pauseSnack(g,delta);
     if(g.id==='table')pauseTable(g,delta);
     if (g.id === 'mat' && g.phase === 'solve') {
         g.turn++;g.responses={};prepareMat(g,now);return;

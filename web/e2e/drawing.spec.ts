@@ -18,18 +18,19 @@ async function stroke(page:Page,cut:boolean,mobile:boolean,offset=0) {
     }else{await page.mouse.move(coords[0].x,coords[0].y);await page.mouse.down();for(const p of coords.slice(1))await page.mouse.move(p.x,p.y,{steps:5});await page.mouse.up();}
     if(cut)await page.getByRole('button',{name:'Lock cut',exact:true}).click();
 }
-async function complete(page:Page,cut:boolean,mobile:boolean) {
+async function complete(page:Page,cut:boolean,mobile:boolean,portion?:()=>number|undefined) {
     for(let i=0;i<3;i++){
         await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase','drawpath');
+        if(cut){await expect(page.getByTestId('cut-order')).toHaveAttribute('data-axis',['free','vertical','diagonal'][i]);await expect(page.getByTestId('cut-order')).toHaveAttribute('data-recipe',['biscuit','fromage','gateau'][i]);}
+        if(cut){for(const control of [page.getByTestId('drawing-canvas'),page.getByRole('button',{name:'Lock cut',exact:true}),page.getByTestId('cut-menu-progress')]){const b=(await control.boundingBox())!;expect(b.y).toBeGreaterThanOrEqual(0);expect(b.y+b.height).toBeLessThanOrEqual(page.viewportSize()!.height);}}
         await stroke(page,cut,mobile);
-        await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase','reveal');
+        await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase','reveal');if(cut&&portion){await expect(page.getByTestId('game-moment')).toContainText(`${portion()} %`);}if(cut){await expect(page.getByTestId('cut-coach')).toBeVisible();await page.screenshot({path:test.info().outputPath(`cut-order-${i+1}-reveal.png`)});}
     }
 }
 for(const game of ['trace','decoupe'] as const) {
     test(`${game} practice accepts three real strokes and renders a nonblank responsive board`,async({page,request},info)=>{
-        test.setTimeout(75000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-        await identify(page,await player(request,'DrawSolo'));await page.goto('/');
-        await page.getByRole('button',{name:`Play ${game==='decoupe'?'Chef Snip':'TRACE'}`,exact:true}).click();
+        test.setTimeout(75000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+        const user=await player(request,'DrawSolo');let portion:number|undefined;page.on('websocket',ws=>ws.on('framereceived',event=>{try{const data=JSON.parse(String(event.payload));const entry=data.party?.drawing?.history?.slice(-1)[0];if(entry)portion=entry.results[user.userId]?.percent;}catch{}}));await identify(page,user);await page.goto(`/?tab=training&game=${game}`);
         await page.getByRole('button',{name:'Enter the arena'}).click();
         await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase',game==='trace'?'observe':'drawpath');
         const pixels=await page.getByTestId('drawing-canvas').evaluate((el:HTMLCanvasElement)=>{
@@ -38,17 +39,18 @@ for(const game of ['trace','decoupe'] as const) {
         });expect(pixels).toBeGreaterThan(4);
         expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
         await page.screenshot({path:info.outputPath(`${game}-board.png`),fullPage:true});
-        await complete(page,game==='decoupe',info.project.name.includes('mobile'));
+        await complete(page,game==='decoupe',info.project.name.includes('mobile'),()=>portion);
         await page.screenshot({path:info.outputPath(`${game}-reveal.png`),fullPage:true});
         await expect(page.getByRole('button',{name:'Replay',exact:true})).toBeVisible();
         expect(errors).toEqual([]);
     });
     test(`${game} link challenge runs host and visitor on identical server targets and survives reload`,async({page,request,browser},info)=>{
-        test.setTimeout(120000);const host=await player(request,'DrawHost'),friend=await player(request,'DrawFriend');
+        test.setTimeout(120000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const host=await player(request,'DrawHost'),friend=await player(request,'DrawFriend');
         await identify(page,host);await page.goto(`/?tab=training&link=new&game=${game}`);
         await page.getByRole('button',{name:'Create challenge'}).click();
         await expect(page).toHaveURL(/link=[0-9a-f-]+/);
         await page.getByRole('button',{name:'Enter the arena'}).click();
+        if(game==='decoupe'){await expect(page.locator('[data-game-session=decoupe]')).toBeVisible();await expect(page.getByTestId('drawing-canvas')).toBeVisible();}
         await complete(page,game==='decoupe',info.project.name.includes('mobile'));
         await expect(page.getByText('CHALLENGE READY',{exact:true})).toBeVisible();
         const url=await page.getByRole('textbox',{name:'Challenge link',exact:true}).inputValue();
@@ -67,9 +69,9 @@ for(const game of ['trace','decoupe'] as const) {
     });
     test(`${game} live duel commits secretly and completes with comparison and a replay`,async({browser,request},info)=>{
         test.setTimeout(90000);const a=await player(request,'DrawingA'),b=await player(request,'DrawingB');
-        const post=async(path:string,data:object)=>{const r=await request.post(path,{data});expect(r.ok(),await r.text()).toBe(true);return r.json();};
-        const {duel}=await post('/api/duels',{challengerId:a.userId,opponentId:b.userId,stake:2,bestOf:1,draft:{challenger:{pick:game,ban:'bounce'},opponent:{pick:game,ban:'bounce'}}});
-        for(const u of [a,b])await post(`/api/duels/${duel.id}/ban`,{userId:u.userId,gameId:'bounce'});
+        const post=async(path:string,data:object)=>{const values=data as Record<string,string>,actor=values.userId||values.challengerId,u=actor===a.userId?a:b;const r=await request.post(path,{data,headers:{'X-SlapTax-User':u.userId,'X-SlapTax-Client':u.clientId}});expect(r.ok(),await r.text()).toBe(true);return r.json();};
+        const {duel}=await post('/api/duels',{challengerId:a.userId,opponentId:b.userId,stake:2,bestOf:1,draft:{challenger:{pick:game,ban:'onemore'},opponent:{pick:game,ban:'onemore'}}});
+        for(const u of [a,b])await post(`/api/duels/${duel.id}/ban`,{userId:u.userId,gameId:'onemore'});
         for(const u of [a,b])await post(`/api/duels/${duel.id}/ready`,{userId:u.userId,ready:true});
         await post(`/api/duels/${duel.id}/start`,{userId:a.userId});
         const ca=await browser.newContext(info.project.use),cb=await browser.newContext(info.project.use);

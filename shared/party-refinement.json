@@ -1,0 +1,42 @@
+{
+  "balloon": {
+    "burstAt": 100,
+    "targets": [
+      55,
+      70,
+      85
+    ],
+    "targetTolerance": 4,
+    "targetBonus": 80,
+    "sabotageDelay": 650,
+    "ventLoss": 18,
+    "ventDuration": 550,
+    "ventCooldown": 2600
+  },
+  "lift": {
+    "doubleGasEvery": 3,
+    "breathDuration": 550,
+    "breathCooldown": 3200,
+    "blockBonus": 30,
+    "streakStep": 10,
+    "maxStreakBonus": 30
+  },
+  "bomb": {
+    "perfectFraction": 0.25,
+    "perfectsForShield": 3
+  },
+  "pigeon": {
+    "perfectRadius": 16,
+    "streakStep": 20,
+    "maxStreakBonus": 60,
+    "parryWindow": 200,
+    "parryReward": 80
+  },
+  "tower": {
+    "initialWidth": 0.62,
+    "minOverlap": 0.055,
+    "perfectTolerance": 0.022,
+    "perfectsForBuoy": 3,
+    "repairGain": 0.12
+  }
+}

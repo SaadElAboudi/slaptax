@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "welcome": 25,
+  "stakes": [2, 5, 10, 20],
+  "feePercent": 15,
+  "dailyBonus": 10,
+  "practiceReward": 2,
+  "practiceDailyLimit": 3,
+  "rescueBonus": 10,
+  "minimumStake": 2,
+  "dayBoundary": "UTC",
+  "monetaryValue": false
+}

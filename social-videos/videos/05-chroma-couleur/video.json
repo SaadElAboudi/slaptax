@@ -1,0 +1,31 @@
+{
+  "id": "05-chroma-couleur",
+  "day": 5,
+  "game": "chroma",
+  "series": "Défi solo",
+  "hook": "Vous voyez vraiment la même couleur ?",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Même couleur au départ. Deux réponses très différentes. Vous faites mieux ?",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Vous voyez vraiment la même couleur ?"
+    },
+    {
+      "from": 3,
+      "to": 12,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

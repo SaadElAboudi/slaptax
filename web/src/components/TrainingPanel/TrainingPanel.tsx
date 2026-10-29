@@ -1,3 +1,4 @@
+import {hasScoreChallenge,preferredGame,prepareGameMode} from '../../gameplay/gameExperience';
 import type {SoloReward} from '../../api/client';
 import {SoloVictory} from './SoloVictory';
 import { useMemo, useRef, useState } from 'react';
@@ -25,14 +26,7 @@ export function TrainingPanel() {
     const language = useGameStore((state) => state.language);
     const setActiveTab = useGameStore((state) => state.setActiveTab);
     const isFr = language === 'fr';
-    const [gameId, setGameId] = useState<CompetitiveGameId>(() => {
-        try {
-            const stored = localStorage.getItem('slaptax_training_game');
-            return COMPETITIVE_GAMES.some((game) => game.id === stored) ? stored as CompetitiveGameId : 'toilet';
-        } catch {
-            return 'toilet';
-        }
-    });
+    const [gameId, setGameId] = useState<CompetitiveGameId>(()=>preferredGame('training'));
     const [level, setLevel] = useState<(typeof LEVELS)[number]>(1);
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
@@ -50,6 +44,7 @@ export function TrainingPanel() {
     }, [bestKey, attempt]);
 
     function selectGame(next: CompetitiveGameId) {
+        prepareGameMode(next,'training');
         setGameId(next);
         setResult(null);
         setAttempt((value) => value + 1);
@@ -91,7 +86,7 @@ export function TrainingPanel() {
                 <div className={styles.resultActions}>
 
                     <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
-                    {['trace','decoupe','chroma'].includes(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+                    {hasScoreChallenge(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
                     <button type="button" onClick={() => {
                         try { localStorage.setItem('slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
                         setActiveTab('defy');
@@ -152,7 +147,7 @@ export function TrainingPanel() {
                 onComplete={complete}
                 onStart={() => setPlaying(true)}
             />
-            {!playing&&['trace','decoupe','chroma'].includes(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+            {!playing&&hasScoreChallenge(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
         </section>
     );
 }

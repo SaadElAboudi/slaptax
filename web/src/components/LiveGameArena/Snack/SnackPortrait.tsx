@@ -1,0 +1,5 @@
+export function SnackPortrait({character}:{character:string}){
+ return <svg viewBox="0 0 96 96" width="64" height="64" aria-hidden="true"><g stroke="#19343d" strokeWidth="3" strokeLinejoin="round">
+ {character==='pickle'?<><rect x="28" y="12" width="40" height="74" rx="20" fill="#a4cf76"/><path d="m46 15-5-9 11 4 8-5-3 12" fill="#568d61"/><path d="m33 29 3-2m24 8 3-2M34 62l3-2m21 15 3-2" stroke="#638f58"/></>:character==='toast'?<><path d="M24 82V40Q6 14 28 10h40q22 6 4 30v42Z" fill="#bb8153"/><path d="M30 75V36q-8-15 5-17h26q13 2 5 17v39Z" fill="#fce5a6"/><path d="m35 26 3 3m19-5 3 3m-22 40 3 3" stroke="#d4ad6b"/></>:<><path d="m22 74 8-47h36l8 47q-24 15-52 0Z" fill="#ffda78"/><ellipse cx="48" cy="29" rx="19" ry="7" fill="#be8651"/><path d="M48 22q0-13 10-14" fill="none"/><circle cx="46" cy="19" r="7" fill="#d66b79"/></>}
+ <g fill="white"><ellipse cx="38" cy="47" rx="8" ry="11"/><ellipse cx="58" cy="47" rx="8" ry="11"/></g><g fill="#19343d" stroke="none"><circle cx="40" cy="48" r="4"/><circle cx="60" cy="48" r="4"/></g><path d="M39 65q9 12 18 0" fill="none"/><rect x="30" y="76" width="36" height="9" rx="4" fill="#508c8a"/></g></svg>;
+}

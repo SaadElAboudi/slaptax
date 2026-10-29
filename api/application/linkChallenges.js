@@ -23,7 +23,7 @@ function createLinkChallenges(store, clock = Date.now) {
             const host=c.attempts[c.hostId];
             result.result={ownScore:g.scores[userId],hostScore:host.scores[c.hostId],
                 hostId:c.hostId, ownHistory:g.drawing?.history || [],hostHistory:host.drawing?.history || [],
-                ownColors:g.colorHistory || [],hostColors:host.colorHistory || [],isHost:userId===c.hostId};
+                ownColors:g.colorHistory || [],hostColors:host.colorHistory || [],...(c.gameId==='onemore'?{ownRun:publicParty(g,userId,now).runs[userId],hostRun:publicParty(host,c.hostId,now).runs[c.hostId]}:{}),isHost:userId===c.hostId};
         }
         return JSON.parse(JSON.stringify(result));
     }
@@ -39,10 +39,11 @@ function createLinkChallenges(store, clock = Date.now) {
         for(const [userId,g] of Object.entries(c.attempts)) {
             if(g.phase!=='done' && Math.min(now,c.expiresAt)>=g.deadline){advance(g,Math.min(now,c.expiresAt));changed=true;}
             if(g.phase!=='done')continue;
+            if(!g.linkCompletedAt){g.linkCompletedAt=now;changed=true;}
             const host=c.attempts[c.hostId];
             const ownScore=g.scores[userId],hostScore=host.scores[c.hostId];
             const outcome=ownScore===hostScore?'draw':ownScore>hostScore?'win':'loss';
-            const common={challengeId:c.id,gameId:c.gameId,completedAt:g.deadline,expiresAt:c.expiresAt};
+            const common={challengeId:c.id,gameId:c.gameId,completedAt:g.linkCompletedAt||g.deadline,expiresAt:c.expiresAt};
             save(userId,{...common,id:`${c.id}:${userId}`,score:ownScore,
                 opponentName:userId===c.hostId?null:db.users.find(u=>u.id===c.hostId)?.playerName||'Player',
                 opponentScore:userId===c.hostId?null:hostScore,outcome:userId===c.hostId?'created':outcome});
@@ -72,12 +73,12 @@ function createLinkChallenges(store, clock = Date.now) {
         createLinkChallenge(body) {
             const db=store.read(), now=clock();
             if(!authorized(db,body))return fail('Session unavailable',403);
-            if(!['trace','decoupe','chroma'].includes(body.gameId))return fail('Unsupported link game',400);
+            if(!['trace','decoupe','chroma','onemore'].includes(body.gameId))return fail('Unsupported link game',400);
             for(const c of db.linkChallenges||[])if(c.expiresAt<=now)sync(c,db,now);
             const existing=(db.linkChallenges||[]).filter((c)=>c.expiresAt>now);
             if(existing.length>=5000||existing.filter((c)=>c.hostId===body.userId&&now-c.createdAt<86400000).length>=20)return fail('Challenge limit reached',429);
             const c={id:randomUUID(),gameId:body.gameId,hostId:body.userId,createdAt:now,expiresAt:now+7*86400000,
-                targets:[1,2,3].map((i)=>body.gameId==='chroma'?[randomInt(24,232),randomInt(24,232),randomInt(24,232)]:drawingTarget(body.gameId,i,randomInt)),attempts:{}};
+                targets:body.gameId==='onemore'?[]:[1,2,3].map((i)=>body.gameId==='chroma'?[randomInt(24,232),randomInt(24,232),randomInt(24,232)]:drawingTarget(body.gameId,i,randomInt)),attempts:{}};
             db.linkChallenges=[...existing,c];store.write(db);
             return {ok:true,challenge:metadata(c,db)};
         },
@@ -100,7 +101,7 @@ function createLinkChallenges(store, clock = Date.now) {
             if(operation==='start'&&!g) {
                 if(Object.keys(c.attempts).length>=1000)return fail('Challenge is full',429);
                 g=createParty(c.gameId,[body.userId]);
-                if(c.gameId==='chroma')g.colorTargets=c.targets;else g.drawingTargets=c.targets;
+                if(c.gameId==='chroma')g.colorTargets=c.targets;else if(c.gameId!=='onemore')g.drawingTargets=c.targets;
                 beginParty(g,now);
                 delete g.random;
                 c.attempts[body.userId]=g;store.write(db);

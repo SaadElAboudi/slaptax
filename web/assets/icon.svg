@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<rect id="background" width="1024" height="1024" fill="#263f79"/>
+<path d="m160 342 130-32-20-128 124 72 103-115 52 133 151-49-25 148 164 30-126 104 118 122-159 5-12 164-127-94-98 130-46-154-154 44 47-143-135-71 123-74Z" fill="#90d9bf" stroke="#14213f" stroke-width="23" stroke-linejoin="round"/>
+<ellipse cx="525" cy="800" rx="258" ry="49" fill="#14213f" opacity=".45"/>
+<path d="m332 737-48 53 101 12 39-62m196-2 23 58 102-8-38-60" fill="#f6b65e" stroke="#14213f" stroke-width="25" stroke-linejoin="round"/>
+<path d="M324 390q-16-106 174-108 191-2 180 108l66 280q17 89-226 91-241 2-225-91Z" fill="#ffda68" stroke="#14213f" stroke-width="26"/>
+<ellipse cx="500" cy="388" rx="177" ry="60" fill="#d67b54" stroke="#14213f" stroke-width="22"/>
+<path d="M346 402q13-21 31 5t35-2 36 2 36-1 36-2 36 2 36-3 36 1 32-6" fill="none" stroke="#f6b65e" stroke-width="20" stroke-linecap="round"/>
+<path d="M367 337q120-57 240-4" fill="none" stroke="#f3ac78" stroke-width="14" stroke-linecap="round"/>
+<path d="m450 260 29-35-11-36 34 18 32-27-4 42 37 20-45 8-17 35Z" fill="#ffdc68" stroke="#14213f" stroke-width="14" stroke-linejoin="round"/>
+<g stroke="#14213f" stroke-width="20"><ellipse cx="440" cy="533" rx="46" ry="59" fill="#fff9e7"/><ellipse cx="568" cy="533" rx="46" ry="59" fill="#fff9e7"/></g>
+<g fill="#14213f"><ellipse cx="454" cy="545" rx="17" ry="23"/><ellipse cx="582" cy="545" rx="17" ry="23"/></g>
+<path d="m399 463 65 16m76-5 62-28" fill="none" stroke="#14213f" stroke-width="19" stroke-linecap="round"/>
+<path d="M462 634q64 61 102-6Z" fill="#14213f" stroke="#14213f" stroke-width="17" stroke-linejoin="round"/>
+<path d="m477 640 62-3-13 20-37-3Z" fill="#fff9e7"/>
+<ellipse cx="383" cy="606" rx="26" ry="14" fill="#ee9986"/><ellipse cx="631" cy="598" rx="26" ry="14" fill="#ee9986"/>
+<path d="M314 576q-76 3-61 103m456-135 37 18" fill="none" stroke="#14213f" stroke-width="28" stroke-linecap="round"/>
+<path d="M737 444q-18-25-34-6-13 13-2 43l12 37q-37-36-55-13-13 17 11 45l44 50q21 33 69 12l46-22q29-14 22-45l-14-83q-3-25-24-21-16 2-16 27l-8-44q-4-25-25-20-17 4-12 31l-8-24q-8-24-27-15-17 7-5 32Z" fill="#ef9a9c" stroke="#14213f" stroke-width="19" stroke-linejoin="round"/>
+<path d="m807 369 26-45m17 78 48-22m-116-34 2-43" stroke="#ffda68" stroke-width="19" stroke-linecap="round"/>
+</svg>

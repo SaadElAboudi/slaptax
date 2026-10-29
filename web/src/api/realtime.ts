@@ -1,3 +1,4 @@
+import {apiBase} from '../platform/environment';
 import { useEffect, useRef } from 'react';
 
 interface RealtimeEvent {
@@ -9,12 +10,7 @@ interface RealtimeEvent {
 }
 
 export function getRealtimeUrl(userId: string) {
-    let configuredBase = '';
-    try {
-        configuredBase = localStorage.getItem('slaptax_api_base') || '';
-    } catch {
-        configuredBase = '';
-    }
+    const configuredBase=apiBase();
 
     const base = configuredBase
         ? new URL(configuredBase, window.location.origin)

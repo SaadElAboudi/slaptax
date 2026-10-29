@@ -34,7 +34,7 @@ test('solo completion survives service recreation, unlocks earned cosmetics and 
  const before=s.getState(userId,'solo-client');
  for(let i=0;i<20;i++)s.recordSoloCompletion(userId,`game-${i}`,'onemore',700);
  const after=s.getState(userId,'solo-client');
- assert.equal(after.progression.xp-before.progression.xp,45);assert.equal(after.wallet,before.wallet);
+ assert.equal(after.progression.xp-before.progression.xp,45);assert.equal(after.wallet,before.wallet+6);
  assert.deepEqual(after.history,before.history);assert.equal(after.progression.rankedPoints,before.progression.rankedPoints);
  assert.equal(after.progression.solo.receipts,undefined);
  s=createService(store);assert.equal(s.getState(userId,'solo-client').progression.solo.plays,20);

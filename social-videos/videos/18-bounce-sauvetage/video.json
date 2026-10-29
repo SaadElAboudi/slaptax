@@ -1,0 +1,31 @@
+{
+  "id": "18-bounce-sauvetage",
+  "day": 18,
+  "game": "bounce",
+  "series": "Moment décisif",
+  "hook": "Je pensais que c’était fini.",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Je pensais l’avoir perdue. Regarde le dernier échange.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Je pensais que c’était fini."
+    },
+    {
+      "from": 3,
+      "to": 12,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

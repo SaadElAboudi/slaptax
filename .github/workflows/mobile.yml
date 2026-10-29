@@ -1,0 +1,105 @@
+name: Mobile build validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['web/**', 'api/**', 'shared/**', 'mobile/**', 'package*.json', 'AGENTS.md', '.github/workflows/mobile.yml']
+  pull_request:
+    paths: ['web/**', 'api/**', 'shared/**', 'mobile/**', 'package*.json', 'AGENTS.md', '.github/workflows/mobile.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  shared-validation:
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
+      VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci
+      - run: npm --prefix web ci
+      - run: npm test
+      - run: npm --prefix web run test:build-tools
+      - run: npm run build:all
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Verify shared game modes and mobile behavior
+        env:
+          APP_DISTRIBUTION: store
+        working-directory: web
+        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts
+  android:
+    needs: shared-validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
+      VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build:all
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Compile debug APK and unsigned release AAB
+        working-directory: web/android
+        run: ./gradlew :app:assembleDebug :app:bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-and-unsigned-release
+          path: |
+            web/android/app/build/outputs/apk/debug/*.apk
+            web/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 7
+  ios:
+    needs: shared-validation
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
+      VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Require submission-capable Xcode
+        run: |
+          xcodebuild -version
+          python3 -c 'import re,subprocess; v=subprocess.check_output(["xcodebuild","-version"],text=True); assert int(re.search(r"Xcode (\d+)",v)[1]) >= 26'
+      - run: npm ci
+      - run: npm run build:all
+      - name: Compile unsigned simulator app
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-unsigned
+          path: web/ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
+          retention-days: 7

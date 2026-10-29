@@ -1,0 +1,31 @@
+{
+  "id": "11-chroma-revanche",
+  "day": 11,
+  "game": "chroma",
+  "series": "Défi solo",
+  "hook": "Cette fois, je retrouve la couleur.",
+  "duration": 16,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "J’étais sûr de moi. J’ai demandé une revanche. Voilà le résultat.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Cette fois, je retrouve la couleur."
+    },
+    {
+      "from": 3,
+      "to": 13,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 13,
+      "to": 16,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

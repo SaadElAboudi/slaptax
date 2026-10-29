@@ -12,7 +12,7 @@ function finish(f,id,user){let data=f.api.playLinkChallenge(id,'start',user);
         f.advance(2000);data=f.api.playLinkChallenge(id,'state',user);
         const target=data.party.drawing.target;
         if(data.challenge.gameId==='trace'){f.advance(2000);data=f.api.playLinkChallenge(id,'state',user);}
-        data=f.api.playLinkChallenge(id,'action',{...user,action:'lock',turn:data.party.turn,points:target.path||[[.5,0],[.5,1]],side:1});
+        data=f.api.playLinkChallenge(id,'action',{...user,action:'lock',turn:data.party.turn,points:target.path||(target.axis==='diagonal'?[[0,0],[1,1]]:[[.5,0],[.5,1]]),side:1});
         assert.equal(data.ok,true);f.advance(2800);data=f.api.playLinkChallenge(id,'state',user);
     }return data;}
 for(const gameId of ['trace','decoupe'])test(`${gameId} link scores are server-owned, persisted, private until completion, and wallet-neutral`,()=>{
@@ -159,4 +159,23 @@ test('renaming an anonymous player preserves wallet, histories and challenge own
     assert.deepEqual(f.api.listLinkChallenges(f.host).history,history);
     assert.equal(f.api.listLinkChallenges(f.host).challenges[0].hostName,'New nickname');
     assert.equal(f.store.read().users.length,db.users.length);
+});
+test('tower challenges calculate server scores, hide the rival, persist the tower and keep wallets unchanged',()=>{
+ const f=setup(),before=f.store.read().users.map(u=>u.wallet),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'onemore'});
+ assert.equal(f.api.playLinkChallenge(challenge.id,'start',f.friend).code,409);
+ let host=f.api.playLinkChallenge(challenge.id,'start',f.host);assert.equal(host.party.phase,'stack');assert.equal(host.result,undefined);
+ // First moving block reaches the starting layer at this server timestamp.
+ f.advance(344);host=f.api.playLinkChallenge(challenge.id,'action',{...f.host,action:'drop',turn:host.party.turn,score:999999});assert.equal(host.party.runs[f.host.userId].level,1);
+ host=f.api.playLinkChallenge(challenge.id,'action',{...f.host,action:'bank',turn:host.party.turn});assert.equal(host.result.ownScore,1);assert.equal(host.result.ownRun.bank,1);assert.equal(f.api.getLinkChallenge(challenge.id).challenge.published,true);
+ const guest=f.api.playLinkChallenge(challenge.id,'start',f.friend);assert.equal(guest.result,undefined);assert.equal(JSON.stringify(guest).includes('hostRun'),false);
+ f.advance(31000);const end=f.restart().playLinkChallenge(challenge.id,'state',f.friend);assert.equal(end.party.phase,'done');assert.equal(end.result.ownScore,0);assert.equal(end.result.hostScore,1);assert.equal(end.result.hostRun.layers.length,2);assert.deepEqual(f.store.read().users.map(u=>u.wallet),before);
+ assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.friend,action:'bank',turn:1,score:999}).code,409);
+ const list=f.api.listLinkChallenges(f.host);assert.equal(list.challenges[0].standings[0].score,1);assert.ok(list.history.every(h=>h.completedAt<=131344));
+});
+test('tower shared challenge persists a real repair with unchanged wallets and exact block score',()=>{
+ const f=setup(),before=f.store.read().users.map(u=>u.wallet),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'onemore'});let data=f.api.playLinkChallenge(challenge.id,'start',f.host);
+ const run=()=>data.party.runs[f.host.userId],action=a=>{data=f.api.playLinkChallenge(challenge.id,'action',{...f.host,action:a,turn:data.party.turn});assert.equal(data.ok,true);};
+ for(let i=0;i<3;i++){f.advance(500/(.65+run().level*.07));action('drop');}
+ assert.equal(run().buoy,true);const base=run().layers.at(-1);f.advance((base.x+.08)/(1-base.width)/(.65+run().level*.07)*1000);action('drop');assert.equal(run().level,4);const width=run().layers.at(-1).width;action('repair');assert.ok(run().layers.at(-1).width>width);assert.equal(run().repairs,1);assert.equal(run().buoy,false);action('bank');assert.equal(data.result.ownScore,4);assert.equal(data.result.ownRun.repairs,1);
+ const restored=f.restart().playLinkChallenge(challenge.id,'state',f.host);assert.equal(restored.result.ownRun.repairs,1);assert.deepEqual(f.store.read().users.map(u=>u.wallet),before);
 });

@@ -1,0 +1,402 @@
+[
+  {
+    "game": "snack",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 267.5,
+        "y": 87.203125,
+        "w": 831,
+        "h": 554,
+        "bottom": 641.203125
+      }
+    ],
+    "session": false,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "snack-pc.png"
+  },
+  {
+    "game": "chicken",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 267.5,
+        "y": 82,
+        "w": 831,
+        "h": 554,
+        "bottom": 636
+      }
+    ],
+    "session": false,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "chicken-pc.png"
+  },
+  {
+    "game": "toilet",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 419.5,
+        "y": 113,
+        "w": 527,
+        "h": 527,
+        "bottom": 640
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "toilet-pc.png"
+  },
+  {
+    "game": "pigeon",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 357.953125,
+        "y": 118,
+        "w": 650.078125,
+        "h": 478.3125,
+        "bottom": 596.3125
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "pigeon-pc.png"
+  },
+  {
+    "game": "lift",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 412.359375,
+        "y": 130.015625,
+        "w": 541.265625,
+        "h": 398.1875,
+        "bottom": 528.203125
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "lift-pc.png"
+  },
+  {
+    "game": "pie",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 384.421875,
+        "y": 118,
+        "w": 597.140625,
+        "h": 420.09375,
+        "bottom": 538.09375
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "pie-pc.png"
+  },
+  {
+    "game": "balloon",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 309.421875,
+        "y": 118,
+        "w": 747.15625,
+        "h": 524.796875,
+        "bottom": 642.796875
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "balloon-pc.png"
+  },
+  {
+    "game": "table",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 429.5,
+        "y": 123.296875,
+        "w": 507,
+        "h": 507,
+        "bottom": 630.296875
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "table-pc.png"
+  },
+  {
+    "game": "garde",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "garde-pc.png"
+  },
+  {
+    "game": "onemore",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 361,
+        "y": 175.796875,
+        "w": 644,
+        "h": 408,
+        "bottom": 583.796875
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "onemore-pc.png"
+  },
+  {
+    "game": "decoupe",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 467,
+        "y": 184.796875,
+        "w": 432,
+        "h": 432,
+        "bottom": 616.796875
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "decoupe-pc.png"
+  },
+  {
+    "game": "bombpass",
+    "mobile": false,
+    "overflow": false,
+    "canvas": [],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "bombpass-pc.png"
+  },
+  {
+    "game": "snack",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 25,
+        "y": 116,
+        "w": 270,
+        "h": 270,
+        "bottom": 386
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "snack-mobile.png"
+  },
+  {
+    "game": "chicken",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 23,
+        "y": 114,
+        "w": 274,
+        "h": 274,
+        "bottom": 388
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "chicken-mobile.png"
+  },
+  {
+    "game": "toilet",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 23,
+        "y": 107,
+        "w": 274,
+        "h": 274,
+        "bottom": 381
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "toilet-mobile.png"
+  },
+  {
+    "game": "pigeon",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 20,
+        "y": 109,
+        "w": 280,
+        "h": 207,
+        "bottom": 316
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "pigeon-mobile.png"
+  },
+  {
+    "game": "lift",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 20,
+        "y": 109,
+        "w": 280,
+        "h": 207,
+        "bottom": 316
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "lift-mobile.png"
+  },
+  {
+    "game": "pie",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 20,
+        "y": 109,
+        "w": 280,
+        "h": 198,
+        "bottom": 307
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "pie-mobile.png"
+  },
+  {
+    "game": "balloon",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 20,
+        "y": 109,
+        "w": 280,
+        "h": 198,
+        "bottom": 307
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "balloon-mobile.png"
+  },
+  {
+    "game": "table",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 23,
+        "y": 117,
+        "w": 274,
+        "h": 274,
+        "bottom": 391
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "table-mobile.png"
+  },
+  {
+    "game": "garde",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "garde-mobile.png"
+  },
+  {
+    "game": "onemore",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 23,
+        "y": 143,
+        "w": 274,
+        "h": 320,
+        "bottom": 463
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "onemore-mobile.png"
+  },
+  {
+    "game": "decoupe",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [
+      {
+        "x": 23,
+        "y": 162,
+        "w": 274,
+        "h": 274,
+        "bottom": 436
+      }
+    ],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "decoupe-mobile.png"
+  },
+  {
+    "game": "bombpass",
+    "mobile": true,
+    "overflow": false,
+    "canvas": [],
+    "session": true,
+    "offscreenButtons": [],
+    "errors": [],
+    "path": "bombpass-mobile.png"
+  }
+]

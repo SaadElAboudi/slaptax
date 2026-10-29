@@ -3,29 +3,30 @@ function json(res, code, payload) {
         "Content-Type": "application/json; charset=utf-8",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, X-SlapTax-Client, X-SlapTax-User",
     });
     res.end(JSON.stringify(payload));
 }
 
 function parseBody(req) {
+    if(req.parsedBody!==undefined)return Promise.resolve(req.parsedBody);
     return new Promise((resolve, reject) => {
-        let body = "";
+        let body = "",size=0,tooLarge=false;
+        const invalid=(message,statusCode)=>Object.assign(new Error(message),{statusCode});
         req.on("data", (chunk) => {
-            body += chunk;
-            if (body.length > 1e6) {
-                reject(new Error("Payload too large"));
-            }
+            size+=Buffer.byteLength(chunk);if(size>1e6){tooLarge=true;reject(invalid("Payload too large",413));return;}
+            if(!tooLarge)body += chunk;
         });
         req.on("end", () => {
+            if(tooLarge)return;
             if (!body) {
-                resolve({});
+                req.parsedBody={};resolve(req.parsedBody);
                 return;
             }
             try {
-                resolve(JSON.parse(body));
+                const parsed=JSON.parse(body);if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw new Error('Object required');req.parsedBody=parsed;resolve(req.parsedBody);
             } catch (err) {
-                reject(new Error("Invalid JSON body"));
+                reject(invalid("Invalid JSON object body",400));
             }
         });
         req.on("error", reject);

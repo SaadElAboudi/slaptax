@@ -1,0 +1,31 @@
+{
+  "id": "20-cupshuffle-suivi",
+  "day": 20,
+  "game": "cupshuffle",
+  "series": "Défi solo",
+  "hook": "Ne quitte pas le bon gobelet des yeux.",
+  "duration": 15,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Tu l’as encore ? Choisis avant la révélation. Maintenant, essaie dans le jeu.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Ne quitte pas le bon gobelet des yeux."
+    },
+    {
+      "from": 3,
+      "to": 12,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

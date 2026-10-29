@@ -1,3 +1,4 @@
+import refinement from '../../../shared/party-refinement.json' with {type:'json'};
 import {paintScenery} from './scenery';
 export interface PartyRun {
     durations?: Array<number | null>;
@@ -8,7 +9,7 @@ export interface PartyRun {
     level?: number;
     bank?: number;
     perfects?: number;
-    perfectStreak?:number;buoy?:boolean;rescues?:number;
+    perfectStreak?:number;buoy?:boolean;rescues?:number;repairs?:number;
     status?: 'playing' | 'crashed' | 'banked';
 }
 
@@ -19,6 +20,7 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 }
 
 export interface PartyState {
+    snack?: SnackState;
     id: string;
     phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve' | 'brawl';
     absurd?:AbsurdState;
@@ -89,7 +91,7 @@ export interface PartyMoment {
 }
 
 export type Point = [number, number];
-export interface DrawingTarget { path?: Point[]; polygon?: Point[]; percent?: number }
+export interface DrawingTarget { recipe?:string;axis?:'free'|'vertical'|'diagonal';path?: Point[]; polygon?: Point[]; percent?: number }
 export interface DrawingResult { points?: Point[]; piece?: Point[]; side?: number; percent?: number; error?: number; score: number; expired?: boolean }
 export interface DrawingState {
     target?: DrawingTarget;
@@ -122,7 +124,14 @@ export function paintTower(ctx: CanvasRenderingContext2D, run: PartyRun | undefi
         blockFace(block.x*width,height-16-(i+1)*step,block.width*width,step-3,i===visible.length-1?color:palette[i%4]);
     });
     if (run?.status === 'playing' && run.moving) {
+        const base=layers[layers.length-1]!,left=Math.max(base.x,run.moving.x),right=Math.min(base.x+base.width,run.moving.x+run.moving.width),overlap=Math.max(0,right-left),aligned=Math.abs(base.x-run.moving.x)<refinement.tower.perfectTolerance;
+        ctx.save();ctx.strokeStyle=aligned?'#fff4a3':'#c8e9e888';ctx.lineWidth=2;ctx.setLineDash([5,6]);for(const edge of [base.x,base.x+base.width]){ctx.beginPath();ctx.moveTo(edge*width,height-16-(visible.length+2)*step);ctx.lineTo(edge*width,height-16-visible.length*step);ctx.stroke();}ctx.restore();
         blockFace(run.moving.x*width,height-16-(visible.length+1)*step,run.moving.width*width,step-3,'#ffdc6e',true);
+        const y=height-16-(visible.length+1)*step;
+        ctx.fillStyle=overlap<refinement.tower.minOverlap?'#f77d86':aligned?'#fff5a3':'#8fe5be';ctx.fillRect(left*width,y+step-7,overlap*width,4);
+        ctx.fillStyle='#f77d8688';if(run.moving.x<base.x)ctx.fillRect(run.moving.x*width,y,(Math.min(base.x,run.moving.x+run.moving.width)-run.moving.x)*width,step-3);if(run.moving.x+run.moving.width>base.x+base.width)ctx.fillRect(Math.max(run.moving.x,base.x+base.width)*width,y,(run.moving.x+run.moving.width-Math.max(run.moving.x,base.x+base.width))*width,step-3);
+        if(run.buoy){ctx.strokeStyle='#b8f5ec';ctx.lineWidth=3;ctx.strokeRect(base.x*width-2,height-16-visible.length*step-2,base.width*width+4,step+1);}
+
     }
     if (run?.status === 'crashed') {
         ctx.fillStyle = '#ffab9c'; ctx.textAlign = 'center'; ctx.font = 'bold 32px sans-serif';
@@ -136,17 +145,21 @@ export interface TableState {pulls?:number;cloth?:{phase:string;direction:number
 export interface ToiletState {elapsed:number;flush:'calm'|'warning'|'flush';golden:boolean;bumpers:Array<{x:number;y:number;r:number}>;bodies:Array<{id:string;bot:boolean;slot:number;x:number;y:number;vx:number;vy:number;loot:number;collected:number;flushes:number;cooldown:number;boosting:boolean;stunned:boolean}>;ducks:Array<{id:number;x:number;y:number;value:number}>;event:{kind:'boost'|'bonk'|'steal'|'duck'|'flush';id:string;x:number;y:number;at:number;age:number;value?:number}|null}
 
 export interface CarnivalState {
- kind:string;elapsed:number;
- bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;combo:number;misses:number;dodges?:number;revenge?:boolean;shield?:boolean;blocks?:number;volume:number;serial:number;inflating:boolean;x:number;cooldown:number;ducking:boolean;duckCooldown:number;pokeCooldown:number;creamed:boolean}[];
- shots:{id:string;target:string;aim:number;revenge?:boolean;at:number;landsAt:number;progress:number}[];
+ kind:string;elapsed:number;sabotages?:{target:string;remaining:number}[];
+ bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;combo:number;misses:number;dodges?:number;revenge?:boolean;shield?:boolean;blocks?:number;targetVolume?:number;targetBanks?:number;venting?:boolean;ventCooldown?:number;volume:number;serial:number;inflating:boolean;x:number;manual?:boolean;targetX?:number;cooldown:number;ducking:boolean;duckCooldown:number;pokeCooldown:number;creamed:boolean}[];
+ shots:{id:string;target:string;aim:number;fromX?:number;revenge?:boolean;at:number;landsAt:number;progress:number}[];
  events:{kind:string;id:string;at:number;value:number;serial:number;age:number}[];
 }
 
 export interface AbsurdState {
  kind:string;elapsed:number;wind:number;
- wave:{index:number;gas:number|null;bean:number|null;remaining:number}|null;
- bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;misses:number;blocks:number;ownGoals:number;pranks:number;stinks:number;beans:number;ammo:number;lane:number;confirmed:boolean;x:number;carX:number;cooldown:number;umbrella:boolean;shieldCooldown:number;proutCooldown:number}[];
+ wave:{index:number;gas:number|null;gases?:number[];bean:number|null;remaining:number}|null;
+ bodies:{id:string;slot:number;bot:boolean;score:number;hits:number;misses:number;blocks:number;ownGoals:number;deliveryStreak?:number;perfects?:number;parries?:number;pranks:number;stinks:number;beans:number;streak?:number;breathing?:boolean;breathCooldown?:number;ammo:number;lane:number;confirmed:boolean;x:number;targetX?:number;visualLane?:number;carX:number;cooldown:number;umbrella:boolean;shieldCooldown:number;proutCooldown:number}[];
  shots:{id:number;owner:string;x:number;at:number;landsAt:number;progress:number}[];
  strikes:{id:number;owner:string;target:string;lane:number;remaining:number;at:number;impactAt:number}[];
  events:{serial:number;kind:string;id:string;at:number;value:number;age:number}[];
 }
+
+export interface SnackBody {ammo?:number;ammoMax?:number;ammoReloadIn?:number;superCharge?:number;superWindup?:number;superAimX?:number;superAimY?:number;supersUsed?:number;wardRemaining?:number;regenIn?:number;hasted?:boolean;team?:number;throws?:number;passes?:number;interceptions?:number;assists?:number;character?:string;maxHp?:number;speed?:number;slowed?:boolean;selectionLocked?:boolean;skillCooldown?:number;skillWindup?:number;guardRemaining?:number;guardX?:number;guardY?:number;range?:number;id:string;slot:number;bot:boolean;x:number;y:number;ax:number;ay:number;dx:number;dy:number;hp:number;kos:number;captures:number;carrying:boolean;attackCooldown:number;windup:number;dashCooldown:number;dashing:boolean;respawnIn:number;shielded:boolean}
+export interface ChickenState {carryRemaining:number;carryLimit:number;frenzy:boolean;eggs:{id:number;x:number;y:number;radius:number;landsIn:number;remaining:number;exploded:boolean}[]}
+export interface SnackState {chicken?:ChickenState;teamMode?:boolean;winnerTeam?:number|null;teamScores?:number[];zones?:{id:string;owner:string;fromX?:number;fromY?:number;x:number;y:number;radius:number;activeIn:number;remaining:number}[];elapsed:number;winnerId:string|null;walls:{x:number;y:number;w:number;h:number}[];box:{x:number;y:number;carrier:string|null;contested?:boolean;readyIn:number;vx?:number;vy?:number;flying?:boolean;thrownBy?:string|null;bounces?:number};events:{kind:string;id:string;x:number;y:number;at:number;age:number;ax?:number;ay?:number;by?:string}[];bodies:SnackBody[]}

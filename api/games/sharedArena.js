@@ -1,3 +1,5 @@
+const {recordBombPass}=require('./bombPrecision');
+const {createSnackTeams}=require('./snackTeams');
 const {normalizePractice} = require('../domain/soloProgression');
 const { WebSocket } = require("ws");
 const { createRace, nextStage, publicRace, answerRace, tickRace } = require('./challengeRace');
@@ -35,6 +37,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             client.send(JSON.stringify({ ...event, at: Date.now() }));
         }
     }
+
+    const snackTeams=createSnackTeams(store,send);
 
     function updatePresence(userId, online) {
         if (!userId) return;
@@ -133,8 +137,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             safeCenter: randomBetween(0.25, 0.75),
             safeWidth: 0.28,
             abilities: {
-                [duel.challengerId]: { shield: 1, feint: 1 },
-                [duel.opponentId]: { shield: 1, feint: 1 },
+                [duel.challengerId]: { shield: 1, feint: 1, streak:0, perfects:0 },
+                [duel.opponentId]: { shield: 1, feint: 1, streak:0, perfects:0 },
             },
             lastAction: null,
         };
@@ -261,6 +265,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     function broadcast(session) {
+        if(session.persisting)return;
         const event = publicState(session);
         for (const client of sessionClients(session)) send(client, PARTY_IDS.includes(session.gameId)
             ? { ...event, party: publicParty(session.game, client.userId, Date.now()) } : event);
@@ -329,6 +334,17 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         return Math.abs(marker - game.safeCenter) <= game.safeWidth / 2;
     }
 
+    function persistCompletion(session,scope){
+        session.persisting=true;session.retryPersistenceAt=0;
+        Promise.resolve().then(()=>store.flush?.()).then(()=>{
+            session.persisting=false;session.updatedAt=Date.now();broadcast(session);
+            emitGlobal({type:'state.changed',scope});
+        }).catch(error=>{
+            session.retryPersistenceAt=Date.now()+3000;session.persistenceScope=scope;
+            process.stderr.write(`Arena persistence pending: ${error.message}\n`);
+        });
+    }
+
     function finish(session, winnerId, reason) {
         if (session.phase === "done") return;
         session.phase = "done";
@@ -341,8 +357,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         }
         if (session.practice) {
             if(!String(reason).includes('forfeit'))session.soloReward=service.recordSoloCompletion(session.challengerId,session.duelId,session.gameId,normalizePractice(session.game,session.challengerId));
-            broadcast(session);
-            if(session.soloReward)emitGlobal({type:'state.changed',scope:'/api/solo'});
+            persistCompletion(session,'/api/solo');
             return;
         }
         const result = service.resolveAuthoritativeDuelRound(session.duelId, session.round, winnerId, {
@@ -350,8 +365,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             reason,
             ...(PARTY_IDS.includes(session.gameId) ? { moment: partyMoment(session.game) } : {}),
         });
-        broadcast(session);
-        if (result.ok) emitGlobal({ type: "state.changed", scope: `/api/duels/${session.duelId}/rounds` });
+        if(result.ok)persistCompletion(session,`/api/duels/${session.duelId}/rounds`);
+        else broadcast(session);
     }
 
     function moveBounce(session, client, payload) {
@@ -454,7 +469,8 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         }
         if (action !== "pass") return;
 
-        if (!markerHit(game, Date.now())) {
+        const accurate=markerHit(game,Date.now());
+        if (!accurate) {
             if (game.abilities[client.userId].shield > 0) {
                 game.abilities[client.userId].shield -= 1;
                 game.lastAction = { userId: client.userId, action: "shield", at: Date.now() };
@@ -463,6 +479,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
                 return;
             }
         }
+        const precision=recordBombPass(game,client.userId,Date.now(),accurate);
         game.passes += 1;
         game.holderId = rivalId;
         game.markerStartedAt = Date.now();
@@ -472,7 +489,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         const minimum = Math.max(2100, 5200 - game.passes * 210);
         const maximum = Math.max(minimum + 500, 7600 - game.passes * 260);
         game.fuseEndsAt = Date.now() + randomBetween(minimum, maximum);
-        game.lastAction = { userId: client.userId, action: "pass", at: Date.now() };
+        game.lastAction = { userId: client.userId, action: precision, at: Date.now() };
     }
 
     function action(client, payload) {
@@ -689,6 +706,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             client.actionCount = 0;
         }
         if (++client.actionCount > 90) return;
+        if(typeof payload.type==='string'&&payload.type.startsWith('snack.team.')){snackTeams.handle(client,payload);return;}
         if (payload.type === 'party.practice') practice(client, payload);
         if (payload.type === "arena.join" || payload.type === "bounce.join") join(client, payload);
         if (payload.type === "arena.watch") join(client, payload, true);
@@ -698,11 +716,13 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     function attach(client) {
+        snackTeams.attach(client);
         if (!clients.has(client.userId)) clients.set(client.userId, new Set());
         clients.get(client.userId).add(client);
         updatePresence(client.userId, true);
         client.on("message", (raw) => handleMessage(client, raw));
         client.on("close", () => {
+            snackTeams.detach(client);
             clients.get(client.userId)?.delete(client);
             if ((clients.get(client.userId)?.size || 0) === 0) updatePresence(client.userId, false);
             const session = sessions.get(client.arenaSessionKey);
@@ -719,7 +739,9 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     const interval = setInterval(() => {
         const now = Date.now();
+        snackTeams.tick(now);
         for (const [key, session] of sessions) {
+            if(session.persisting){if(session.retryPersistenceAt&&now>=session.retryPersistenceAt){try{store.write(store.read());persistCompletion(session,session.persistenceScope);}catch(error){session.retryPersistenceAt=now+3000;}}continue;}
             if (session.phase === "done" && now - session.updatedAt > 60_000) {
                 sessions.delete(key);
                 continue;
@@ -735,11 +757,19 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     function close() {
         clearInterval(interval);
+        snackTeams.close();
         sessions.clear();
         clients.clear();
     }
 
-    return { attach, close, sessions, matPool };
+    function forgetUser(userId){
+        for(const client of clients.get(userId)||[])snackTeams.handle(client,{type:'snack.team.leave'});
+        clients.delete(userId);
+        for(const [key,session]of sessions)if(session.challengerId===userId||session.opponentId===userId){
+            session.phase='done';for(const client of sessionClients(session))send(client,{type:'arena.error',error:'Partie annulée : un profil a été supprimé.'});sessions.delete(key);
+        }
+    }
+    return { attach, close, sessions, matPool, snackTeams,forgetUser };
 }
 
 module.exports = { createSharedArenaManager };

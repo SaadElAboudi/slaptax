@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { COMPETITIVE_GAMES } from '../src/gameplay/catalog';
 
 const surfaces: Record<string,string> = {
-    pigeon:'pigeon-canvas',lift:'lift-canvas',pie:'pie-canvas',balloon:'balloon-canvas',toilet:'toilet-canvas',table:'table-canvas',mat:'mat-board', garde:'garde', trace:'drawing-canvas', decoupe:'drawing-canvas',
+    snack:'snack-canvas',pigeon:'pigeon-canvas',lift:'lift-canvas',pie:'pie-canvas',balloon:'balloon-canvas',toilet:'toilet-canvas',table:'table-canvas',mat:'mat-board', garde:'garde', trace:'drawing-canvas', decoupe:'drawing-canvas',
     contrepied:'contrepied', ricochet:'ricochet-canvas', chroma:'chroma',
     falsestart:'signal-button', onesecond:'clock-button', onemore:'stack-canvas',
     bounce:'bounce-canvas', symbolrush:'symbol-pad', bombpass:'bomb-track',

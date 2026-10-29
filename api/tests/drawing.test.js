@@ -57,7 +57,7 @@ test('drawing accepts bounded finite input, only from a participant once in the 
 for(const id of ['trace','decoupe'])test(`${id} resolves three attempts, expires missing input and preserves immutable replay`,()=>{
     const g=game(id);
     for(let i=0;i<3;i++){
-        drawing(g);const points=id==='trace'?g.drawing.target.path:[[.5,0],[.5,1]];
+        drawing(g);const points=id==='trace'?g.drawing.target.path:g.drawing.target.axis==='diagonal'?[[0,0],[1,1]]:[[.5,0],[.5,1]];
         assert.equal(lock(g,'a',points),true);
         assert.equal(actParty(g,'b',{action:'lock',turn:g.turn,points,side:1},g.deadline),false);
         assert.equal(g.drawing.history[i].results.b.expired,true);

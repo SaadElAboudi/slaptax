@@ -6,7 +6,7 @@ function panel(c:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,co
  c.fillStyle=color;c.strokeStyle=ink;c.lineWidth=3;c.beginPath();c.roundRect(x,y,w,h,r);c.fill();c.stroke();
 }
 function bolt(c:CanvasRenderingContext2D,x:number,y:number){c.fillStyle='#b8d0cf';c.strokeStyle=ink;c.lineWidth=2;c.beginPath();c.arc(x,y,4,0,Math.PI*2);c.fill();c.stroke();c.beginPath();c.moveTo(x-2,y+2);c.lineTo(x+2,y-2);c.stroke();}
-export function paintScenery(c:CanvasRenderingContext2D,scene:WorkshopScene,width:number,height:number){
+function drawScenery(c:CanvasRenderingContext2D,scene:WorkshopScene,width:number,height:number){
  c.save();c.scale(width/600,height/600);
  const sky=scene==='street',warm=['bakery','kitchen','canteen'].includes(scene);
  const gradient=c.createLinearGradient(0,0,0,600);gradient.addColorStop(0,sky?'#78c9db':warm?'#9bb9ad':'#709b9d');gradient.addColorStop(1,sky?'#e2f2d6':warm?'#e9d6ac':'#c3ddd1');c.fillStyle=gradient;c.fillRect(0,0,600,600);
@@ -31,6 +31,15 @@ export function paintScenery(c:CanvasRenderingContext2D,scene:WorkshopScene,widt
  // Soft edge shading gives depth without obscuring the center or adding animation.
  const shade=c.createLinearGradient(0,0,600,0);shade.addColorStop(0,'#172b3930');shade.addColorStop(.12,'#172b3900');shade.addColorStop(.88,'#172b3900');shade.addColorStop(1,'#172b3930');c.fillStyle=shade;c.fillRect(0,0,600,600);
  c.restore();
+}
+// Keep at most four 600 x 600 static backdrops (about 5.8 MB of pixel data).
+// Characters, targets and effects are still drawn live above this layer.
+const backdrops=new Map<WorkshopScene,HTMLCanvasElement>();
+export function paintScenery(c:CanvasRenderingContext2D,scene:WorkshopScene,width:number,height:number){
+ if(typeof document==='undefined'){drawScenery(c,scene,width,height);return;}
+ let backdrop=backdrops.get(scene);
+ if(!backdrop){const surface=document.createElement('canvas');surface.width=600;surface.height=600;const context=surface.getContext('2d');if(!context){drawScenery(c,scene,width,height);return;}drawScenery(context,scene,600,600);if(backdrops.size>=4)backdrops.delete(backdrops.keys().next().value!);backdrops.set(scene,surface);backdrop=surface;}
+ c.drawImage(backdrop,0,0,width,height);
 }
 /** Metal rim only: usable board coordinates are not reduced by decoration. */
 export function paintRim(c:CanvasRenderingContext2D,size:number){c.save();c.scale(size/600,size/600);c.strokeStyle=ink;c.lineWidth=10;c.strokeRect(5,5,590,590);for(const x of [13,587])for(const y of [13,587])bolt(c,x,y);c.restore();}

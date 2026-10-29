@@ -53,11 +53,21 @@ function createMonitoring(store, { clock = Date.now } = {}) {
             row.ids.forEach(id => seen.add(id));
             return { date, unique: row.ids.length, returning, peak: row.peak, requests: row.requests, errors4xx: row.errors4xx, errors5xx: row.errors5xx };
         });
+        const events=db.productEvents||[];
+        const nightEvents=type=>events.filter(e=>e.type===type);
+        const completed=nightEvents('night_completed'),started=nightEvents('night_started');
+        const nights={scope:'retained_events_max_10000',created:nightEvents('night_created').length,
+            joined:nightEvents('night_joined').length,startedRooms:new Set(started.map(e=>e.properties?.room)).size,
+            startedParticipations:started.length,completedParticipations:completed.length,
+            completedRoundParticipations:nightEvents('night_round_completed').length,
+            rematchParticipations:nightEvents('night_rematch').length,
+            sharedResults:events.filter(e=>e.type==='result_shared'&&e.properties?.source==='friend_night').length,
+            inviteShares:events.filter(e=>e.type==='invite_link_copied'&&e.properties?.source==='friend_night').length};
         const links = db.linkChallenges || [];
         const guests = links.flatMap(c => Object.entries(c.attempts).filter(([id]) => id !== c.hostId).map(([, attempt]) => attempt));
         return {
             generatedAt: clock(), since: db.monitoring?.since || startedAt, scope: 'instance', days,
-            online: presence.onlinePlayers,
+            online: presence.onlinePlayers,nights,
             activeDuels: (db.duels || []).filter(d => d.status === 'playing').length,
             links: { created: links.length, published: links.filter(c => c.attempts[c.hostId]?.phase === 'done').length,
                 accepted: guests.length, completed: guests.filter(g => g.phase === 'done').length },

@@ -2,6 +2,7 @@ import type {PartyMoment} from './party';
 export function chaosRecap(moment:PartyMoment,identity:string,fr:boolean):string|null{
  if(moment.summary.includes('forfeit'))return null;
  const s=moment.replay[moment.replay.length-1]?.state;
+ if(['snack','chicken'].includes(moment.gameId)&&s?.snack){const p=s.snack.bodies.find(p=>p.id===identity);return `${p?.captures||0} / 3 ${fr?'livraisons':'deliveries'} · ${p?.kos||0} KO. ${fr?'On remet ça ?':'Rematch?'}`;}
  if(moment.gameId==='garde'&&s?.garde){
   const rival=Object.keys(s.garde.hp).find(id=>id!==identity);if(!rival)return null;
   const bananas=s.garde.history.filter(h=>h.gags?.[rival]==='banana').length,pans=s.garde.history.filter(h=>h.gags?.[rival]==='pan').length;

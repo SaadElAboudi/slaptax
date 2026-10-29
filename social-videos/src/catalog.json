@@ -1,0 +1,669 @@
+[
+  {
+    "id": "01-decoupe-37",
+    "day": 1,
+    "game": "decoupe",
+    "series": "Défi solo",
+    "hook": "Découpe exactement 37 %.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "demo",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Choisis le côté que tu gardes. Valide. Quarante-trois virgule trois pour cent. Tu fais mieux ? À toi de jouer sur Slap Tax.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 2.7,
+        "text": "Découpe 37 %. À vue d’œil."
+      },
+      {
+        "from": 2.7,
+        "to": 4.5,
+        "text": "Trace une ligne."
+      },
+      {
+        "from": 4.5,
+        "to": 6.5,
+        "text": "Choisis le côté à garder."
+      },
+      {
+        "from": 6.5,
+        "to": 7.033333333333333,
+        "text": "Valide ta coupe."
+      },
+      {
+        "from": 7.033333333333333,
+        "to": 12,
+        "text": "43,3 % gardés. 6,3 points d’écart."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Tu fais mieux ? À toi de jouer."
+      }
+    ],
+    "renderer": "decoupe-engine-demo"
+  },
+  {
+    "id": "02-trace-memoire",
+    "day": 2,
+    "game": "trace",
+    "series": "Défi solo",
+    "hook": "Tu as deux secondes pour retenir ça.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Regarde bien. Maintenant, refais cette forme de mémoire. À toi de jouer.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Tu as deux secondes pour retenir ça."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "03-faux-depart",
+    "day": 3,
+    "game": "falsestart",
+    "series": "Défi solo",
+    "hook": "Attends GO. Pas avant.",
+    "duration": 12,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Tu sais attendre ? Même quand ton pote essaie de te piéger ?",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Attends GO. Pas avant."
+      },
+      {
+        "from": 3,
+        "to": 9,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 9,
+        "to": 12,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "04-pote-revanche",
+    "day": 4,
+    "game": "falsestart",
+    "series": "Entre amis",
+    "hook": "Le pote qui demande toujours une revanche.",
+    "duration": 20,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Il a dit : une dernière. Trois fois. Défie ton mauvais perdant préféré.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Le pote qui demande toujours une revanche."
+      },
+      {
+        "from": 3,
+        "to": 17,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 17,
+        "to": 20,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "05-chroma-couleur",
+    "day": 5,
+    "game": "chroma",
+    "series": "Défi solo",
+    "hook": "Vous voyez vraiment la même couleur ?",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Même couleur au départ. Deux réponses très différentes. Vous faites mieux ?",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Vous voyez vraiment la même couleur ?"
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "06-chrono-cinq",
+    "day": 6,
+    "game": "onesecond",
+    "series": "Défi solo",
+    "hook": "Compte cinq secondes. Sans chrono.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Cinq secondes. Facile ? Compte dans ta tête, puis vérifie dans Slap Tax.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Compte cinq secondes. Sans chrono."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "07-encore-un",
+    "day": 7,
+    "game": "onemore",
+    "series": "Moment décisif",
+    "hook": "Il pouvait s’arrêter là.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Tout allait bien. Puis il a voulu un bloc de plus. Toi, tu t’arrêtais quand ?",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Il pouvait s’arrêter là."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "08-decoupe-duel",
+    "day": 8,
+    "game": "decoupe",
+    "series": "Entre amis",
+    "hook": "Vous avez huit secondes. Qui coupe le mieux ?",
+    "duration": 18,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Même forme. Même cible. Qui est le plus précis de votre groupe ?",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Vous avez huit secondes. Qui coupe le mieux ?"
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "09-trace-confiance",
+    "day": 9,
+    "game": "trace",
+    "series": "Entre amis",
+    "hook": "« J’ai une mémoire parfaite. »",
+    "duration": 18,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Il disait avoir une mémoire parfaite. On a vérifié. À ton tour.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "« J’ai une mémoire parfaite. »"
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "10-feinte-rival",
+    "day": 10,
+    "game": "falsestart",
+    "series": "Moment décisif",
+    "hook": "Il savait que j’allais appuyer.",
+    "duration": 12,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Le plus dur, c’est de ne rien faire. Surtout contre lui.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Il savait que j’allais appuyer."
+      },
+      {
+        "from": 3,
+        "to": 9,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 9,
+        "to": 12,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "11-chroma-revanche",
+    "day": 11,
+    "game": "chroma",
+    "series": "Défi solo",
+    "hook": "Cette fois, je retrouve la couleur.",
+    "duration": 16,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "J’étais sûr de moi. J’ai demandé une revanche. Voilà le résultat.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Cette fois, je retrouve la couleur."
+      },
+      {
+        "from": 3,
+        "to": 13,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 13,
+        "to": 16,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "12-chrono-duel",
+    "day": 12,
+    "game": "onesecond",
+    "series": "Entre amis",
+    "hook": "Lequel de vous a une horloge dans la tête ?",
+    "duration": 18,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Pas de montre. Pas de chrono visible. Juste vous deux et cinq secondes.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Lequel de vous a une horloge dans la tête ?"
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "13-tour-limite",
+    "day": 13,
+    "game": "onemore",
+    "series": "Défi solo",
+    "hook": "Un bloc de plus ou tu sécurises ?",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Tu sécurises ou tu continues ? Moi, j’ai choisi ça.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Un bloc de plus ou tu sécurises ?"
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "14-ricochet-centre",
+    "day": 14,
+    "game": "ricochet",
+    "series": "Moment décisif",
+    "hook": "Ça se joue à ce tir.",
+    "duration": 18,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Vise. Dose. Et espère que ton pote n’a pas mieux lu le terrain.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Ça se joue à ce tir."
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "15-mat-un-coup",
+    "day": 15,
+    "game": "mat",
+    "series": "Défi solo",
+    "hook": "Mat en un coup. Tu le vois ?",
+    "duration": 18,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Un seul coup pour gagner. Tu l’as vu avant moi ?",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Mat en un coup. Tu le vois ?"
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "16-garde-lecture",
+    "day": 16,
+    "game": "garde",
+    "series": "Entre amis",
+    "hook": "Il va attaquer. Ou il veut que tu le croies.",
+    "duration": 20,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Attaquer, défendre ou charger ? Le problème, c’est qu’il te connaît.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Il va attaquer. Ou il veut que tu le croies."
+      },
+      {
+        "from": 3,
+        "to": 17,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 17,
+        "to": 20,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "17-contrepied-bluff",
+    "day": 17,
+    "game": "contrepied",
+    "series": "Entre amis",
+    "hook": "Ta meilleure carte. Maintenant ou après ?",
+    "duration": 20,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "La meilleure carte ne suffit pas. Il faut choisir le bon moment.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Ta meilleure carte. Maintenant ou après ?"
+      },
+      {
+        "from": 3,
+        "to": 17,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 17,
+        "to": 20,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "18-bounce-sauvetage",
+    "day": 18,
+    "game": "bounce",
+    "series": "Moment décisif",
+    "hook": "Je pensais que c’était fini.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Je pensais l’avoir perdue. Regarde le dernier échange.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Je pensais que c’était fini."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "19-bombpass-pression",
+    "day": 19,
+    "game": "bombpass",
+    "series": "Entre amis",
+    "hook": "Surtout, ne la garde pas.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Une bombe. Deux potes. Et personne ne veut être le dernier.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Surtout, ne la garde pas."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "20-cupshuffle-suivi",
+    "day": 20,
+    "game": "cupshuffle",
+    "series": "Défi solo",
+    "hook": "Ne quitte pas le bon gobelet des yeux.",
+    "duration": 15,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Tu l’as encore ? Choisis avant la révélation. Maintenant, essaie dans le jeu.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Ne quitte pas le bon gobelet des yeux."
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "21-finale-amis",
+    "day": 21,
+    "game": "rotation",
+    "series": "Entre amis",
+    "hook": "Bons amis. Mauvais perdants.",
+    "duration": 24,
+    "cta": "Défie ton pote. Lien en bio.",
+    "status": "storyboard",
+    "footage": null,
+    "voice": null,
+    "music": "audio/slaptax-pulse.wav",
+    "voiceText": "Trois jeux. Deux potes. Un seul qui va en reparler toute la semaine. Défie le tien.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Bons amis. Mauvais perdants."
+      },
+      {
+        "from": 3,
+        "to": 21,
+        "text": "À toi de faire mieux."
+      },
+      {
+        "from": 21,
+        "to": 24,
+        "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  }
+]

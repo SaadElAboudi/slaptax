@@ -1,3 +1,4 @@
+const tokenPolicy=require('../../shared/token-economy.json');
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -18,7 +19,7 @@ function makeUser(name = "Player") {
     return {
         id: crypto.randomUUID(),
         playerName: name,
-        wallet: 25,
+        wallet: tokenPolicy.welcome,
         stake: 5,
         history: [],
     };
@@ -58,7 +59,7 @@ function migrateState(raw) {
         const migratedUser = {
             id: crypto.randomUUID(),
             playerName: raw.playerName || "Player",
-            wallet: Number(raw.wallet || 25),
+            wallet: Number(raw.wallet ?? tokenPolicy.welcome),
             stake: Number(raw.stake || 5),
             history: raw.history,
         };

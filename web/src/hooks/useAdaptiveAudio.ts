@@ -17,18 +17,19 @@ const MUSIC_KEY = 'slaptax.music.enabled';
 const MUSIC_EVENT = 'slaptax:music-change';
 
 function enabled() {
-    return localStorage.getItem(MUSIC_KEY) === '1';
+    try{return localStorage.getItem(MUSIC_KEY)==='1';}catch{return false;}
 }
 
 function context() {
     const target = window as AudioWindow;
     const Constructor = window.AudioContext || target.webkitAudioContext;
     if (!Constructor) return null;
-    target.__slaptaxAudioCtx ||= new Constructor();
+    try{target.__slaptaxAudioCtx ||= new Constructor();}catch{return null;}
     return target.__slaptaxAudioCtx;
 }
 
 function note(ctx: AudioContext, destination: AudioNode, frequency: number, duration: number, gain: number, type: OscillatorType) {
+    try{
     const oscillator = ctx.createOscillator();
     const envelope = ctx.createGain();
     const now = ctx.currentTime;
@@ -41,9 +42,12 @@ function note(ctx: AudioContext, destination: AudioNode, frequency: number, dura
     envelope.connect(destination);
     oscillator.start(now);
     oscillator.stop(now + duration + .03);
+    }catch{/* Optional music must not break gameplay. */}
 }
 
 const PATTERNS: Record<CompetitiveGameId, number[]> = {
+    chicken:[0],
+    snack:[0],
     pigeon:[0],lift:[0],pie:[0],balloon:[0],toilet:[0],
     table: [0],
     falsestart: [110, 0, 165, 0, 110, 0, 220, 0],
@@ -68,10 +72,10 @@ export function startAdaptiveMusic(gameId: CompetitiveGameId, intensity = .35) {
     if (!enabled()) return;
     const ctx = context();
     if (!ctx) return;
-    void ctx.resume();
+    void ctx.resume().catch(()=>undefined);
     stopAdaptiveMusic();
 
-    const gain = ctx.createGain();
+    let gain:GainNode;try{gain=ctx.createGain();}catch{return;}
     gain.gain.value = .035;
     gain.connect(ctx.destination);
     const music = {
@@ -106,7 +110,7 @@ export function stopAdaptiveMusic() {
     const target = window as AudioWindow;
     if (!target.__slaptaxMusic) return;
     window.clearInterval(target.__slaptaxMusic.timer);
-    target.__slaptaxMusic.gain.disconnect();
+    try{target.__slaptaxMusic.gain.disconnect();}catch{/* Already disconnected. */}
     delete target.__slaptaxMusic;
 }
 

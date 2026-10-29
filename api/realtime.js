@@ -1,7 +1,7 @@
 const { WebSocketServer, WebSocket } = require("ws");
 const { createSharedArenaManager } = require("./games/sharedArena");
 
-function createRealtimeHub(server, store, service) {
+function createRealtimeHub(server, store, service,options={}) {
     const wss = new WebSocketServer({ noServer: true, maxPayload: 4096 });
     const sharedArena = createSharedArenaManager(store, service, broadcast);
 
@@ -13,6 +13,7 @@ function createRealtimeHub(server, store, service) {
         }
         request.userId = url.searchParams.get("userId") || "";
         request.clientId = url.searchParams.get("clientId") || "";
+        if((options.storeDistribution??process.env.APP_DISTRIBUTION==='store')&&!service.authenticateSession(request.userId,request.clientId)){socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');socket.destroy();return;}
         wss.handleUpgrade(request, socket, head, (client) => {
             wss.emit("connection", client, request);
         });
@@ -80,7 +81,8 @@ function createRealtimeHub(server, store, service) {
         return { onlinePlayers: getOnlineIds().length, updatedAt: Date.now(), scope: 'instance' };
     }
 
-    return { broadcast, close, wss, sharedArena, getPresence };
+    function removeUser(userId){sharedArena.forgetUser(userId);for(const client of wss.clients)if(client.userId===userId)client.terminate();}
+    return { broadcast, close, wss, sharedArena, getPresence,removeUser };
 }
 
 module.exports = { createRealtimeHub };

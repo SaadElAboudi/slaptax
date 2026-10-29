@@ -177,3 +177,7 @@ test('leaving a tournament frees a seat, transfers host and clears previous cons
     assert.deepEqual(updated.readyBy,{});
     assert.equal(updated.veto.votes[a],undefined);
 });
+
+test('main-arena matchmaking respects the chosen game and keeps legacy queues separate',()=>{
+ const {service:s,ids:[a,b,c],store}=setup();assert.equal(s.joinMatchmaking(a,2,'snack').status,'waiting');assert.equal(s.joinMatchmaking(b,2).status,'waiting');const result=s.joinMatchmaking(c,2,'snack');assert.equal(result.status,'matched');assert.equal(result.duel.challengerId,a);assert.equal(result.duel.opponentId,c);assert.equal(result.duel.bestOf,1);assert.equal(result.duel.draft.challenger.pick,'snack');assert.ok(store.read().matchmakingQueue.some(q=>q.userId===b));assert.equal(s.joinMatchmaking(b,2,'nonexistent').code,400);
+});

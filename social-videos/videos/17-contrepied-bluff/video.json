@@ -1,0 +1,31 @@
+{
+  "id": "17-contrepied-bluff",
+  "day": 17,
+  "game": "contrepied",
+  "series": "Entre amis",
+  "hook": "Ta meilleure carte. Maintenant ou après ?",
+  "duration": 20,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "La meilleure carte ne suffit pas. Il faut choisir le bon moment.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Ta meilleure carte. Maintenant ou après ?"
+    },
+    {
+      "from": 3,
+      "to": 17,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 17,
+      "to": 20,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}

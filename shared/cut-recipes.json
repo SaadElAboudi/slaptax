@@ -1,0 +1,8 @@
+{
+  "angleToleranceDegrees":12,
+  "recipes":[
+    {"id":"biscuit","labelFr":"Biscuit paniqué","labelEn":"Panicked cookie","sides":5,"axis":"free","color":"#f8cf7d","detail":"#986137"},
+    {"id":"fromage","labelFr":"Fromage en fuite","labelEn":"Runaway cheese","sides":3,"axis":"vertical","color":"#ffe586","detail":"#d59b3a"},
+    {"id":"gateau","labelFr":"Gâteau catastrophe","labelEn":"Cake disaster","sides":8,"axis":"diagonal","color":"#efa3c0","detail":"#923f6b"}
+  ]
+}

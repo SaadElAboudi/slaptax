@@ -1,0 +1,17 @@
+{
+  "errors": [],
+  "layout": {
+    "noHorizontalOverflow": true,
+    "dialogInside": true
+  },
+  "cache": {
+    "first": {
+      "paths": 25,
+      "blits": 1
+    },
+    "second": {
+      "paths": 0,
+      "blits": 1
+    }
+  }
+}

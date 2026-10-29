@@ -1,3 +1,8 @@
 .tabs{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:50;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:min(460px,calc(100% - 28px));padding:7px;gap:6px;border:3px solid #101a38;border-radius:18px;background:#273f79;box-shadow:0 6px 0 #101a38,0 10px 30px #0b173959}
 .tab{min-width:0;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border:2px solid transparent;border-radius:11px;background:transparent;color:#c3d5ff;cursor:pointer}.tab b{font-size:11px;font-weight:900}.tab.active{background:#ffda4b;color:#182442;border-color:#101a38;box-shadow:inset 0 2px #fff3a2,0 3px #101a38}.tab:hover:not(.active){background:#375493}.tab:focus-visible{outline:3px solid white;outline-offset:2px}:global(main:has([data-focus="true"])) .tabs{display:none}
 @media(max-width:767px){.tabs{bottom:max(9px,env(safe-area-inset-bottom));width:calc(100% - 18px);padding:5px;gap:3px;border-radius:15px}.tab{min-height:54px}.tab b{font-size:10px}}
+
+/* Keep the fighter selection and start action clear of the floating navigation. */
+:global(main:has([data-game="snack"][data-phase="briefing"])) .tabs{display:none}
+
+:global(main:has([data-phase=briefing])) .tabs{display:none}

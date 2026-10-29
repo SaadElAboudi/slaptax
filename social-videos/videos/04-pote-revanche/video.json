@@ -1,0 +1,31 @@
+{
+  "id": "04-pote-revanche",
+  "day": 4,
+  "game": "falsestart",
+  "series": "Entre amis",
+  "hook": "Le pote qui demande toujours une revanche.",
+  "duration": 20,
+  "cta": "Défie ton pote. Lien en bio.",
+  "status": "storyboard",
+  "footage": null,
+  "voice": null,
+  "music": "audio/slaptax-pulse.wav",
+  "voiceText": "Il a dit : une dernière. Trois fois. Défie ton mauvais perdant préféré.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Le pote qui demande toujours une revanche."
+    },
+    {
+      "from": 3,
+      "to": 17,
+      "text": "À toi de faire mieux."
+    },
+    {
+      "from": 17,
+      "to": 20,
+      "text": "Défie ton pote. Lien en bio."
+    }
+  ]
+}
