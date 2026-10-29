@@ -21,3 +21,10 @@ export function hapticPulse(pattern:number|number[]=12){
     if(isNative()){void Haptics.impact({style:Array.isArray(pattern)?ImpactStyle.Medium:ImpactStyle.Light}).catch(()=>undefined);return;}
     navigator.vibrate?.(pattern);
 }
+
+// Shared by game controls too; preferences remain usable when storage is blocked.
+export function useBooleanPreference(key:string,fallback:boolean):[boolean,(next:boolean|((value:boolean)=>boolean))=>void]{
+    const value=useSyncExternalStore(subscribe,()=>preference(key,fallback),()=>fallback);
+    const setValue=useCallback((next:boolean|((value:boolean)=>boolean))=>write(key,typeof next==='function'?next(preference(key,fallback)):next),[key,fallback]);
+    return [value,setValue];
+}

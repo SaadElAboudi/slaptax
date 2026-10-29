@@ -63,3 +63,14 @@ Implémentation et résultats : [PIGEON-VALIDATION.md](PIGEON-VALIDATION.md).
 - Afficher la progression des trois commandes et un conseil fondé sur le résultat réel : garder plus petit, plus grand ou féliciter la précision.
 - Les anciens défis sans direction conservent leurs règles. Les nouveaux objectifs restent identiques pour les deux amis ; l’entraînement, les duels et les matchs de tournoi réutilisent la même simulation.
 - Aucun changement de jetons ni de conversion du score. Ce lot ne livre pas les autres refontes restantes. Résultats : CUT-VALIDATION.md.
+
+## Cinquième lot — prise en main de l’arène et compilation mobile
+
+- Mémoriser l’assistance de visée et la vue compacte/immersive pour Braquage du Goûter et Poule Position, dans tous les parcours qui réutilisent l’arène. Si le stockage est bloqué, garder le réglage utilisable pour la session.
+- Montrer un guide contextuel du personnage : description du pouvoir, recharge réelle du catalogue partagé, super et commandes adaptées au tactile ou au clavier. Préciser que la lecture ne met pas un match en pause.
+- Réserver la hauteur du guide dans la vue immersive PC et réduire la scène à son ouverture ; éviter de couper les contrôles en haut de l’écran.
+- Les raccourcis de combat doivent agir depuis l’arène, sans détourner les touches lorsqu’un bouton, un champ ou le guide a le focus. Ouvrir le guide remet le déplacement à zéro.
+- Conserver les règles et les jetons : ce lot porte sur la prise en main, sans donner d’avantage dans les défis ni inventer de récompense.
+- CI : les 30 parcours de publication de la version précédente sont verts à distance. Les échecs natifs viennent de `sdkmanager` absent du PATH et du choix par défaut de Xcode 16.4. Appeler explicitement le SDK Android et sélectionner un Xcode stable installé de version 26 ou supérieure avant de compiler.
+
+Validation locale de ce lot : 4 tests des préférences et raccourcis en mode store, puis 8 tests des personnages et pouvoirs (dont duel humain contre humain), sur Chromium PC/mobile. Le build web et la synchronisation Android/iOS partagent la source `2b1819b4a5f7`. Les quatre nouveaux tests font désormais partie de la CI mobile. La sélection des outils natifs doit encore être vérifiée sur les runners distants ; un YAML valide ne prouve pas une compilation iOS.

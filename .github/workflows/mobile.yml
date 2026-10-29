@@ -43,7 +43,7 @@ jobs:
         env:
           APP_DISTRIBUTION: store
         working-directory: web
-        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts
+        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts e2e/arena-controls.spec.ts
   android:
     needs: shared-validation
     runs-on: ubuntu-24.04
@@ -67,7 +67,7 @@ jobs:
       - run: npm ci
       - run: npm run build:all
       - name: Install Android platform
-        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
       - name: Compile debug APK and unsigned release AAB
         working-directory: web/android
         run: ./gradlew :app:assembleDebug :app:bundleRelease --no-daemon
@@ -95,6 +95,22 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Select an installed Xcode 26 or newer
+        run: |
+          python3 - <<'PYCODE'
+          import glob, os, re
+          candidates = []
+          for path in glob.glob('/Applications/Xcode_*.app'):
+              match = re.fullmatch(r'Xcode_([0-9.]+)\.app', os.path.basename(path))
+              if match and int(match[1].split('.')[0]) >= 26:
+                  candidates.append((tuple(map(int, match[1].split('.'))), path))
+          if not candidates:
+              raise SystemExit('No stable Xcode 26+ installed on this runner')
+          developer = max(candidates)[1] + '/Contents/Developer'
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('DEVELOPER_DIR=' + developer + '\n')
+          print('Selected ' + developer)
+          PYCODE
       - name: Require submission-capable Xcode
         run: |
           xcodebuild -version
