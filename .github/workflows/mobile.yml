@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   shared-validation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
       VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
@@ -40,7 +40,7 @@ jobs:
         run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts
   android:
     needs: shared-validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: web
