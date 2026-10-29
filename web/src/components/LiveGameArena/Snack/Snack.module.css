@@ -37,3 +37,5 @@
 
 @media(max-width:600px){:global([data-game-session]) .board{width:min(100%,max(200px,calc(100svh - 385px)))}:global([data-game-session]) .game footer{margin-top:6px}}
 @media(max-width:600px) and (max-height:700px){:global([data-game-session]) .board{width:min(100%,max(170px,calc((100svh - 375px)*1.5)))}}
+
+@media(max-width:900px),(pointer:coarse){.viewControls[data-has-leave=true]{display:flex;justify-content:flex-end;margin-bottom:8px}.viewControls[data-has-leave=true]>strong,.viewControls[data-has-leave=true]>button:first-of-type{display:none}.viewControls[data-has-leave=true]>button{min-height:46px}}
