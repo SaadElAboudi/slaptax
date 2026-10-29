@@ -37,3 +37,14 @@ test('mobile arena has large simple controls, a readable field and optional two-
  await attack.tap();expect(actions).toContain('attack');await arena.getByRole('checkbox',{name:'Stick de visée'}).check();await expect(page.getByTestId('snack-aim-pad')).toBeVisible();
  await page.screenshot({path:info.outputPath('mobile-simple-arena.png')});
 });
+
+test('touch landscape keeps the field and combat controls in the viewport',async({page},info)=>{
+ test.skip(!info.project.name.includes('mobile'),'Touch landscape');await page.setViewportSize({width:800,height:390});
+ await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');localStorage.setItem('slaptax_training_game','snack');});
+ await page.goto('/?tab=training');await page.getByRole('button',{name:'Entrer dans l arene'}).click();const arena=page.getByTestId('snack-game');await expect(arena).toHaveAttribute('data-phase','brawl');
+ const canvas=(await arena.getByTestId('snack-canvas').boundingBox())!;expect(canvas.width).toBeGreaterThanOrEqual(300);expect(canvas.height).toBeGreaterThanOrEqual(190);
+ for(const id of ['snack-move-pad','snack-super','snack-skill'])await expect(arena.getByTestId(id)).toBeInViewport();
+ await expect(arena.getByRole('button',{name:'BAFFE !',exact:true})).toBeInViewport();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const move=(await arena.getByTestId('snack-move-pad').boundingBox())!,attack=(await arena.getByRole('button',{name:'BAFFE !',exact:true}).boundingBox())!;expect(move.x+move.width).toBeLessThan(canvas.x);expect(attack.x).toBeGreaterThan(canvas.x+canvas.width);
+ await page.screenshot({path:info.outputPath('mobile-landscape-arena.png')});
+});

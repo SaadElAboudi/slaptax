@@ -58,3 +58,20 @@
  .game .keyboardHint{display:none}
 }
 @media(max-width:600px) and (min-height:701px){.game .board{max-width:min(100%,calc(100svh - 405px))}}
+@media(max-height:500px) and (pointer:coarse){
+ .game{display:grid;grid-template-columns:100px minmax(0,1fr) 180px;gap:5px 12px;align-items:center}
+ .game .hud{grid-column:2;grid-row:1;margin:0}.game .hud b{font-size:20px}
+ .game .board{grid-column:2;grid-row:2;width:min(100%,calc((100svh - 180px)*1.5));max-width:none}
+ .game .board canvas{aspect-ratio:3/2}
+ .game .objective{grid-column:2;grid-row:3;padding:2px 0;font-size:10px}
+ .game .controls,.game .controls[data-manual-aim=false]{display:contents}
+ .game .controls .pad,.game .controls[data-manual-aim=false] .pad{width:86px;height:86px;box-sizing:border-box;justify-self:center;grid-column:1;grid-row:2;align-self:end}
+ .game .controls .aim{grid-column:3}
+ .game .controls .buttons,.game .controls[data-manual-aim=false] .buttons{grid-column:3;grid-row:2;display:grid;grid-template-columns:1fr 1fr;width:100%;align-self:end}
+ .game .controls .buttons button:first-child{grid-column:1/-1;min-height:48px}
+ .game .controls .buttons button{min-height:44px}
+ .game .controls[data-manual-aim=true] .buttons{grid-row:3}
+ .game .controls[data-manual-aim=true] .buttons button:first-child{display:none}
+ .game footer,.game .fieldGuide{display:none}
+ .game .chickenStatus{grid-column:2;grid-row:4;padding:2px;margin:0;font-size:9px}.game .chickenStatus progress{height:6px;width:70px}
+}
