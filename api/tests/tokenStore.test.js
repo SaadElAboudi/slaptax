@@ -4,13 +4,13 @@ const {createPostgresStore}=require('../infrastructure/store');
 const {makeDefaultState}=require('../infrastructure/db');
 function fake(acquired=true){
  const lease=new EventEmitter();lease.released=false;lease.release=()=>{lease.released=true;};
- const state=makeDefaultState(),pool={closed:false,fail:false,writes:[],connect:async()=>lease,query:async(sql,args)=>{
+ const state=makeDefaultState(),pool={acquired,closed:false,fail:false,writes:[],connect:async()=>lease,query:async(sql,args)=>{
   if(sql.startsWith('SELECT payload'))return {rows:[{payload:state}]};
   if(sql.includes('INSERT INTO')){if(pool.fail)throw new Error('temporary database failure');pool.writes.push(JSON.parse(args[1]));}
   return {rows:[]};
  },end:async()=>{pool.closed=true;}};
- lease.query=(sql,args)=>sql.includes('advisory')?Promise.resolve({rows:[{acquired}]}):pool.query(sql,args);
- return {pool,lease};
+ lease.query=(sql,args)=>sql.includes('advisory')?Promise.resolve({rows:[{acquired:pool.acquired}]}):pool.query(sql,args);
+ return {pool,lease,state};
 }
 test('a second state-cache writer is refused and its pool is closed',async()=>{
  const f=fake(false),s=createPostgresStore('unused',{pool:f.pool});await assert.rejects(s.ready,/Another SlapTax/);assert.equal(f.lease.released,true);assert.equal(f.pool.closed,true);
@@ -24,4 +24,13 @@ test('a failed persistence attempt does not permanently poison the write queue',
 test('loss of the exclusive database lease fails closed for reads and writes',async()=>{
  const f=fake(),s=createPostgresStore('unused',{pool:f.pool});await s.ready;const state=s.read();f.lease.emit('error',Error('connection lost'));
  assert.throws(()=>s.read(),/lease lost/);assert.throws(()=>s.write(state),/lease lost/);await s.close();
+});
+
+test('rolling deployment waits without reading or writing, then loads the last committed balance',async()=>{
+ const f=fake(false),s=createPostgresStore('unused',{pool:f.pool,lockTimeoutMs:1000,lockRetryMs:5});await s.startup;
+ assert.throws(()=>s.read(),/not ready/);assert.throws(()=>s.write({}),/not ready/);assert.equal(f.pool.writes.length,0);
+ f.state.users[0].wallet=17.25;f.pool.acquired=true;await s.ready;assert.equal(s.read().users[0].wallet,17.25);await s.close();
+});
+test('rolling deployment times out rather than stealing another writer lock',async()=>{
+ const f=fake(false),s=createPostgresStore('unused',{pool:f.pool,lockTimeoutMs:20,lockRetryMs:5});await s.startup;await assert.rejects(s.ready,/Another SlapTax/);assert.equal(f.pool.writes.length,0);assert.equal(f.lease.released,true);assert.equal(f.pool.closed,true);
 });

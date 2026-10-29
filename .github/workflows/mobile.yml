@@ -30,7 +30,13 @@ jobs:
       - run: npm --prefix web ci
       - run: npm test
       - run: npm --prefix web run test:build-tools
-      - run: npm run build:all
+      - name: Build the E2E website against the local test API
+        run: npm --prefix web run build
+        env:
+          VITE_API_BASE_URL: ''
+          VITE_PUBLIC_SITE_URL: ''
+      - name: Build and sync the native bundle against the public API
+        run: npm run mobile:sync
       - run: npx playwright install --with-deps chromium
         working-directory: web
       - name: Verify shared game modes and mobile behavior

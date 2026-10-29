@@ -22,13 +22,22 @@ function createPostgresStore(connectionString, options={}) {
     let cache = makeDefaultState();
     let writeQueue = Promise.resolve();
 
-    let lease=null,leaseLost=false;
-    function assertLease(){if(leaseLost)throw new Error('Database writer lease lost; restart required');}
+    let lease=null,leaseLost=false,ownsLease=false;
+    let announceStartup;const startup=new Promise(resolve=>{announceStartup=resolve;});
+    function assertLease(){if(leaseLost)throw new Error('Database writer lease lost; restart required');if(!ownsLease)throw new Error('Database writer is not ready');}
     const ready = (async () => {
         lease=await pool.connect();
         lease.on?.('error',()=>{leaseLost=true;});lease.on?.('end',()=>{leaseLost=true;});
-        const lock=await lease.query("SELECT pg_try_advisory_lock(742619031) AS acquired");
-        if(!lock.rows[0]?.acquired){lease.release();lease=null;throw new Error("Another SlapTax server owns this database. Use a single application instance.");}
+        const timeout=options.lockTimeoutMs??(process.env.RENDER_SERVICE_ID?120000:0),until=Date.now()+timeout;
+        let waitingLogged=false;
+        for(;;){
+            const lock=await lease.query("SELECT pg_try_advisory_lock(742619031) AS acquired");
+            announceStartup(); // Verified database connectivity; gameplay is still gated by ready.
+            if(lock.rows[0]?.acquired){ownsLease=true;break;}
+            if(timeout>0&&!waitingLogged){waitingLogged=true;process.stdout.write('SLAP$TAX waiting for the previous database writer; maintenance mode active\n');}
+            if(Date.now()>=until)throw new Error("Another SlapTax server owns this database. Use a single application instance.");
+            await new Promise(resolve=>setTimeout(resolve,options.lockRetryMs??1000));
+        }
         await lease.query(`
             CREATE TABLE IF NOT EXISTS app_state (
                 id TEXT PRIMARY KEY,
@@ -61,7 +70,7 @@ function createPostgresStore(connectionString, options={}) {
 
     return {
         kind: "postgres",
-        ready,
+        ready,startup,isReady:()=>ownsLease&&!leaseLost,
         read: () => {assertLease();return structuredClone(cache);},
         write(data) {
             assertLease();
@@ -75,7 +84,7 @@ function createPostgresStore(connectionString, options={}) {
         },
         async flush(){await writeQueue;},
         async close() {
-            try{await writeQueue;}finally{try{if(lease){try{if(!leaseLost)await lease.query("SELECT pg_advisory_unlock(742619031)");}finally{lease.release();lease=null;}}}finally{await pool.end();}}
+            try{await writeQueue;}finally{try{if(lease){try{if(!leaseLost&&ownsLease)await lease.query("SELECT pg_advisory_unlock(742619031)");}finally{lease.release();lease=null;}}}finally{await pool.end();}}
         },
     };
 }

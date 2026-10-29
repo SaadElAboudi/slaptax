@@ -11,6 +11,7 @@ function createRealtimeHub(server, store, service,options={}) {
             socket.destroy();
             return;
         }
+        if(options.isReady&&!options.isReady()){socket.end('HTTP/1.1 503 Service Unavailable\r\nRetry-After: 3\r\nConnection: close\r\n\r\n');return;}
         request.userId = url.searchParams.get("userId") || "";
         request.clientId = url.searchParams.get("clientId") || "";
         if((options.storeDistribution??process.env.APP_DISTRIBUTION==='store')&&!service.authenticateSession(request.userId,request.clientId)){socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');socket.destroy();return;}
@@ -34,6 +35,7 @@ function createRealtimeHub(server, store, service,options={}) {
     });
 
     const heartbeat = setInterval(() => {
+        if(options.isReady&&!options.isReady())return;
         for (const client of wss.clients) {
             if (!client.isAlive) {
                 client.terminate();
@@ -68,6 +70,7 @@ function createRealtimeHub(server, store, service,options={}) {
     }
 
     function getOnlineIds() {
+        if(options.isReady&&!options.isReady())return [];
         const db = store.read(), now = Date.now(), players = new Set();
         const known = new Set(db.users.map(user => user.id));
         for (const client of wss.clients) {

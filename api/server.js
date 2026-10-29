@@ -63,14 +63,22 @@ function createServer(options = {}) {
     const storeDistribution=options.storeDistribution??(process.env.APP_DISTRIBUTION==='store'||process.env.NODE_ENV==='production');
     const service = createService(store,{storeDistribution});
     const ready=store.ready.then(async()=>{service.recoverInterruptedDuels();if(store.flush)await store.flush();});
+    let serving=false,startupFailed=false,startupVerified=false;(store.startup||ready).then(()=>{startupVerified=true;},()=>{startupFailed=true;});ready.then(()=>{serving=true;},()=>{startupFailed=true;});
+    const canServe=()=>serving&&(!store.isReady||store.isReady());
     const handleRequest = createRequestHandler(service,{storeDistribution,flush:()=>store.flush?.(),onAccountDeleted:(userId)=>server.realtime.removeUser(userId)});
     const monitoring = createMonitoring(store);
     const adminToken = options.adminToken ?? process.env.ADMIN_TOKEN;
 
     const server = http.createServer(async (req, res) => {
         try {
-            await ready;
             const url = new URL(req.url, "http://localhost");
+            if(url.pathname==='/api/startup'&&req.method==='GET'){
+                res.setHeader('Cache-Control','no-store');
+                json(res,startupVerified&&!startupFailed&&(!serving||canServe())?200:503,{processStarted:startupVerified&&!startupFailed,ready:canServe(),release:process.env.RENDER_GIT_COMMIT||null});return;
+            }
+            if(!canServe()&&req.method==='GET'&&!url.pathname.startsWith('/api/')&&serveWebApp(req,res,options.webDistPath||WEB_DIST_PATH))return;
+            if(!canServe()){res.setHeader('Retry-After','3');res.setHeader('Cache-Control','no-store');json(res,503,{ok:false,error:'Déploiement en cours. Réessaie dans quelques secondes.'});return;}
+            await ready;
             if (url.pathname.startsWith('/api/admin/')) {
                 res.setHeader('Cache-Control', 'no-store');
                 res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -121,9 +129,9 @@ function createServer(options = {}) {
     });
     server.requestTimeout=15000;server.headersTimeout=10000;
     server.store = store;
-    server.ready=ready;
+    server.ready=ready;server.startup=store.startup||ready;
     server.monitoring = monitoring;
-    server.realtime = createRealtimeHub(server, store, service,{storeDistribution});
+    server.realtime = createRealtimeHub(server, store, service,{storeDistribution,isReady:canServe});
     // HTTP close waits for upgraded sockets: drain them before waiting for it.
     const closeHttp = server.close.bind(server);
     server.close = function closeWithRealtime(callback) {
@@ -140,7 +148,7 @@ function createServer(options = {}) {
     metricsTimer.unref();
     server.on("close", () => {
         clearInterval(metricsTimer);clearInterval(recoveryTimer);
-        monitoring.flush();
+        if(canServe())monitoring.flush();
         server.realtime.close();
     });
     return server;
@@ -149,7 +157,7 @@ function createServer(options = {}) {
 if (require.main === module) {
     const server = createServer();
     const stopMatRefresh=require('./infrastructure/matRefresh').startMatRefresh(server.realtime.sharedArena.matPool);
-    server.ready
+    server.startup
         .then(() => {
             server.listen(PORT, HOST, () => {
                 process.stdout.write(`SLAP$TAX API listening on http://${HOST}:${PORT} (${server.store.kind})\n`);
@@ -159,6 +167,11 @@ if (require.main === module) {
             process.stderr.write(`SLAP$TAX startup failed: ${error.message}\n`);
             process.exitCode = 1;
         });
+    server.ready.catch(error=>{
+        process.stderr.write(`SLAP$TAX initialization failed: ${error.message}\n`);
+        if(server.listening){server.close(()=>{void server.store.close().catch(()=>{}).finally(()=>process.exit(1));});}
+        else process.exitCode=1;
+    });
 
     async function shutdown(signal) {
         stopMatRefresh();

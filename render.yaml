@@ -7,7 +7,7 @@ services:
     branch: main
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /api/health
+    healthCheckPath: /api/startup
     envVars:
       - key: APP_DISTRIBUTION
         value: store
