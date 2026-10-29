@@ -11,3 +11,6 @@
 .session .playfield>section[data-game]>div:last-child{background:transparent;animation:none;min-height:0}
 
 .header{position:relative;z-index:15}.playfield{position:relative;isolation:isolate}
+
+.session[data-game-session=snack] .hint,.session[data-game-session=chicken] .hint{display:none}
+.session[data-game-session=snack] .playfield :global([data-testid=party-arena]),.session[data-game-session=chicken] .playfield :global([data-testid=party-arena]){padding:0;background:transparent}

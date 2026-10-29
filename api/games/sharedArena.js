@@ -159,6 +159,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             disconnectDeadline: 0,
             disconnectedUserId: null,
             startedAt: 0,
+            entryDeadline: Date.now()+90000,
             pausedAt: 0,
             updatedAt: Date.now(),
             winnerId: null,
@@ -346,7 +347,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     function finish(session, winnerId, reason) {
-        if (session.phase === "done") return;
+        if (["done","cancelled"].includes(session.phase)) return;
         session.phase = "done";
         session.winnerId = winnerId;
         session.finishReason = reason;
@@ -514,9 +515,21 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         broadcast(session);
     }
 
+    function cancelInterrupted(session,reason){
+        if(['done','cancelled'].includes(session.phase))return;
+        if(session.practice){session.phase='cancelled';session.winnerId=null;session.finishReason=reason;broadcast(session);return;}
+        const result=service.cancelInterruptedDuel(session.duelId,reason);
+        if(!result.ok)return;
+        for(const current of sessions.values())if(!current.practice&&getDuel(current.duelId)?.status==='cancelled'&&!['done','cancelled'].includes(current.phase)){
+            current.phase='cancelled';current.winnerId=null;current.finishReason=reason;current.updatedAt=Date.now();
+            persistCompletion(current,`/api/duels/${current.duelId}/cancelled`);
+        }
+    }
+
     function forfeit(client) {
         const session = sessions.get(client.arenaSessionKey);
-        if (!session || client.arenaRole !== "player" || session.phase === "done") return;
+        if (!session || client.arenaRole !== "player" || ["done","cancelled"].includes(session.phase)) return;
+        if(!session.startedAt&&!(getDuel(session.duelId)?.rounds?.length)){cancelInterrupted(session,'cancelled_before_start');return;}
         const winnerId = client.userId === session.challengerId
             ? session.opponentId
             : session.challengerId;
@@ -669,13 +682,11 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             if (bothPlayersConnected(session)) {
                 startCountdown(session);
             } else if (now >= session.disconnectDeadline && session.disconnectedUserId) {
-                const winnerId = session.disconnectedUserId === session.challengerId
-                    ? session.opponentId
-                    : session.challengerId;
-                finish(session, winnerId, "disconnect-forfeit");
+                cancelInterrupted(session, "connection_lost");
             }
             return;
         }
+        if(session.phase==='waiting'&&!session.startedAt&&now>=session.entryDeadline){cancelInterrupted(session,'entry_timeout');return;}
         if (session.phase !== "playing") return;
         if (!bothPlayersConnected(session)) return;
         if (PARTY_IDS.includes(session.gameId) && session.game.phase === 'draw') return;
@@ -726,7 +737,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             clients.get(client.userId)?.delete(client);
             if ((clients.get(client.userId)?.size || 0) === 0) updatePresence(client.userId, false);
             const session = sessions.get(client.arenaSessionKey);
-            if (!session || client.arenaRole !== "player" || session.phase === "done") return;
+            if (!session || client.arenaRole !== "player" || ["done","cancelled"].includes(session.phase)) return;
             if (participantConnected(session, client.userId)) return;
             session.pausedAt ||= Date.now();
             session.phase = "waiting";
@@ -742,7 +753,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         snackTeams.tick(now);
         for (const [key, session] of sessions) {
             if(session.persisting){if(session.retryPersistenceAt&&now>=session.retryPersistenceAt){try{store.write(store.read());persistCompletion(session,session.persistenceScope);}catch(error){session.retryPersistenceAt=now+3000;}}continue;}
-            if (session.phase === "done" && now - session.updatedAt > 60_000) {
+            if (["done","cancelled"].includes(session.phase) && now - session.updatedAt > 60_000) {
                 sessions.delete(key);
                 continue;
             }

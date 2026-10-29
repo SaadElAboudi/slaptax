@@ -5,3 +5,8 @@ function setup(){let active=true,serial=0,changed=()=>{};const queue=new Map<num
 test('a scene owns exactly one pending animation frame',()=>{const x=setup();assert.equal(x.queue.size,1);x.tick();x.tick();assert.equal(x.draws,2);assert.equal(x.queue.size,1);x.stop();});
 test('background cancels work and repeated resume events do not duplicate loops',()=>{const x=setup();x.setActive(false);assert.equal(x.queue.size,0);x.setActive(false);x.setActive(true);x.setActive(true);assert.equal(x.queue.size,1);x.tick();assert.equal(x.draws,1);x.stop();});
 test('unmount releases listeners and late lifecycle events cannot restart a scene',()=>{const x=setup();x.stop();assert.equal(x.removed,true);assert.equal(x.queue.size,0);x.setActive(false);x.setActive(true);assert.equal(x.queue.size,0);});
+test('a drawing failure stops its loop and removes lifecycle listeners',()=>{
+ let frame:(now:number)=>void=()=>{},removed=false;
+ const stop=startGameLoop(()=>{throw Error('Broken drawing');},{request:f=>{frame=f;return 1;},cancel:()=>{},active:()=>true,subscribe:()=>()=>{removed=true;}});
+ assert.throws(()=>frame(100),/Broken drawing/);assert.equal(removed,true);stop();
+});

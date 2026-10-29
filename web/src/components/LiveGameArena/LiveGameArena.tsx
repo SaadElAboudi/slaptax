@@ -148,7 +148,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <span className={styles.worldLabel}>{gameWorld(gameId,isFr)}</span><h3>{gameLabel(gameId, isFr)}</h3>
                     {['snack','chicken'].includes(gameId)&&<div className={styles.characterPicker} role="group" aria-label={isFr?'Choisis ton combattant':'Choose your fighter'}>{SNACK_CHARACTERS.map(c=><button key={c.id} type="button" aria-pressed={snackCast===c.id} onClick={()=>{setSnackCast(c.id as typeof snackCast);try{localStorage.setItem('slaptax_snack_character',c.id);}catch{/* Selection is optional on restricted storage. */}}}><SnackPortrait character={c.id}/><b>{c.name}</b><span>{c.hp} {isFr?'PV':'HP'} · {isFr?c.roleFr:c.roleEn}</span><strong>{isFr?c.powerFr:c.powerEn}</strong><small>SUPER · {isFr?c.superFr:c.superEn}</small><small>{isFr?c.descriptionFr:c.descriptionEn}</small></button>)}</div>}
-                    <div className={styles.ruleSteps}>{briefSteps(gameId,isFr).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
+                    <div className={styles.ruleSteps}>{briefSteps(gameId,isFr,touchDevice).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
                     <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p><p className={styles.coachTip}><strong>{isFr?'ASTUCE DU RIVAL : ':'RIVAL TIP: '}</strong>{gameTip(gameId,isFr)}</p></details>
                     <div className={styles.briefStats}>
                         <span>{gameId==='chicken'?(isFr?'60 s · POULET ROYAL':'60 s · ROYAL CHICKEN'):gameId==='snack'?(isFr?'90 s · 3 LIVRAISONS':'90 s · 3 DELIVERIES'):gameId==='pigeon'?(isFr?'24 s · LIVRAISON':'24 s · DELIVERY'):gameId==='lift'?(isFr?'22 s · ESQUIVE':'22 s · DODGE'):['pie','balloon'].includes(gameId)?'22 s · DUEL':gameId==='toilet'?(isFr?'25 s · CANARDS ET TURBO':'25 s · DUCKS AND TURBO'):gameId==='table'?(isFr?'20 s · COLLISIONS':'20 s · BUMPS'):gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
@@ -200,7 +200,7 @@ interface SharedArenaState {
     duelId: string;
     round: number;
     gameId: CompetitiveGameId;
-    phase: 'waiting' | 'countdown' | 'playing' | 'done';
+    phase: 'waiting' | 'countdown' | 'playing' | 'done' | 'cancelled';
     resumeAt: number;
     disconnectDeadline: number;
     disconnectedUserId: string | null;
@@ -311,6 +311,7 @@ function SharedArenaRound({
                 }
                 if (event?.type !== 'arena.state' || event.duelId !== session.duelId || event.round !== round) return;
                 if (typeof event.at === 'number') serverOffsetRef.current = event.at - Date.now();
+                if(event.phase==='cancelled')setArenaError(isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.');
                 stateRef.current = event;
                 setState(event);
                 if (event.phase === 'done' && event.winnerId && !completedRef.current) {
@@ -475,7 +476,7 @@ function SharedArenaRound({
         ? (isFr ? 'Connexion perdue. Reprise en cours...' : 'Connection lost. Rejoining...')
         : state?.disconnectDeadline
             ? disconnectedSelf
-                ? (isFr ? `Reconnexion... forfait dans ${disconnectSeconds}s` : `Reconnecting... forfeit in ${disconnectSeconds}s`)
+                ? (isFr ? `Reconnexion… annulation remboursée dans ${disconnectSeconds}s` : `Reconnecting… refund cancellation in ${disconnectSeconds}s`)
                 : (isFr ? `Rival déconnecté · reprise pendant ${disconnectSeconds}s` : `Rival disconnected · resuming for ${disconnectSeconds}s`)
             : '');
     const status = phase === 'waiting'
@@ -1256,16 +1257,16 @@ function makeQuestion(round: number) {
     return { label: `${a} ${multiply ? '×' : '+'} ${b}`, answer, options: shuffle([answer, ...options]) };
 }
 
-function briefSteps(gameId: CompetitiveGameId,fr:boolean):string[]{
+function briefSteps(gameId: CompetitiveGameId,fr:boolean,touch=false):string[]{
  if(gameId==='chicken')return fr?['Attrape le poulet et rapporte-le à ton poulailler.','Lance-le avant sa rébellion à 5,5 secondes.','Évite les zones d’œufs géants.']:['Catch the chicken and bring it to your coop.','Throw before it rebels at 5.5 seconds.','Dodge the giant egg warning zones.'];
- if(gameId==='snack')return fr?['Déplace-toi au stick gauche.','Vise, frappe et esquive.','Ramène 3 goûters à ton dépôt.']:['Move with the left stick.','Aim, slap and evade.','Bring 3 snacks to your depot.'];
+ if(gameId==='snack')return fr?['Ramène 3 goûters à ton dépôt.',touch?'Stick gauche pour bouger. BAFFE pour frapper.':'ZQSD / flèches pour bouger. Clic pour frapper.','LANCE vers ton dépôt. Esquive les baffes.']:['Bring 3 snacks to your depot.',touch?'Left stick moves. Tap SLAP to attack.':'WASD / arrows move. Click to slap.','THROW toward your depot. Evade incoming slaps.'];
  const steps:Record<string,[string[],string[]]>={
  pigeon:[['Glisse pour piloter ton pigeon.','Largue devant la voiture rose : vent et chute comptent !','Protège ta voiture jaune avec le parasol.'],['Slide to fly your pigeon.','Drop ahead of the pink car: wind and flight time matter!','Cover your yellow car with the umbrella.']],
  lift:[['Choisis une place à chaque passage.','Évite le nuage. Ramasse les haricots.','Prout ciblé : vise ton pote, puis esquive le sien !'],['Pick a spot each wave.','Dodge the cloud. Collect beans.','Targeted fart: trap your friend, dodge theirs!']],
  pie:[['Glisse en bas pour bouger, touche en haut pour lancer.','ENTARTE ! Anticipe son déplacement.','ESQUIVE quand sa tarte arrive.'],['Drag below to move, tap above to throw.','THROW! Lead their movement.','DUCK when their pie arrives.']],
  balloon:[['Maintiens GONFLE pour gonfler.','Relâche pour encaisser avant le PAAF.','Dépense 25 points pour gonfler le ballon adverse.'],['Hold PUMP to inflate.','Release to bank before it POPS.','Spend 25 points to inflate the rival balloon.']],
  toilet:[['Pilote ta toilette.','Ramasse et vole les canards.','Évite la chasse. PROUT pour t’échapper !'],['Drive your toilet.','Collect and steal ducks.','Dodge the flush. FART to escape!']],
- table:[['Glisse depuis ton perso.','Relâche pour te propulser.','Anticipe les coups de nappe. Reste sur la table !'],['Drag from your character.','Release to dash.','Watch the tablecloth pulls. Stay on the table!']],
+ table:[[touch?'Touche la destination.':'Glisse depuis ton perso.','Relâche pour te propulser.','Anticipe les coups de nappe. Reste sur la table !'],[touch?'Touch your destination.':'Drag from your character.','Release to dash.','Watch the tablecloth pulls. Stay on the table!']],
  decoupe:[['Trace ta coupe.','Choisis le côté à garder.','Approche le % cible.'],['Draw your cut.','Pick the side to keep.','Match the target %.']],
  trace:[['Observe 2 secondes.','Redessine en un trait.','Sois le plus fidèle.'],['Look for 2 seconds.','Redraw in one stroke.','Match the shape.']],
  chroma:[['Retiens la couleur.','Recrée-la de mémoire.','Le plus proche gagne.'],['Remember the color.','Rebuild it from memory.','Closest match wins.']],

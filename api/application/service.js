@@ -716,6 +716,15 @@ function createService(store,options={}) {
             for(const t of db.tournaments||[])if(tournaments.has(t.id)){t.status='cancelled';t.cancellationReason='inactive_timeout';}
             if(count)store.write(db);return count;
         },
+        cancelInterruptedDuel(duelId,reason='connection_lost'){
+            const db=store.read(),duel=db.duels.find(d=>d.id===duelId);
+            if(!duel||!['pending','playing'].includes(duel.status))return {ok:true,ignored:true};
+            const affected=db.duels.filter(d=>['pending','playing'].includes(d.status)&&(d.id===duelId||duel.tournamentId&&d.tournamentId===duel.tournamentId));
+            for(const d of affected){if(d.status==='playing')tokens.refund(db,d,reason);d.status='cancelled';d.cancellationReason=reason;d.winnerId=null;}
+            const tournament=db.tournaments?.find(t=>t.id===duel.tournamentId);
+            if(tournament){tournament.status='cancelled';tournament.cancellationReason=reason;}
+            store.write(db);return {ok:true,cancelled:affected.length};
+        },
         recoverInterruptedDuels(){
             const db=store.read(),active=(db.tournaments||[]).filter(t=>t.status==='playing'),tournaments=new Set(active.map(t=>t.id));let count=0;
             for(const d of db.duels||[])if(d.status==='playing'||d.status==='pending'&&tournaments.has(d.tournamentId)){

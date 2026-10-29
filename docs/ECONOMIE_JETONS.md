@@ -29,7 +29,7 @@ Le champ d'escrow du duel empêche un second débit, un second versement ou un s
 
 Les arènes en mémoire ne peuvent pas être restaurées fidèlement après un redémarrage : les duels actifs sont annulés et leurs mises remboursées avant d'accepter les requêtes HTTP. Les tournois interrompus et leurs matches enfants sont fermés ; les anciens tournois solo encore ouverts sont remboursés une fois. Un round resté bloqué plus de vingt minutes est annulé et remboursé, sans inventer de gagnant.
 
-Une déconnexion courte dans une arène suit toujours le délai de reconnexion et la règle de forfait du mode. Elle ne constitue pas un moyen de demander volontairement un remboursement d'un duel en cours.
+Une déconnexion dans une arène suspend la manche pendant le délai de reconnexion de 20 secondes. Si la reconnexion échoue, le défi est annulé et les mises sont remboursées sans gagnant, score de manche ni progression. Si le rival n’entre jamais, l’attente initiale expire après 90 secondes. Un abandon volontaire après démarrage conserve la règle de forfait ; avant le premier démarrage, il annule le défi. Cette politique privilégie les incidents techniques entre amis : le serveur ne prétend pas distinguer une panne réseau d’une fermeture volontaire de l’app.
 
 ## Stockage et exploitation
 

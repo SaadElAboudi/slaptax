@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/globals.css'
 import './styles/cartoon.css'
 import App from './App'
+import {RecoveryBoundary} from './components/RecoveryBoundary/RecoveryBoundary'
 const Legal=lazy(()=>import('./components/Legal/Legal').then(m=>({default:m.Legal})));
 const legalPaths=['/privacy','/terms','/support','/delete-account','/account-deleted'];
 const AdminDashboard = lazy(() => import('./components/AdminDashboard/AdminDashboard'));
@@ -20,7 +21,7 @@ installCanvasCompatibility();
 try{await prepareNative();}catch(error){console.error('Native integration unavailable',error);}
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <RootRouter/>
+        <RecoveryBoundary><RootRouter/></RecoveryBoundary>
     </StrictMode>,
 )
 

@@ -43,3 +43,18 @@
 .fieldGuide{width:min(100%,620px);margin:8px auto 0;border:1px solid #789b95;border-radius:10px;background:#1b3540;color:#edf3d8;font-size:12px;flex-shrink:0}.fieldGuide summary{min-height:44px;display:flex;align-items:center;padding:8px 12px;cursor:pointer;font-weight:900}.fieldGuide summary:focus-visible{outline:3px solid #ffe399;outline-offset:2px}.fieldGuide[open] summary{border-bottom:1px solid #789b95}.fieldGuide>div{padding:10px 14px;line-height:1.5}.fieldGuide p{margin:0 0 10px}.fieldGuide small{display:block;color:#bad5cb;font-size:11px}.fieldGuide b{color:#ffe399}
 
 @media(min-width:901px) and (pointer:fine){.immersive:has(.fieldGuide[open]){--snack-immersive-reserve:480px}.immersive .fieldGuide>div{max-height:170px;overflow:auto}}
+
+/* Touch default: one movement stick and large action buttons. Advanced aim is optional. */
+@media(max-width:900px),(pointer:coarse){
+ .game .controls[data-manual-aim=false]{grid-template-columns:100px minmax(0,190px);gap:12px;width:100%;max-width:340px;margin:0 auto;align-items:center}
+ .controls[data-manual-aim=false] .aim{display:none}
+ .controls[data-manual-aim=false] .pad{width:100px;height:100px;box-sizing:border-box}
+ .controls[data-manual-aim=false] .buttons{display:grid;grid-template-columns:1fr 1fr;grid-column:2;gap:7px}
+ .controls[data-manual-aim=false] .buttons button:first-child{grid-column:1/-1;min-height:54px;font-size:17px}
+ .controls[data-manual-aim=false] .buttons button{min-height:46px;font-size:11px}
+ .game .board{width:100%;max-width:min(100%,calc((100svh - 365px)*1.5))}
+ .game .objective{padding:5px 0;min-height:26px}
+ .game footer label{min-height:32px;font-size:10px}
+ .game .keyboardHint{display:none}
+}
+@media(max-width:600px) and (min-height:701px){.game .board{max-width:min(100%,calc(100svh - 405px))}}

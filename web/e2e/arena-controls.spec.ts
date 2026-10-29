@@ -5,7 +5,7 @@ test('arena preferences survive reload and the character guide does not trigger 
  const skills:string[]=[];
  page.on('websocket',ws=>ws.on('framesent',e=>{try{const a=JSON.parse(String(e.payload));if(a.action==='skill')skills.push(a.action);}catch{}}));
  await page.goto('/?tab=training');await page.getByRole('button',{name:'Entrer dans l arene'}).click();
- const arena=page.getByTestId('snack-game'),assist=arena.getByRole('checkbox');await expect(arena).toBeVisible();await expect(arena).toHaveAttribute('data-phase','brawl');
+ const arena=page.getByTestId('snack-game'),assist=arena.getByRole('checkbox',{name:'Visée assistée'});await expect(arena).toBeVisible();await expect(arena).toHaveAttribute('data-phase','brawl');
  await assist.uncheck();await expect(assist).not.toBeChecked();
  const guide=arena.locator('summary');await guide.click();await expect(arena.locator('details')).toContainText('Une onde annoncée');
  await guide.focus();await page.keyboard.press('e');expect(skills).toHaveLength(0);await guide.click();await arena.focus();await page.keyboard.press('e');await expect.poll(()=>skills.length).toBe(1);
@@ -18,5 +18,5 @@ test('arena preferences survive reload and the character guide does not trigger 
 test('arena controls remain usable when preference writes are blocked',async({page})=>{
  await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');localStorage.setItem('slaptax_training_game','snack');const save=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key.startsWith('slaptax.snack.'))throw new DOMException('Blocked','SecurityError');return save.call(this,key,value);};});
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/?tab=training');await page.getByRole('button',{name:'Entrer dans l arene'}).click();const assist=page.getByTestId('snack-game').getByRole('checkbox');await assist.uncheck();await expect(assist).not.toBeChecked();await assist.check();await expect(assist).toBeChecked();expect(errors).toEqual([]);
+ await page.goto('/?tab=training');await page.getByRole('button',{name:'Entrer dans l arene'}).click();const assist=page.getByTestId('snack-game').getByRole('checkbox',{name:'Visée assistée'});await assist.uncheck();await expect(assist).not.toBeChecked();await assist.check();await expect(assist).toBeChecked();expect(errors).toEqual([]);
 });

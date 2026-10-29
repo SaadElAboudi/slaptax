@@ -27,7 +27,12 @@ export function startGameLoop(draw: FrameRequestCallback, host?: GameLoopHost) {
     const frame: FrameRequestCallback = now => {
         pending = null;
         if (stopped || !environment.active()) return;
-        draw(now);
+        try{draw(now);}catch(error){
+            stopped=true;unsubscribe();
+            if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('slaptax:game-error',{detail:error}));
+            else throw error;
+            return;
+        }
         schedule();
     };
     const sync = () => {

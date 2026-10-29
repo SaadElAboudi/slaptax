@@ -14,7 +14,7 @@ Version locale du 27 octobre 2026. Direction retenue : une arène principale, av
 
 ## Commandes
 
-Téléphone : stick gauche pour bouger ; stick droit pour viser, puis relâcher pour frapper à mains vides ou lancer la boîte portée. Deux doigts peuvent agir simultanément. Les boutons BAFFE / LANCE et ESQUIVE restent disponibles. L’annulation du geste droit ne déclenche pas d’attaque. La visée assistée, désactivable, cible un adversaire proche lorsque le joueur ne vise pas manuellement.
+Téléphone : stick gauche pour bouger ; grande touche BAFFE pour frapper, LANCE pour envoyer la boîte vers son dépôt. La visée assistée est activée par défaut. Le stick droit est une option avancée : viser puis relâcher pour frapper ou lancer librement. Deux doigts peuvent agir simultanément. Les boutons BAFFE / LANCE et ESQUIVE restent disponibles. L’annulation du geste droit ne déclenche pas d’attaque. La visée assistée, désactivable, cible un adversaire proche lorsque le joueur ne vise pas manuellement.
 
 Ordinateur : ZQSD, WASD ou flèches pour se déplacer ; souris pour viser, clic pour frapper ou lancer ; Espace ou Maj pour esquiver. J fournit également une frappe au clavier. Les instructions figurent dans le briefing et sous les commandes sur ordinateur.
 
