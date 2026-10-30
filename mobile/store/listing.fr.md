@@ -5,14 +5,16 @@ Support : gignoski@gmail.com
 Identifiant technique proposé : com.gignoski.slaptax
 
 Nom : SlapTax — Défis entre amis
-Sous-titre Apple : Pièges, défis et revanches
-Description courte Google : Des mini-jeux cartoon, des défis entre amis et des revanches à partager.
+Sous-titre Apple : Braquages, baffes et revanches
+Description courte Google : Braque le goûter, défie tes potes et règle tes comptes dans des jeux cartoon.
 
 ## Description
 
 Tes meilleurs amis font les meilleurs adversaires.
 
-Dans SlapTax, vise une tarte, pilote un pigeon très peu discret, évite un ascenseur piégé ou braque le goûter avec ton équipe. Chaque jeu apporte une façon de se défier, de se faire piéger et de tenter la revanche.
+L’Intendant a taxé ton goûter. À la Cantine, bouge avec un stick, baffe le porteur et rapporte trois caisses avant ton rival. Un bouton pour baffer ou lancer : à toi de choisir le bon chemin et le bon moment.
+
+Le casse continue dans les ateliers de la Manufacture : partage le butin en cuisine, empile les caisses, renvoie un colis explosif ou livre une tarte en pleine face. Chaque incident offre une nouvelle revanche entre amis.
 
 • Entraîne-toi face à un bot annoncé ou dans les jeux de précision.
 • Invite un ami pour un duel en direct.

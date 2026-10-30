@@ -1,0 +1,21 @@
+{
+  "appId": "com.gignoski.slaptax",
+  "studio": "Gignoski Games",
+  "supportEmail": "gignoski@gmail.com",
+  "locales": {
+    "fr": {
+      "name": "SlapTax — Défis entre amis",
+      "subtitle": "Braquages, baffes et revanches",
+      "shortDescription": "Braque le goûter, défie tes potes et règle tes comptes dans des jeux cartoon.",
+      "promotionalText": "L’Intendant a taxé le goûter. Trois caisses à reprendre, un pote à battre et toute une manufacture pour prendre ta revanche.",
+      "keywords": "amis,défis,cartoon,duel,multijoueur,arène,mini-jeux,revanches"
+    },
+    "en": {
+      "name": "SlapTax — Friend Challenges",
+      "subtitle": "Snack heists and rematches",
+      "shortDescription": "Steal snacks, challenge friends and settle the score in cartoon mini-games.",
+      "promotionalText": "The Steward taxed snack time. Reclaim three crates, beat your friend and settle the score across a whole factory of challenges.",
+      "keywords": "friends,challenge,cartoon,duel,multiplayer,arena,minigames,rematch"
+    }
+  }
+}

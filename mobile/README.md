@@ -159,3 +159,14 @@ Les résultats effectivement observés sont consignés dans `docs/qa/mobile-read
 6. Soumettre après vérification de la disponibilité du backend, des politiques et de la modération. L’acceptation appartient aux stores ; aucune promesse d’acceptation ou de viralité n’est faite.
 
 Sources officielles vérifiées le 28 octobre 2026 : [Capacitor](https://capacitorjs.com/docs/getting-started/environment-setup), [SDK Apple](https://developer.apple.com/news/upcoming-requirements/), [Google API cible](https://support.google.com/googleplay/android-developer/answer/11926878), [inscription Apple](https://developer.apple.com/help/account/membership/program-enrollment), [tests Google](https://support.google.com/googleplay/android-developer/answer/14151465), [règles Apple](https://developer.apple.com/app-store/review/guidelines/).
+
+## Candidats de soumission
+
+Le workflow manuel `.github/workflows/store-candidate.yml` prépare un AAB Android
+signé si les secrets de la clé d’upload sont fournis, et/ou une archive iOS pour
+appareil non signée. Il vérifie le backend de la révision exacte et ne soumet rien
+aux stores. Le numéro de build est demandé à chaque lancement.
+
+Voir [le dossier de soumission](store/SUBMISSION.md), [les textes structurés](store/metadata.json)
+et [le protocole de lancement entre amis](store/LAUNCH.md).
+Validation des textes : `node mobile/scripts/check-metadata.mjs`.

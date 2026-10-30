@@ -1,0 +1,119 @@
+name: Store candidate artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'New positive build number (increase on every store upload)'
+        required: true
+        type: string
+      platform:
+        description: 'Platform to prepare; no store upload is performed'
+        required: true
+        default: android
+        type: choice
+        options: [android, ios, both]
+permissions:
+  contents: read
+jobs:
+  android:
+    if: inputs.platform != 'ios'
+    runs-on: ubuntu-24.04
+    environment: store-release
+    env:
+      VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
+      VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
+      SLAPTAX_VERSION_CODE: ${{ inputs.build_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Validate build number
+        env:
+          CANDIDATE_BUILD: ${{ inputs.build_number }}
+        run: node -e 'const n=Number(process.env.CANDIDATE_BUILD);if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||n>2100000000)process.exit(1)'
+      - run: npm ci
+      - run: npm --prefix web ci
+      - run: node mobile/scripts/check-metadata.mjs
+      - run: npm test
+      - run: npm run build:all
+      - name: Require compatible live backend
+        run: node mobile/scripts/check-live.mjs
+      - name: Install Android SDK
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+      - name: Build signed upload bundle
+        env:
+          UPLOAD_KEY_BASE64: ${{ secrets.ANDROID_UPLOAD_KEY_BASE64 }}
+          SLAPTAX_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          SLAPTAX_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SLAPTAX_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${UPLOAD_KEY_BASE64:?Missing Android upload key}"
+          : "${SLAPTAX_KEYSTORE_PASSWORD:?Missing keystore password}"
+          : "${SLAPTAX_KEY_ALIAS:?Missing key alias}"
+          : "${SLAPTAX_KEY_PASSWORD:?Missing key password}"
+          export SLAPTAX_KEYSTORE_PATH="$RUNNER_TEMP/slaptax-upload.jks"
+          trap 'rm -f "$SLAPTAX_KEYSTORE_PATH"' EXIT
+          python3 - <<'PY'
+          import os,base64
+          with open(os.environ['SLAPTAX_KEYSTORE_PATH'],'wb') as f:
+              f.write(base64.b64decode(os.environ['UPLOAD_KEY_BASE64'],validate=True))
+          os.chmod(os.environ['SLAPTAX_KEYSTORE_PATH'],0o600)
+          PY
+          cd web/android
+          ./gradlew :app:bundleRelease --no-daemon
+          jarsigner -verify -strict app/build/outputs/bundle/release/app-release.aab || {
+            # Self-signed upload certificates are normal; require a signed archive explicitly.
+            jarsigner -verify app/build/outputs/bundle/release/app-release.aab | grep -q 'jar verified'
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-signed-upload-build-${{ inputs.build_number }}
+          path: web/android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 7
+  ios:
+    if: inputs.platform != 'android'
+    runs-on: macos-15
+    env:
+      VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
+      VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
+      CANDIDATE_BUILD: ${{ inputs.build_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate build number and select Xcode
+        run: |
+          node -e 'if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||Number(process.env.CANDIDATE_BUILD)>2100000000)process.exit(1)'
+          python3 - <<'PY'
+          import glob,os,re
+          choices=[]
+          for p in glob.glob('/Applications/Xcode_*.app'):
+              m=re.fullmatch(r'Xcode_([0-9.]+)\.app',os.path.basename(p))
+              if m and int(m[1].split('.')[0])>=26: choices.append((tuple(map(int,m[1].split('.'))),p))
+          if not choices: raise SystemExit('Xcode 26+ required')
+          with open(os.environ['GITHUB_ENV'],'a') as f: f.write('DEVELOPER_DIR='+max(choices)[1]+'/Contents/Developer\n')
+          PY
+      - run: npm ci
+      - run: npm --prefix web ci
+      - run: node mobile/scripts/check-metadata.mjs
+      - run: npm test
+      - run: npm run build:all
+      - run: node mobile/scripts/check-live.mjs
+      - name: Archive device app without signing
+        run: xcodebuild -project web/ios/App/App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/SlapTax.xcarchive" CURRENT_PROJECT_VERSION="$CANDIDATE_BUILD" CODE_SIGNING_ALLOWED=NO archive
+      - name: Package unsigned archive for signing on a compatible Mac
+        run: ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/SlapTax.xcarchive" "$RUNNER_TEMP/SlapTax-unsigned.xcarchive.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-device-archive-UNSIGNED-build-${{ inputs.build_number }}
+          path: ${{ runner.temp }}/SlapTax-unsigned.xcarchive.zip
+          if-no-files-found: error
+          retention-days: 7
