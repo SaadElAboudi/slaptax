@@ -52,5 +52,6 @@ for(const viewport of [{width:320,height:650},{width:800,height:390}])test(`one-
  for(const target of [page.getByTestId('snack-canvas'),page.getByTestId('snack-move-pad'),page.getByRole('button',{name:'BAFFE !',exact:true})]){
   const b=(await target.boundingBox())!;expect(b.x).toBeGreaterThanOrEqual(0);expect(b.y).toBeGreaterThanOrEqual(0);expect(b.x+b.width).toBeLessThanOrEqual(viewport.width);expect(b.y+b.height).toBeLessThanOrEqual(viewport.height);
  }
+ const field=(await page.getByTestId('snack-canvas').boundingBox())!;expect(field.width).toBeGreaterThanOrEqual(280);expect(field.height).toBeGreaterThanOrEqual(180);
  await page.screenshot({path:info.outputPath('poule-simple.png')});
 });

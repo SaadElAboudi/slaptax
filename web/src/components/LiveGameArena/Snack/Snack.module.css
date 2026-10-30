@@ -87,7 +87,7 @@
 @media(min-width:901px) and (pointer:fine){.game[data-variant=chicken].immersive .board{width:min(100%,calc((100svh - 330px)*1.5))}}
 @media(max-height:500px) and (pointer:coarse){
  .game[data-variant=chicken]{grid-template-columns:88px minmax(0,1fr) 105px}
- .game[data-variant=chicken] .board{grid-column:2;grid-row:2;width:min(100%,calc((100svh - 155px)*1.5))}
+ .game[data-variant=chicken] .board{grid-column:2;grid-row:2;width:min(100%,calc((100svh - 155px)*1.5));max-width:none}
  .game[data-variant=chicken] .controls{display:contents}
  .game[data-variant=chicken] .controls .buttons{grid-column:3;grid-row:2;align-self:center}
  .game[data-variant=chicken] .buttons button:first-child{min-height:76px;font-size:17px}

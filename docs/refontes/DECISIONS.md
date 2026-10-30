@@ -124,3 +124,5 @@ déplacement tactile, duel à deux avec lancer contextuel/résultat/replay, port
 320 × 650 et paysage 800 × 390. L'entrée et les commandes clavier sur ordinateur
 passent aussi. `build:all` synchronise la source `88a2a4bc2d02` dans Android/iOS.
 Les essais WebKit et la compilation iOS doivent être confirmés par la CI du push.
+
+Contrôle visuel complémentaire : correction du maximum de largeur hérité en paysage. Les deux E2E de dimensions repassent avec un terrain de 280 × 180 px au minimum et des commandes dans la fenêtre. Source finale synchronisée : `398e8aa77988`.
