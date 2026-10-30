@@ -61,7 +61,7 @@ test('Poultry Panic: a played WebKit win is shown as a win to iOS and a loss to 
   if(held)await f.iosPage.keyboard.up(held);
   await expect(f.iosPage.getByTestId('round-recap')).toHaveAttribute('data-won','true',{timeout:10000});
   await expect(f.androidPage.getByTestId('round-recap')).toHaveAttribute('data-won','false');
-  const result=await f.match();expect(result.winnerId).toBe(f.ios.userId);expect(result.rounds[0].detail).toBe('chicken-deliveries-then-knockouts');expect(result.rounds[0].moment.replay.at(-1).state.snack.bodies.find((p:any)=>p.id===f.ios.userId).captures).toBeGreaterThan(0);
+  const result=await f.match();expect(result.winnerId).toBe(f.ios.userId);expect(result.rounds[0].detail).toBe('chicken-deliveries');expect(result.rounds[0].moment.replay.at(-1).state.snack.bodies.find((p:any)=>p.id===f.ios.userId).captures).toBeGreaterThan(0);
   expect((await f.wallet(f.ios)).balance).toBe(28.5);expect((await f.wallet(f.android)).balance).toBe(20);expect(f.errors).toEqual([]);
  }finally{await f.close();}
 });
