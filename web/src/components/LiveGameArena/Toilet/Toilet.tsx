@@ -16,6 +16,7 @@ export function Toilet({party,identity,active,isFr,send}:{party:PartyState;ident
   const stopLoop=startGameLoop(draw);return()=>{observer.disconnect();stopLoop();};
  },[identity]);
  function stop(){target.current=null;keys.current.clear();pointer.current=null;setHolding(false);latest.current.send('steer',{dx:0,dy:0});}
+ useEffect(()=>{if(!enabled)stop();},[enabled]);
  function drive(force=false){const s=latest.current;if(!s.active||s.party.phase!=='brawl')return;const now=performance.now();if(!force&&now-sentAt.current<70)return;const p=s.party.toilet?.bodies.find(p=>p.id===identity);if(!p)return;
   let dx=Number(keys.current.has('arrowright')||keys.current.has('d'))-Number(keys.current.has('arrowleft')||keys.current.has('a')||keys.current.has('q')),dy=Number(keys.current.has('arrowdown')||keys.current.has('s'))-Number(keys.current.has('arrowup')||keys.current.has('w')||keys.current.has('z'));
   if(target.current){dx=target.current.x-p.x;dy=target.current.y-p.y;const d=Math.hypot(dx,dy);dx=d<8?0:dx/Math.max(50,d);dy=d<8?0:dy/Math.max(50,d);}
@@ -30,7 +31,7 @@ export function Toilet({party,identity,active,isFr,send}:{party:PartyState;ident
  return <section className={styles.game} data-testid="toilet-game" data-phase={party.phase}>
   <header><div><strong>{isFr?'BRAQUAGE DE CANARDS':'RUBBER DUCK HEIST'}</strong><span>{isFr?'Le plus de canards en 25 secondes.':'Most ducks in 25 seconds wins.'}</span></div><b>{Math.ceil(party.remaining/1000)} s</b></header>
   <div className={styles.board}><canvas ref={canvas} tabIndex={0} data-testid="toilet-canvas" data-player-x={own?.x} data-player-y={own?.y} data-loot={own?.loot||0} aria-label={isFr?'Pilote ta toilette. Maintiens ton doigt et glisse. ZQSD ou flèches pour rouler, espace pour le prout turbo.':'Drive your toilet. Hold and drag. WASD or arrows steer, space uses fart turbo.'}
-   onPointerDown={e=>{if(!enabled||e.button!==0)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);position(e,true);setHolding(true);}}
+   onPointerDown={e=>{if(!enabled||e.button!==0||pointer.current!==null)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);position(e,true);setHolding(true);}}
    onPointerMove={e=>{if(pointer.current===e.pointerId)position(e);}} onPointerUp={e=>{if(pointer.current===e.pointerId)stop();}} onPointerCancel={stop} onLostPointerCapture={stop} onBlur={stop}
    onKeyDown={e=>{if(!enabled)return;if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','z','q'].includes(e.key.toLowerCase())){e.preventDefault();keys.current.add(e.key.toLowerCase());drive();setHolding(true);}else if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();boost();}}}
    onKeyUp={e=>{if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d','z','q'].includes(e.key.toLowerCase())){e.preventDefault();keys.current.delete(e.key.toLowerCase());if(!keys.current.size)stop();else drive();}}}/>

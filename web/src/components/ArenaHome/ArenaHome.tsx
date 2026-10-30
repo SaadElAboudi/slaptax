@@ -22,7 +22,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const { language, userId, playerName, history, favoriteRivalId, progression } = useGameStore();
     const isFr = language === 'fr';
     const practices=readPracticeHistory(userId||'');
-    const completed=history.length+practices.length;
+    const completed=history.length+Math.max(progression?.solo?.plays||0,practices.length);
     const episode=factoryEpisode(completed);
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
@@ -122,7 +122,7 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
             <h2>{isFr?episode.fr:episode.en}</h2><p>{isFr?episode.lineFr:episode.lineEn}</p>
             {practices[0]&&<small>{isFr?'Dernier incident : ':'Last incident: '}{factoryAftermath(practices[0].gameId,isFr)}</small>}
             <button onClick={()=>enter(episode.game,'training')}>{isFr?'Jouer cet épisode':'Play this episode'}<ArrowRight size={16}/></button>
-            <small>{isFr?'Un clin d’œil à tes parties terminées. Tous les ateliers restent accessibles.':'A nod to your completed games. Every workshop remains available.'}</small>
+            <small>{isFr?'La suite de vos incidents. Tous les ateliers restent accessibles.':'A nod to your completed games. Every workshop remains available.'}</small>
         </section>
         <section className={styles.worldRoute} aria-label={isFr?'L’histoire de la Manufacture':'The factory story'} data-testid="factory-story"><div><span>{worldName(isFr)}</span><h2>{isFr?'Une brigade. Toute une usine à défier.':'One crew. A whole factory to challenge.'}</h2><p>{isFr?'La Cantine est votre arène. Les ateliers sont vos terrains de revanche : chaque défi raconte un autre incident du même casse.':'The Canteen is your arena. The workshops are your rematch grounds: every challenge tells another incident from the same heist.'}</p></div><ol>{['snack','decoupe','onemore','bombpass'].map(id=><li key={id}><b>{gameChapter(id,isFr)?.place}</b><span>{gameChapter(id,isFr)?.title}</span><button onClick={()=>enter(id as CompetitiveGameId,'training')}>{id==='snack'?(isFr?'Entrer à la Cantine':'Enter the Canteen'):(isFr?'Essayer le défi':'Try the challenge')}<ArrowRight size={15}/></button></li>)}</ol></section>
         <section className={styles.newGame} aria-label={isFr?'Nouveau jeu : Poule Position':'New game: Poultry Panic'}>

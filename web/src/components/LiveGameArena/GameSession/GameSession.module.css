@@ -14,3 +14,7 @@
 
 .session[data-game-session=snack] .hint,.session[data-game-session=chicken] .hint{display:none}
 .session[data-game-session=snack] .playfield :global([data-testid=party-arena]),.session[data-game-session=chicken] .playfield :global([data-testid=party-arena]){padding:0;background:transparent}
+
+/* Thumb-sized shared controls, including small and landscape phones. */
+.session .header button{min-width:44px;min-height:44px}
+.session[data-touch=true] .playfield button{min-width:44px;min-height:44px;touch-action:manipulation}

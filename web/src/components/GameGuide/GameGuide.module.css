@@ -4,3 +4,5 @@
 .dialog{margin:auto}
 @media(max-width:600px){.poster{height:96px;max-width:170px;margin-bottom:10px}.poster>div{height:100%;min-height:0}.modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.modes button{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:6px;min-height:115px;padding:10px}.modes button>svg:last-child{display:none}.modes strong{font-size:12px;overflow-wrap:anywhere}.modes small{font-size:10px;line-height:1.35}.tip{padding:10px 12px}.dialog h2{margin:5px 0}}
 @media(max-width:600px){.poster :global([data-scene]){min-height:0;height:100%}.poster svg{min-height:0;max-height:100%;height:100%;width:100%}}
+
+.quickStart{display:grid;gap:7px;padding:14px;margin:12px 0;border:2px solid #ffe19b;border-radius:12px;background:#213d48;color:#fff0c6}.quickStart strong{font-size:15px;line-height:1.5}.quickStart span{font-size:13px;line-height:1.5;color:#e0eced}

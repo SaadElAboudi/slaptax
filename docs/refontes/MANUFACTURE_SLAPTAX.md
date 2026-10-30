@@ -108,3 +108,28 @@ Une nouvelle couche comique suit les parties sans ajouter de commande :
 La prochaine validation produit doit mesurer si les joueurs comprennent la blague,
 se rappellent l’Intendant et proposent spontanément une revanche. Cette version
 améliore les réactions et la continuité ; elle ne prouve pas à elle seule la rétention.
+
+## Stabilisation tactile et compréhension
+
+- Avant le choix du mode, le but et le geste principal sont visibles dans chaque
+  fiche, à partir de `shared/simple-play.json` ; les règles détaillées restent accessibles.
+- Le stick Cantine/Ferme ignore les mouvements inférieurs à 6 px puis monte
+  progressivement à pleine vitesse à 30 px, sans avantage diagonal.
+- Lancer la caisse n’attend plus la récupération de la baffe ; une attaque encore
+  en cours de résolution reste protégée et une caisse ne peut être lancée deux fois.
+  Cette règle s’applique au moteur commun, en entraînement, duel et tournoi.
+- Panique aux Toilettes annule la destination maintenue quand le jeu est désactivé.
+  Les gestes simultanés ne remplacent plus le doigt de pilotage dans ce jeu et Pigeon.
+- Les commandes du cadre de jeu tactile ont une cible minimale de 44 × 44 px.
+- Les épisodes utilisent le total des entraînements du profil si disponible, avec
+  l’historique de l’appareil comme solution de repli ; ils ne dépendent pas de séries quotidiennes.
+
+Validation : 322 tests serveur et 30 tests web réussis. La validation humaine de
+la facilité, du rythme et de l’envie de revanche reste un critère de sortie produit.
+
+Contrôle navigateur : 18 scénarios réussis et 3 exclusions de plateforme dans la
+matrice ciblée ; un clic d’entrée mobile est resté au briefing sans erreur JS.
+Ce scénario a ensuite réussi trois fois en isolation, sans modification du test.
+L’intermittence n’est pas considérée résolue ; suivre les prochaines exécutions CI
+et les essais sur appareils physiques. Les douze scènes à 320 px, les commandes
+portrait/paysage et les parcours panne/remboursement/reconnexion ont réussi.

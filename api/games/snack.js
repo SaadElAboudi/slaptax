@@ -45,7 +45,7 @@ function actSnack(g,id,a,now){
  return false;
 }
 function throwBox(s,p,now){
- if(s.box.carrier!==p.id||p.resolveAt||p.skillResolveAt||p.superResolveAt||now<p.attackAt)return false;
+ if(s.box.carrier!==p.id||p.resolveAt||p.skillResolveAt||p.superResolveAt)return false;
  p.locked=true;p.guardUntil=0;p.shieldUntil=0;p.attackAt=now+450;p.throws++;
  s.box={x:p.x,y:p.y,carrier:null,availableAt:now+80,vx:p.ax*720,vy:p.ay*720,flightUntil:now+1050,thrownBy:p.id,throwTeam:team(p),throwAt:now,selfCatchAt:now+450,bounces:0};
  event(s,'throw',p,now,{ax:p.ax,ay:p.ay});return true;

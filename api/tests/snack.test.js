@@ -32,3 +32,11 @@ test('2v2 uses shared goals, no friendly fire and identical simple controls',()=
 test('a throw reaching the home depot scores once',()=>{const g=game();at(g,0,210,300);g.snack.box={x:210,y:300,carrier:'a',availableAt:0};input(g,'a',0,0,1000,-1,0);action(g,'a','throw');tickParty(g,1300);assert.equal(g.snack.bodies[0].captures,1);assert.equal(g.phase,'brawl');});
 test('the practice bot does not slap while carrying when the player primary action is a throw',()=>{const g=game(['a']);at(g,0,680,300);at(g,1,740,300);g.snack.box.carrier='snack-bot';tickParty(g,1050);assert.equal(g.snack.events.some(e=>e.id==='snack-bot'&&e.kind==='windup'),false);});
 test('an equally close rival contests the box even behind two teammates in distance order',()=>{const g=game(['a','b','c','d']);at(g,0,450,265);at(g,2,480.4,317.55);at(g,1,419.52,317.6);tickParty(g,1020);assert.equal(g.snack.box.carrier,null);assert.equal(g.snack.box.contested,true);});
+
+test('picking up the objective during slap recovery allows a throw but never duplicates it',()=>{
+ const g=game();at(g,0,450,300);tickParty(g,1020);const p=g.snack.bodies[0];p.attackAt=1500;
+ assert.equal(action(g,'a','throw',1030),true);assert.equal(action(g,'a','throw',1031),false);
+ assert.equal(p.throws,1);assert.equal(g.snack.box.carrier,null);
+ const windup=game();at(windup,0,450,300);tickParty(windup,1020);windup.snack.bodies[0].resolveAt=1150;
+ assert.equal(action(windup,'a','throw',1030),false);
+});

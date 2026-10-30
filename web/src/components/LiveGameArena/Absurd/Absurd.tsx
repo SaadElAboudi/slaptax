@@ -9,6 +9,7 @@ type Data={x:number}|{lane:number};
 export function Absurd({party,identity,active,isFr,send}:{party:PartyState;identity:string;active:boolean;isFr:boolean;send:(action:string,data?:Data)=>void}){
  const [flight,setFlight]=useState(.5);
  const canvas=useRef<HTMLCanvasElement>(null),sent=useRef(0),pointer=useRef<number|null>(null),s=party.absurd,p=s?.bodies.find(p=>p.id===identity),pigeon=party.id==='pigeon',enabled=active&&party.phase==='brawl',fr=isFr;
+ useEffect(()=>{if(!enabled)pointer.current=null;},[enabled]);
  const latest=useRef({s,enabled,fr}),sampledAt=useRef(performance.now()),lanes=useRef(new Map<string,{from:number;to:number;at:number}>());latest.current={s,enabled,fr};
  useEffect(()=>{
   const now=performance.now();sampledAt.current=now;
@@ -32,7 +33,7 @@ export function Absurd({party,identity,active,isFr,send}:{party:PartyState;ident
  }
  return <div className={styles.game} data-testid="absurd-game" tabIndex={0} onKeyDown={keyboard}>
   <div className={styles.scores}>{s?.bodies.map(q=><span key={q.id}>{q.id===identity?(fr?'TOI':'YOU'):q.bot?'BOT':'RIVAL'} <b>{q.score}</b></span>)}<strong>{Math.ceil(party.remaining/1000)} s</strong></div>
-  <canvas ref={canvas} tabIndex={0} width={600} height={440} data-testid={`${party.id}-canvas`} style={{touchAction:pigeon?'none':'auto'}} aria-label={pigeon?(fr?'Pilote ton pigeon en glissant le doigt':'Slide to fly your pigeon'):(fr?'Trois places dans un ascenseur piégé':'Three spots in a trapped elevator')} onPointerDown={e=>{if(!pigeon||!enabled||!e.isPrimary||e.button!==0)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);steer(e,true);}} onPointerMove={e=>{if(pointer.current===e.pointerId)steer(e);}} onPointerUp={()=>pointer.current=null} onPointerCancel={()=>pointer.current=null}/>
+  <canvas ref={canvas} tabIndex={0} width={600} height={440} data-testid={`${party.id}-canvas`} style={{touchAction:pigeon?'none':'auto'}} aria-label={pigeon?(fr?'Pilote ton pigeon en glissant le doigt':'Slide to fly your pigeon'):(fr?'Trois places dans un ascenseur piégé':'Three spots in a trapped elevator')} onPointerDown={e=>{if(!pigeon||!enabled||!e.isPrimary||e.button!==0||pointer.current!==null)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);steer(e,true);}} onPointerMove={e=>{if(pointer.current===e.pointerId)steer(e);}} onPointerUp={()=>pointer.current=null} onPointerCancel={()=>pointer.current=null} onLostPointerCapture={()=>pointer.current=null}/>
   {pigeon?<>
    <p className={styles.tip}>{fr?'Glisse pour voler. Le viseur montre la chute, la silhouette rose la voiture dans 0,9 s. Fais-les coïncider !':'Slide to fly. Match the landing sight with the pink car silhouette 0.9 s ahead!'}</p>
    <div className={styles.actions}><button disabled={!enabled||!!p?.cooldown} onClick={()=>send('drop')}>{(fr?'LARGUE !':'DROP!')+(p?.cooldown?` · ${(p.cooldown/1000).toFixed(1)} s`:'')}</button></div>
