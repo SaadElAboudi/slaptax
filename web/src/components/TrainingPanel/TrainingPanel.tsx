@@ -1,3 +1,4 @@
+import {CENTRAL_GAME,gameChapter} from '../../gameplay/world';
 import {hasScoreChallenge,preferredGame,prepareGameMode} from '../../gameplay/gameExperience';
 import type {SoloReward} from '../../api/client';
 import {SoloVictory} from './SoloVictory';
@@ -79,12 +80,13 @@ export function TrainingPanel() {
         const isRecord = result.score > best;
         return (
             <section className={styles.result}>
-                <SoloVictory result={result} best={best} isFr={isFr}/>
+                <span>{gameChapter(gameId,isFr)?.place}</span><SoloVictory result={result} best={best} isFr={isFr}/>
                 <span>{isRecord ? (isFr ? 'NOUVEAU RECORD' : 'NEW RECORD') : (isFr ? 'SESSION TERMINEE' : 'SESSION COMPLETE')}</span>
                 <h2>{result.score}<small> / 1000</small></h2>
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
                 <div className={styles.resultActions}>
 
+                    {gameId!==CENTRAL_GAME&&<button type="button" onClick={()=>{setPlaying(false);selectGame(CENTRAL_GAME);}}>{isFr?'Retour à la Cantine':'Back to the Canteen'}</button>}
                     <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
                     {hasScoreChallenge(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
                     <button type="button" onClick={() => {

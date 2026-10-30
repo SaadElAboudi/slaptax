@@ -1,0 +1,105 @@
+{
+  "centralGame": "snack",
+  "nameFr": "La Manufacture SlapTax",
+  "nameEn": "The SlapTax Factory",
+  "premiseFr": "L’Intendant a taxé ton goûter. Reprends trois caisses, puis défie tes potes dans les ateliers.",
+  "premiseEn": "The Steward taxed your snacks. Reclaim three crates, then settle the score in the workshops.",
+  "chapters": {
+    "snack": {
+      "placeFr": "La Cantine",
+      "placeEn": "The Canteen",
+      "chapterFr": "Le grand braquage",
+      "chapterEn": "The great heist",
+      "storyFr": "L’Intendant a confisqué le goûter. Ramenez trois caisses avant la bande rivale.",
+      "storyEn": "The Steward seized snack time. Bring home three crates before the rival crew."
+    },
+    "chicken": {
+      "placeFr": "La Ferme royale",
+      "placeEn": "The Royal Farm",
+      "chapterFr": "Le roi du poulailler",
+      "chapterEn": "The coop king",
+      "storyFr": "Le fournisseur de la Cantine refuse de livrer. Attrapez son poulet couronné !",
+      "storyEn": "The Canteen supplier refuses to deliver. Catch the crowned chicken!"
+    },
+    "pigeon": {
+      "placeFr": "Le Quai de livraison",
+      "placeEn": "The Loading Dock",
+      "chapterFr": "Courrier très spécial",
+      "chapterEn": "Special delivery",
+      "storyFr": "Les livreurs règlent leurs comptes sur le parking de la Manufacture.",
+      "storyEn": "The couriers settle their scores in the factory car park."
+    },
+    "lift": {
+      "placeFr": "La Tour des bureaux",
+      "placeEn": "The Office Tower",
+      "chapterFr": "Réunion sous pression",
+      "chapterEn": "A meeting under pressure",
+      "storyFr": "Pour atteindre le bureau de l’Intendant, il faut survivre à l’ascenseur.",
+      "storyEn": "To reach the Steward’s office, first survive the elevator."
+    },
+    "pie": {
+      "placeFr": "La Pâtisserie",
+      "placeEn": "The Bakery",
+      "chapterFr": "Chantilly de représailles",
+      "chapterEn": "Whipped-cream revenge",
+      "storyFr": "La crème devait payer la taxe. Les pâtissiers préfèrent vous la lancer.",
+      "storyEn": "The cream was meant to pay the tax. The bakers would rather throw it at you."
+    },
+    "balloon": {
+      "placeFr": "La Chaufferie",
+      "placeEn": "The Boiler Room",
+      "chapterFr": "Gros ego, petite soupape",
+      "chapterEn": "Big egos under pressure",
+      "storyFr": "La chaudière gonfle les ballons de la fête. Qui encaissera avant le PAAF ?",
+      "storyEn": "The boiler pumps up the party balloons. Who will bank before the POP?"
+    },
+    "toilet": {
+      "placeFr": "Les Canalisations",
+      "placeEn": "The Pipes",
+      "chapterFr": "La fuite des canards",
+      "chapterEn": "The duck escape",
+      "storyFr": "Les canards du goûter se sont échappés dans les tuyaux. Récupérez-les !",
+      "storyEn": "The snack-time ducks escaped into the pipes. Bring them back!"
+    },
+    "table": {
+      "placeFr": "Le Réfectoire",
+      "placeEn": "The Dining Hall",
+      "chapterFr": "La nappe de la discorde",
+      "chapterEn": "The disputed tablecloth",
+      "storyFr": "Après le casse, une seule place reste à la grande table. Défendez la vôtre.",
+      "storyEn": "After the heist, one seat remains at the big table. Defend yours."
+    },
+    "garde": {
+      "placeFr": "Le Vestiaire",
+      "placeEn": "The Locker Room",
+      "chapterFr": "Un différend entre collègues",
+      "chapterEn": "A workplace dispute",
+      "storyFr": "La brigade tranche ses rivalités à la poêle, au poisson et à la banane.",
+      "storyEn": "The crew settles rivalries with pans, fish and bananas."
+    },
+    "onemore": {
+      "placeFr": "L’Entrepôt",
+      "placeEn": "The Warehouse",
+      "chapterFr": "Le stock de trop",
+      "chapterEn": "One crate too many",
+      "storyFr": "Empilez le butin de la Cantine. Le dernier bloc peut tout faire tomber.",
+      "storyEn": "Stack the Canteen loot. The last block could topple the lot."
+    },
+    "decoupe": {
+      "placeFr": "La Cuisine",
+      "placeEn": "The Kitchen",
+      "chapterFr": "La part du chef",
+      "chapterEn": "The chef’s share",
+      "storyFr": "Le chef partage le butin. Servez la bonne part, pas celle de l’Intendant.",
+      "storyEn": "The chef divides the loot. Serve the right share, not the Steward’s."
+    },
+    "bombpass": {
+      "placeFr": "Le Bureau des taxes",
+      "placeEn": "The Tax Office",
+      "chapterFr": "Le colis de l’Intendant",
+      "chapterEn": "The Steward’s parcel",
+      "storyFr": "L’Intendant vous renvoie un cadeau. Passez-le avant qu’il explose !",
+      "storyEn": "The Steward sends a gift back. Pass it on before it explodes!"
+    }
+  }
+}

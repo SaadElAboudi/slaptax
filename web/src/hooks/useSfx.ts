@@ -127,6 +127,7 @@ export function useSfx() {
         playTone(85, 140, .025, 'sine', .04);
     }, [playTone]);
 
+    const playSlap=useCallback(()=>{playTone(170,45,.025,'triangle');playTone(90,65,.02,'sine',.025);},[playTone]);
     return {
         soundOn,
         toggleSound,
@@ -139,5 +140,6 @@ export function useSfx() {
         playColor,
         playCluck,
         playEgg,
+        playSlap,
     };
 }

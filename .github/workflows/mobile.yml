@@ -43,7 +43,7 @@ jobs:
         env:
           APP_DISTRIBUTION: store
         working-directory: web
-        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts e2e/arena-controls.spec.ts e2e/arena-reliability.spec.ts e2e/mobile-catalog.spec.ts
+        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts e2e/arena-controls.spec.ts e2e/arena-reliability.spec.ts e2e/mobile-catalog.spec.ts e2e/factory-world.spec.ts e2e/arena-reconnect.spec.ts
   android:
     needs: shared-validation
     runs-on: ubuntu-24.04

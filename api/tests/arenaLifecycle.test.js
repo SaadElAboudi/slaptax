@@ -72,3 +72,9 @@ test('clock reconnection provides a new shared countdown and rejects the interru
     assert.deepEqual(session.game.responses, {});
     assert.equal(session.game.scores.a, 0);
 });
+
+for(const gameId of ['snack','bombpass'])test(`${gameId}: paused broadcasts keep game clocks frozen while waiting for reconnect`,async(t)=>{
+ let now=10000;t.mock.method(Date,'now',()=>now);const duel={id:'frozen',currentRound:1,status:'playing',games:[gameId],challengerId:'a',opponentId:'b'},db={users:[],duels:[duel]};const manager=createSharedArenaManager({read:()=>db,write:()=>{}},{resolveAuthoritativeDuelRound:()=>({ok:true})});t.after(()=>manager.close());
+ const frames=[];function join(id){const socket=new EventEmitter();Object.assign(socket,{userId:id,readyState:1,bufferedAmount:0,send:raw=>{if(id==='b')frames.push(JSON.parse(raw));}});manager.attach(socket);socket.emit('message',JSON.stringify({type:'arena.join',duelId:'frozen',round:1}));return socket;}
+ const a=join('a');join('b');now=12500;await new Promise(r=>setTimeout(r,70));assert.equal(manager.sessions.get('frozen:1').phase,'playing');now=13000;await new Promise(r=>setTimeout(r,70));a.emit('close');const paused=frames.at(-1);assert.equal(paused.phase,'waiting');now=14500;await new Promise(r=>setTimeout(r,100));const later=frames.at(-1);assert.equal(later.gameAt,paused.gameAt);assert.equal(later.duration,paused.duration);if(gameId==='snack'){assert.equal(later.party.remaining,paused.party.remaining);assert.equal(later.party.snack.elapsed,paused.party.snack.elapsed);}else assert.equal(later.fuseEndsAt-later.gameAt,paused.fuseEndsAt-paused.gameAt);
+});

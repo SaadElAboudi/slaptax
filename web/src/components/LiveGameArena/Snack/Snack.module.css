@@ -93,3 +93,5 @@
  .game[data-variant] .buttons button:first-child{min-height:76px;font-size:17px}
  .game[data-variant] .objective{min-height:0;font-size:10px}
 }
+
+.board[data-hit=true]{animation:confirmed-impact .13s ease-out}@keyframes confirmed-impact{0%,100%{transform:translateX(0)}30%{transform:translateX(-2px)}65%{transform:translateX(2px)}}@media(prefers-reduced-motion:reduce){.board[data-hit=true]{animation:none}}

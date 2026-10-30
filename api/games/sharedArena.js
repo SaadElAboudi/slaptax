@@ -182,11 +182,13 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     function publicState(session, now = Date.now()) {
+        now = session.pausedAt || now;
         const common = {
             type: "arena.state",
             duelId: session.duelId,
             round: session.round,
             gameId: session.gameId,
+            gameAt: now,
             phase: session.phase,
             resumeAt: session.resumeAt,
             disconnectDeadline: session.disconnectDeadline,
@@ -269,7 +271,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
         if(session.persisting)return;
         const event = publicState(session);
         for (const client of sessionClients(session)) send(client, PARTY_IDS.includes(session.gameId)
-            ? { ...event, party: publicParty(session.game, client.userId, Date.now()) } : event);
+            ? { ...event, party: publicParty(session.game, client.userId, session.pausedAt || Date.now()) } : event);
     }
 
     function practice(client, payload) {

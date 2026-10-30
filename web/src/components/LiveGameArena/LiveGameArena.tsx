@@ -1,3 +1,5 @@
+import {ARENA_STALE_MS} from '../../gameplay/arenaConnection';
+import {gameChapter} from '../../gameplay/world';
 import simplePlay from '../../../../shared/simple-play.json';
 import refinementRules from '../../../../shared/party-refinement.json';
 import {GameSession} from './GameSession/GameSession';
@@ -145,6 +147,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.poster}><GamePoster gameId={gameId} /></div>
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <span className={styles.worldLabel}>{gameWorld(gameId,isFr)}</span><h3>{gameLabel(gameId, isFr)}</h3>
+                    {gameChapter(gameId,isFr)&&<p className={styles.chapterStory}>{gameChapter(gameId,isFr)?.story}</p>}
                     <div className={styles.ruleSteps}>{briefSteps(gameId,isFr,touchDevice).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
                     <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p><p className={styles.coachTip}><strong>{isFr?'ASTUCE DU RIVAL : ':'RIVAL TIP: '}</strong>{gameTip(gameId,isFr)}</p></details>
                     <div className={styles.briefStats}>
@@ -194,6 +197,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
 interface SharedArenaState {
     type: 'arena.state';
     at: number;
+    gameAt?: number;
     duelId: string;
     round: number;
     gameId: CompetitiveGameId;
@@ -264,6 +268,8 @@ function SharedArenaRound({
     const frameRef = useRef(0);
     const completedRef = useRef(false);
     const serverOffsetRef = useRef(0);
+    const receivedRef=useRef(0);
+    const [,refreshNetwork]=useState(0);
     const [state, setState] = useState<SharedArenaState | null>(null);
     const [countdown, setCountdown] = useState(0);
     const [disconnectSeconds, setDisconnectSeconds] = useState(0);
@@ -282,11 +288,13 @@ function SharedArenaRound({
         let attempt = 0;
 
         function connect() {
-            if (stopped) return;
+            if (stopped||completedRef.current||socketRef.current&&socketRef.current.readyState<=WebSocket.OPEN) return;
+            receivedRef.current=0;
             setConnection(attempt ? 'reconnecting' : 'connecting');
             const socket = new WebSocket(getRealtimeUrl(session.userId));
             socketRef.current = socket;
             socket.addEventListener('open', () => {
+                if(stopped||socketRef.current!==socket){socket.close();return;}
                 attempt = 0;
                 setConnection('connected');
                 socket.send(JSON.stringify({
@@ -296,6 +304,7 @@ function SharedArenaRound({
                 }));
             });
             socket.addEventListener('message', (message) => {
+                if(stopped||socketRef.current!==socket)return;
                 let event: SharedArenaState | { type: 'arena.error'; error: string } | null = null;
                 try {
                     event = JSON.parse(String(message.data));
@@ -307,6 +316,8 @@ function SharedArenaRound({
                     return;
                 }
                 if (event?.type !== 'arena.state' || event.duelId !== session.duelId || event.round !== round) return;
+                if(stateRef.current&&event.at<stateRef.current.at)return;
+                receivedRef.current=performance.now();
                 if (typeof event.at === 'number') serverOffsetRef.current = event.at - Date.now();
                 if(event.phase==='cancelled')setArenaError(isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.');
                 stateRef.current = event;
@@ -324,16 +335,22 @@ function SharedArenaRound({
                 }
             });
             socket.addEventListener('close', () => {
-                if (stopped) return;
+                if (stopped||socketRef.current!==socket||completedRef.current) return;
                 setConnection('reconnecting');
                 attempt += 1;
                 reconnectTimer = window.setTimeout(connect, Math.min(8000, 400 * (2 ** attempt)));
             });
         }
 
+        const offline=()=>{setConnection('reconnecting');socketRef.current?.close();};
+        const online=()=>{window.clearTimeout(reconnectTimer);connect();};
+        const foreground=()=>{if(document.hidden||document.documentElement.dataset.appActive==='false')return;const socket=socketRef.current;if(socket?.readyState===WebSocket.OPEN&&performance.now()-receivedRef.current>=ARENA_STALE_MS)socket.close();else if(!socket||socket.readyState===WebSocket.CLOSED)online();};
+        window.addEventListener('offline',offline);window.addEventListener('online',online);document.addEventListener('visibilitychange',foreground);window.addEventListener('slaptax:app-state',foreground);
+        const pulse=window.setInterval(()=>{refreshNetwork(n=>n+1);const socket=socketRef.current;if(!completedRef.current&&socket?.readyState===WebSocket.OPEN&&receivedRef.current&&performance.now()-receivedRef.current>8000)socket.close();},250);
         connect();
         return () => {
             stopped = true;
+            clearInterval(pulse);window.removeEventListener('offline',offline);window.removeEventListener('online',online);document.removeEventListener('visibilitychange',foreground);window.removeEventListener('slaptax:app-state',foreground);
             window.clearTimeout(reconnectTimer);
             socketRef.current?.close();
         };
@@ -441,7 +458,7 @@ function SharedArenaRound({
     }, [gameId, isChallenger, session.userId]);
 
     function send(action: Record<string, unknown>) {
-        if (session.spectator) return;
+        if (session.spectator||stateRef.current?.phase!=='playing'||!receivedRef.current||performance.now()-receivedRef.current>=ARENA_STALE_MS) return;
         const socket = socketRef.current;
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
         socket.send(JSON.stringify({ type: 'arena.action', ...action }));
@@ -467,9 +484,11 @@ function SharedArenaRound({
         });
     }
 
-    const phase = state?.phase || 'waiting';
+    const fresh=connection==='connected'&&receivedRef.current>0&&performance.now()-receivedRef.current<ARENA_STALE_MS;
+    const phase = state?.phase==='playing'&&!fresh?'waiting':state?.phase||'waiting';
+    const visibleNow=phase==='playing'?Date.now()+serverOffsetRef.current:state?.gameAt??state?.at??Date.now()+serverOffsetRef.current;
     const disconnectedSelf = state?.disconnectedUserId === session.userId;
-    const interruption = arenaError || (connection !== 'connected'
+    const interruption = arenaError || (connection !== 'connected'||state?.phase==='playing'&&!fresh
         ? (isFr ? 'Connexion perdue. Reprise en cours...' : 'Connection lost. Rejoining...')
         : state?.disconnectDeadline
             ? disconnectedSelf
@@ -489,7 +508,7 @@ function SharedArenaRound({
         const answering = phase === 'playing' && state?.challengePhase === 'answer';
         const answered = state?.answered?.includes(session.userId) || pendingStage === stage;
         const feedback = state?.challengePhase === 'feedback';
-        const remaining = Math.max(0, ((state?.phaseEndsAt || 0) - Date.now() - serverOffsetRef.current) / 1000);
+        const remaining = Math.max(0, ((state?.phaseEndsAt || 0) - visibleNow) / 1000);
         const submit = (value: number) => {
             if (!answering || answered || session.spectator) return;
             setPendingStage(stage);
@@ -612,7 +631,7 @@ function SharedArenaRound({
 
     if (gameId === 'bombpass') {
         const holding = state?.holderId === session.userId;
-        const fuse = Math.max(0, ((state?.fuseEndsAt || Date.now()) - Date.now() - serverOffsetRef.current) / 1000);
+        const fuse = Math.max(0, ((state?.fuseEndsAt || visibleNow) - visibleNow) / 1000);
         const ability = state?.abilities?.[session.userId];
         return (
             <div className={styles.game}>

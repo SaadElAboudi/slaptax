@@ -1,3 +1,4 @@
+import {arenaConnection,ARENA_STALE_MS} from '../../gameplay/arenaConnection';
 import {TowerSupport} from './TowerSupport';
 import {GameFeedback} from './GameFeedback';
 import {startGameLoop} from '../../gameplay/gameLoop';
@@ -70,7 +71,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         let retry = 0;
         let attempts = 0;
         const connect = () => {
-            if(stopped)return;
+            if(stopped||completed.current||socket.current&&socket.current.readyState<=WebSocket.OPEN)return;
             setConnected(false);channelState.current='pending';channelOpenedAt.current=performance.now();
             const ws = new WebSocket(getRealtimeUrl(identity));
             socket.current = ws;
@@ -122,6 +123,10 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
                 if (!stopped && !completed.current) retry = window.setTimeout(connect, Math.min(5000, 400 * 2 ** attempts++));
             };
         };
+        const offline=()=>{if(completed.current)return;setConnected(false);socket.current?.close();};
+        const online=()=>{if(stopped||completed.current)return;clearTimeout(retry);connect();};
+        const foreground=()=>{if(document.hidden||document.documentElement.dataset.appActive==='false')return;const ws=socket.current;if(ws?.readyState===WebSocket.OPEN&&performance.now()-receivedAt.current>=ARENA_STALE_MS)ws.close();else if(!ws||ws.readyState===WebSocket.CLOSED)online();};
+        window.addEventListener('offline',offline);window.addEventListener('online',online);document.addEventListener('visibilitychange',foreground);window.addEventListener('slaptax:app-state',foreground);
         connect();
         const timer = window.setInterval(() => {
             setClock(Date.now());const ws=socket.current;if(!ws||completed.current||channelState.current==='error')return;
@@ -129,12 +134,13 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
             if(ws.readyState===WebSocket.CONNECTING&&now-channelOpenedAt.current>10000)ws.close();
             else if(ws.readyState===WebSocket.OPEN&&(channelState.current==='pending'||latest.current?.phase==='playing')&&now-Math.max(receivedAt.current,channelOpenedAt.current)>8000)ws.close();
         }, 100);
-        return () => { stopped = true; clearTimeout(retry); clearInterval(timer); socket.current?.close(); };
+        return () => { stopped = true;window.removeEventListener('offline',offline);window.removeEventListener('online',online);document.removeEventListener('visibilitychange',foreground);window.removeEventListener('slaptax:app-state',foreground);clearTimeout(retry);clearInterval(timer);socket.current?.close(); };
     }, [identity, duelId, gameId, round, session?.spectator, Boolean(session), isFr]);
 
     const party = event?.party;
     const rival = Object.keys(party?.scores || {}).find((id) => id !== identity);
-    const fresh = !!event&&performance.now()-receivedAt.current<3000;
+    const connection=arenaConnection(connected,event?.phase,receivedAt.current,performance.now());
+    const fresh = !!event&&connection!=='stale';
     const active = connected && fresh && event?.phase === 'playing' && !session?.spectator && !error;
     const run = party?.runs[identity];
     useEffect(()=>{
@@ -206,7 +212,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         return () => { observer.disconnect(); stopLoop(); };
     }, [gameId, identity]);
 
-    const status = event?.phase==='cancelled' ? (isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.') : error || (!connected || (event?.phase==='playing'&&!fresh) ? (isFr ? 'Connexion en cours…' : 'Connecting…')
+    const status = event?.phase==='cancelled' ? (isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.') : error || (!connected || (event?.phase==='playing'&&!fresh) ? (isFr ? 'Synchronisation interrompue · commandes en pause. Reconnexion…' : 'Sync interrupted · controls paused. Reconnecting…')
         : event?.phase === 'waiting' ? (isFr ? 'Reconnexion ou attente du rival · annulation sans gagnant si la connexion échoue' : 'Waiting or reconnecting · cancelled without a winner if connection fails')
             : event?.phase === 'countdown' ? `${Math.max(1, Math.ceil(((event.resumeAt || 0) - clock - offset.current) / 1000))}` : '');
     const feedback = party?.feedback;

@@ -231,3 +231,5 @@
 .worldLabel{font-size:10px;letter-spacing:.08em;font-weight:900;text-transform:uppercase;color:#ffe19a}.coachTip{padding:10px;border:2px solid #18363d;border-radius:9px;background:#41665f;color:#fff0d3}
 
 .perfectZone{position:absolute;inset-block:0;background:#ffdb78bb;border-inline:2px solid #fff0b0;pointer-events:none}.bombTrack>i{z-index:1}
+
+.chapterStory{max-width:48ch;margin:4px auto 14px;color:#d2dfdb;font-size:12px;line-height:1.6;text-align:center}

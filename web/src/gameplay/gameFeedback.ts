@@ -7,8 +7,7 @@ export function gameFeedback(before:PartyState,after:PartyState,id:string):GameM
  if(after.snack&&before.snack){const a=before.snack.bodies.find(p=>p.id===id),b=after.snack.bodies.find(p=>p.id===id);if(!a||!b)return null;
   if(b.captures>a.captures)return cue(after.id==='chicken'?'Le roi est au bercail !':'Braquage réussi !',after.id==='chicken'?'The king is home!':'Heist complete!',`${b.captures} / 3`);
   if((b.interceptions||0)>(a.interceptions||0))return cue('Interception ! C’est pour moi.','Intercepted! Mine now.',undefined,'skill');
-  if((b.supersUsed||0)>(a.supersUsed||0))return cue('Super déclenché !','Super unleashed!',undefined,'skill');
-  if((b.superCharge||0)>=100&&(a.superCharge||0)<100)return cue('Super prêt. Choisis ton moment !','Super ready. Pick your moment!',undefined,'skill');
+  if(b.hp<a.hp)return cue(b.carrying?'Aïe ! Protège ton butin.':'PAF ! Reprends ta place.',b.carrying?'Ouch! Protect your loot.':'BONK! Get back in position.',undefined,'warning');
   if(b.kos>a.kos)return cue('Bien placé. Au suivant !','Clean hit. Next!',`${b.kos} KO`);
  }
  if(after.carnival&&before.carnival){const a=before.carnival.bodies.find(p=>p.id===id),b=after.carnival.bodies.find(p=>p.id===id);if(!a||!b)return null;

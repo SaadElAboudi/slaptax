@@ -34,3 +34,4 @@ test('tower repair feedback follows the real personal counter without adding sco
 test('cut feedback reports the actual portion rather than converting accuracy into portion size',()=>{
  const a=state('decoupe',{drawing:{history:[]}}),b=state('decoupe',{drawing:{history:[{attempt:1,target:{percent:71},results:{me:{percent:50,error:21,score:790}}}]}});const cue=gameFeedback(a,b,'me');assert.equal(cue?.value,'50 %');assert.equal(cue?.fr,'Portion servie !');b.drawing!.history[0].results.me.error=1;assert.equal(gameFeedback(a,b,'me')?.fr,'Coupe de chef !');
 });
+test('retired super charge never asks a player to use a removed command',()=>{const a=state('snack',{snack:{bodies:[{id:'me',captures:0,kos:0,superCharge:80,hp:4}]}}),b=structuredClone(a);b.snack!.bodies[0].superCharge=100;assert.equal(gameFeedback(a,b,'me'),null);b.snack!.bodies[0].hp=3;assert.equal(gameFeedback(a,b,'me')?.kind,'warning');});

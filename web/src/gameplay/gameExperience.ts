@@ -1,3 +1,4 @@
+import {gameChapter} from './world';
 import {COMPETITIVE_GAMES,type CompetitiveGameId} from './catalog';
 import type {Tab} from '../hooks/useGameStore';
 export const SCORE_CHALLENGE_GAMES:CompetitiveGameId[]=['decoupe','onemore'];
@@ -24,5 +25,5 @@ const tips:Record<string,[string,string,string,string]>={
  decoupe:['La cuisine du dernier couic','Regarde la portion demandée avant de tracer : la précision bat la précipitation.','The kitchen’s final snip','Check the requested portion before cutting: precision beats haste.'],
  bombpass:['Le cadeau qui fait BOUM','Observe le rythme et passe dans la bonne fenêtre, pas sous l’effet de la panique.','The gift that goes BOOM','Read the rhythm and pass in the right window, not in a panic.'],
 };
-export const gameWorld=(id:string,fr:boolean)=>tips[id]?.[fr?0:2]||(fr?'Le terrain des défis':'The challenge playground');
+export const gameWorld=(id:string,fr:boolean)=>gameChapter(id,fr)?.place||tips[id]?.[fr?0:2]||(fr?'Le terrain des défis':'The challenge playground');
 export const gameTip=(id:string,fr:boolean)=>tips[id]?.[fr?1:3]||'';
