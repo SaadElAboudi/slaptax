@@ -1,0 +1,46 @@
+name: Mixed mobile browser validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['web/**', 'api/**', 'shared/**', 'package*.json', '.github/workflows/browser-compatibility.yml']
+  pull_request:
+    paths: ['web/**', 'api/**', 'shared/**', 'package*.json', '.github/workflows/browser-compatibility.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mixed-mobile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  webkit-chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      APP_DISTRIBUTION: store
+      VITE_API_BASE_URL: ''
+      VITE_PUBLIC_SITE_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci
+      - run: npm --prefix web ci
+      - run: npm --prefix web run build
+      - run: npx playwright install --with-deps chromium webkit
+        working-directory: web
+      - run: npx playwright test --config=playwright.mixed-mobile.config.ts
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mixed-mobile-browser-report
+          path: |
+            web/playwright-report
+            web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
