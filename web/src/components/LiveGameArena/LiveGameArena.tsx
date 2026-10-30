@@ -59,6 +59,13 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const onCompleteRef = useRef(onComplete);
     const { activateAudio, playReady, playWin, playLoss, playDraw } = useSfx();
     const identityReady=useGameStore(state=>Boolean(state.userId)&&state.apiOnline);
+    const [retryingEntry,setRetryingEntry]=useState(false);
+    const [entryError,setEntryError]=useState(false);
+    async function retryEntry(){
+        if(retryingEntry)return;setRetryingEntry(true);setEntryError(false);
+        try{const store=useGameStore.getState();await store.checkHealth();if(useGameStore.getState().apiOnline){await store.joinSession();await store.loadState();}const next=useGameStore.getState();setEntryError(!next.apiOnline||!next.userId);}
+        catch{setEntryError(true);}finally{setRetryingEntry(false);}
+    }
     const playerName = useGameStore((state) => state.playerName);
     const avatar = useGameStore((state) => state.progression?.cosmetics.avatar || 'spark');
     const usesSharedArena = Boolean(duelSession) || isPartyGame(gameId);
@@ -154,6 +161,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                         <span>{gameId==='chicken'?(isFr?'60 s · POULET ROYAL':'60 s · ROYAL CHICKEN'):gameId==='snack'?(isFr?'90 s · 3 LIVRAISONS':'90 s · 3 DELIVERIES'):gameId==='pigeon'?(isFr?'24 s · LIVRAISON':'24 s · DELIVERY'):gameId==='lift'?(isFr?'22 s · ESQUIVE':'22 s · DODGE'):['pie','balloon'].includes(gameId)?'22 s · DUEL':gameId==='toilet'?(isFr?'25 s · CANARDS ET TURBO':'25 s · DUCKS AND TURBO'):gameId==='table'?(isFr?'20 s · COLLISIONS':'20 s · BUMPS'):gameId==='mat'?'1 POSITION · 20 s':gameId==='garde'?(isFr?'6 PV · 8 TOURS MAX':'6 HP · 8 TURNS MAX'):['trace','decoupe','chroma','onesecond'].includes(gameId) ? (isFr ? '3 ESSAIS' : '3 ATTEMPTS') : gameId === 'contrepied' ? (isFr ? '5 ECHANGES' : '5 EXCHANGES') : gameId === 'ricochet' ? (isFr ? '3 SALVES' : '3 VOLLEYS') : gameId === 'falsestart' ? '3 POINTS' : gameId === 'onemore' ? '30 s MAX' : gameId === 'bounce' ? '45 s MAX' : gameId === 'cupshuffle' ? (isFr ? '3 OBSERVATIONS' : '3 REVEALS') : gameId === 'duelnumeric' ? '5 QUESTIONS' : gameId === 'bombpass' ? (isFr ? '1 BOMBE' : '1 BOMB') : (isFr ? 'MEMOIRE EXPRESS' : 'QUICK MEMORY')}</span>
                         <span>{mode === 'training' ? (isFr ? 'RECORD PERSONNEL' : 'PERSONAL BEST') : (isFr ? 'FACE A FACE' : 'HEAD TO HEAD')}</span>
                     </div>
+                    {!identityReady&&<div className={styles.entryConnection} data-testid="entry-connection"><p role="status">{entryError?(isFr?'Le serveur ne répond pas encore. Tu peux réessayer sans créer une autre partie.':'The server is not responding yet. Retrying will not create another match.'):(isFr?'Connexion au serveur nécessaire avant d’entrer.':'Connect to the server before entering.')}</p><button type="button" disabled={retryingEntry} onClick={()=>void retryEntry()}>{retryingEntry?(isFr?'Reconnexion…':'Reconnecting…'):(isFr?'Réessayer la connexion':'Retry connection')}</button></div>}
                     <button type="button" disabled={!identityReady} onClick={begin}>{isFr ? 'Entrer dans l arene' : 'Enter the arena'}<ArrowRight size={18} /></button>
                 </div>
             )}

@@ -133,3 +133,18 @@ Ce scénario a ensuite réussi trois fois en isolation, sans modification du tes
 L’intermittence n’est pas considérée résolue ; suivre les prochaines exécutions CI
 et les essais sur appareils physiques. Les douze scènes à 320 px, les commandes
 portrait/paysage et les parcours panne/remboursement/reconnexion ont réussi.
+
+## Entrée mobile et récupération explicite
+
+La CI de `0d27ff4` a terminé avec succès, y compris les navigateurs croisés et
+les compilations natives Android et iOS. Le clic manqué isolé n’a pas de cause
+racine démontrée. Deux améliorations réduisent les ambiguïtés :
+- Aucun déplacement animé du panneau sur un écran tactile ; le bouton d’entrée
+  utilise le comportement tactile de bouton et conserve une cible de 48 px.
+- Une connexion absente affiche un message et « Réessayer la connexion » ; la
+  vérification de santé, la session et le profil sont rechargés sans créer de défi.
+  L’utilisateur entre ensuite volontairement dans la partie.
+
+Un test navigateur simule une panne, vérifie l’échec explicite, restaure la santé
+serveur puis entre en entraînement ; aucune création de duel n’est autorisée dans
+ce parcours. La source de l’intermittence reste à surveiller sur appareils réels.

@@ -233,3 +233,6 @@
 .perfectZone{position:absolute;inset-block:0;background:#ffdb78bb;border-inline:2px solid #fff0b0;pointer-events:none}.bombTrack>i{z-index:1}
 
 .chapterStory{max-width:48ch;margin:4px auto 14px;color:#d2dfdb;font-size:12px;line-height:1.6;text-align:center}
+
+.briefing>button{touch-action:manipulation;min-height:48px}
+.entryConnection{padding:12px;border:2px solid #e6b576;border-radius:12px;background:#263d4a;color:#fff0cb}.entryConnection p{font-size:13px;line-height:1.5}.entryConnection button{min-height:44px;width:100%;touch-action:manipulation}
