@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       build_number:
-        description: 'New positive build number (increase on every store upload)'
+        description: 'Build number 1–9999 (increase on every store upload)'
         required: true
         type: string
       platform:
@@ -35,7 +35,7 @@ jobs:
       - name: Validate build number
         env:
           CANDIDATE_BUILD: ${{ inputs.build_number }}
-        run: node -e 'const n=Number(process.env.CANDIDATE_BUILD);if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||n>2100000000)process.exit(1)'
+        run: node -e 'const n=Number(process.env.CANDIDATE_BUILD);if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||n>9999)process.exit(1)'
       - run: npm ci
       - run: npm --prefix web ci
       - run: node mobile/scripts/check-metadata.mjs
@@ -91,7 +91,7 @@ jobs:
           node-version: 22
       - name: Validate build number and select Xcode
         run: |
-          node -e 'if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||Number(process.env.CANDIDATE_BUILD)>2100000000)process.exit(1)'
+          node -e 'if(!/^[1-9][0-9]*$/.test(process.env.CANDIDATE_BUILD)||Number(process.env.CANDIDATE_BUILD)>9999)process.exit(1)'
           python3 - <<'PY'
           import glob,os,re
           choices=[]
