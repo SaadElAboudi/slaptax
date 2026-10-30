@@ -1,3 +1,4 @@
+const SIMPLE_PLAY=require('../../shared/simple-play.json');
 const TOWER=require('../../shared/party-refinement.json').tower;
 const {beginSnack,actSnack,tickSnack,publicSnack,pauseSnack}=require('./snack');
 const {beginAbsurd,actAbsurd,tickAbsurd,publicAbsurd,pauseAbsurd}=require('./absurd');
@@ -133,6 +134,7 @@ function movingBlock(g, id, now) {
 }
 
 function actParty(g, id, action, now) {
+    if(SIMPLE_PLAY[g.id]?.disabledActions?.includes(action.action))return false;
     if (!g.players.includes(id) || action.turn !== g.turn) return false;
     if (g.phase === 'draw') {
         if (action.action !== 'retry' || g.ready.includes(id)) return false;
@@ -182,13 +184,7 @@ function actParty(g, id, action, now) {
     } else {
         const run = g.runs[id];
         if (run.status !== 'playing') return false;
-        if (action.action === 'repair') {
-            const base=run.layers.at(-1);
-            if(!run.buoy||base.width>=TOWER.initialWidth-1e-9)return false;
-            const width=Math.min(TOWER.initialWidth,base.width+TOWER.repairGain),center=base.x+base.width/2;
-            run.layers[run.layers.length-1]={x:clamp(center-width/2,0,1-width),width};
-            run.buoy=false;run.repairs=(run.repairs||0)+1;run.perfectStreak=0;run.motionAt=now;
-        } else if (action.action === 'bank') {
+        if (action.action === 'bank') {
             if (!run.level) return false;
             run.status = 'banked';
             run.bank = run.level;

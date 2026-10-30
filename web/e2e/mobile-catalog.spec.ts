@@ -11,6 +11,8 @@ test('every selected game enters its mobile scene without a crash or horizontal 
   const scene=page.locator(`[data-game-session="${game.id}"]`);await expect(scene,game.labelFr).toBeVisible();
   if(!['garde','bombpass'].includes(game.id))await expect(scene.locator('canvas').first(),game.labelFr).toBeVisible();
   if(game.id!=='bombpass')await expect(scene.locator('[data-testid=party-arena]'),game.labelFr).not.toHaveAttribute('data-phase','ready');
+  if(['snack','chicken','pie','pigeon'].includes(game.id))await expect(scene.getByRole('slider')).toHaveCount(0);
+  if(['snack','chicken'].includes(game.id)){await expect(scene.getByTestId('snack-skill')).toHaveCount(0);await expect(scene.getByTestId('snack-super')).toHaveCount(0);}
   if(game.id==='table'){await expect(scene.getByTestId('table-game')).toHaveAttribute('data-phase','brawl');const c=scene.getByTestId('table-canvas'),r=(await c.boundingBox())!;await page.touchscreen.tap(r.x+r.width*.85,r.y+r.height*.2);await expect.poll(()=>actions.includes('dash')).toBe(true);}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),game.labelFr).toBe(true);
   await expect(page.getByRole('heading',{name:'La partie a rencontré un problème.'})).toHaveCount(0);

@@ -59,9 +59,7 @@ function createSnackTeams(store,send){
   }
   if(!r||!r.players.some(p=>p.id===c.userId))return error(c,'missing');
   if(a.type==='snack.team.leave'){leave(c);send(c,{type:'snack.team.left'});return;}
-  if(a.type==='snack.team.character'&&r.phase==='lobby'){
-   if(!['flan','pickle','toast'].includes(a.character))return; r.players.find(p=>p.id===c.userId).character=a.character;broadcast(r);return;
-  }
+
   if(a.type==='snack.team.ready'&&r.mode==='night'&&r.phase==='lobby'){r.votes=r.votes.includes(c.userId)?r.votes.filter(id=>id!==c.userId):[...r.votes,c.userId];broadcast(r);return;}
   if(a.type==='snack.team.next'&&r.mode==='night'&&r.phase==='intermission'){if(!r.votes.includes(c.userId))r.votes.push(c.userId);if(r.votes.length===4&&members(r).every(p=>p.online)){r.stage++;countdown(r);}else broadcast(r);return;}
   if(a.type==='snack.team.start'){
@@ -89,7 +87,7 @@ function createSnackTeams(store,send){
     if(r.resuming){for(const g of (r.mode==='night'?r.groups:[r.game]))if(!['done','draw'].includes(g.phase))pauseParty(g,now-r.pausedAt,now);r.resuming=false;r.pausedAt=0;}
     else{const ids=r.players.map(p=>p.id),gameId=r.mode==='night'?nightPlaylist[r.stage].id:'snack';
      const groups=gameId==='snack'?[ids]:r.stage===1?[[ids[0],ids[1]],[ids[2],ids[3]]]:[[ids[0],ids[3]],[ids[1],ids[2]]];
-     r.groups=groups.map(players=>{const g=createParty(gameId,players);beginParty(g,now);if(gameId==='snack')for(const p of r.players)actParty(g,p.id,{turn:g.turn,action:'character',character:p.character},now);return g;});r.game=r.groups[0];}
+     r.groups=groups.map(players=>{const g=createParty(gameId,players);beginParty(g,now);return g;});r.game=r.groups[0];}
 
     r.phase='playing';r.updatedAt=now;
    }

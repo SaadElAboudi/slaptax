@@ -3,8 +3,8 @@
   "id": "snack",
   "labelFr": "Braquage du Goûter",
   "labelEn": "Snack Heist",
-  "hookFr": "Vole le goûter. Esquive les baffes. Rentre au dépôt.",
-  "hookEn": "Grab the snack. Dodge the slaps. Bring it home."
+  "hookFr": "Un stick, une baffe. Trois goûters au dépôt !",
+  "hookEn": "One stick, one slap. Three snacks home!"
  },
  {
   "id": "chicken",
@@ -38,8 +38,8 @@
   "id": "pie",
   "labelFr": "Tarte ta Face",
   "labelEn": "Pie in Your Face",
-  "hookFr": "Vise la tronche. Esquive. Chantilly partout.",
-  "hookEn": "Aim at faces. Duck. Cream everywhere."
+  "hookFr": "Touche pour entarter. Esquive. Chantilly partout.",
+  "hookEn": "Tap to throw. Duck. Cream everywhere."
  },
  {
   "id": "balloon",

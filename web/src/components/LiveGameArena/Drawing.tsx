@@ -41,7 +41,7 @@ export function Drawing({party,identity,active,isFr,send}: {
     function down(e:PointerEvent<HTMLCanvasElement>) {
         if(!enabled||sent||e.button!==0||pointer.current!==null)return;
         e.preventDefault(); const p=position(e);
-        if(cut&&points.length===2){const [a,b]=points;setSide((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0?1:-1);return;}
+        if(cut&&points.length===2){const [a,b]=points,chosen=(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0?1:-1;setSide(chosen);if(intersects){setSent(true);send('lock',{points,side:chosen});}return;}
         pointer.current=e.pointerId; e.currentTarget.setPointerCapture(e.pointerId);path.current=[p];setPoints([...path.current]);
     }
     function move(e:PointerEvent<HTMLCanvasElement>) {
@@ -79,7 +79,7 @@ export function Drawing({party,identity,active,isFr,send}: {
             {locked&&!reveal&&<div className={styles.locked}><Check size={18}/>{isFr?'Trait verrouille':'Stroke locked'}</div>}
         </div>
         <div className={styles.caption} role="status">
-            {reveal?<><i/>{isFr?'TOI':'YOU'}{Object.keys(party.scores).length>1&&<><i data-rival/>RIVAL</>}<i data-target/>{isFr?'CIBLE':'TARGET'}</>:party.phase==='observe'?<><Eye size={18}/>{isFr?'2 SECONDES':'2 SECONDS'}</>:cut?<><Scissors size={18}/>{points.length===2?(isFr?'TOUCHE LE MORCEAU À GARDER':'TAP THE PIECE TO KEEP'):(isFr?'UNE LIGNE':'ONE LINE')}</>:<><Pencil size={18}/>{isFr?'UN SEUL TRAIT':'ONE STROKE'}</>}
+            {reveal?<><i/>{isFr?'TOI':'YOU'}{Object.keys(party.scores).length>1&&<><i data-rival/>RIVAL</>}<i data-target/>{isFr?'CIBLE':'TARGET'}</>:party.phase==='observe'?<><Eye size={18}/>{isFr?'2 SECONDES':'2 SECONDS'}</>:cut?<><Scissors size={18}/>{points.length===2?(isFr?'TOUCHE LE MORCEAU À SERVIR':'TAP THE PIECE TO SERVE'):(isFr?'UNE LIGNE':'ONE LINE')}</>:<><Pencil size={18}/>{isFr?'UN SEUL TRAIT':'ONE STROKE'}</>}
         </div>
         {cut&&reveal&&ownResult&&!ownResult.expired&&<p className={styles.coach} data-testid="cut-coach">{(ownResult.error??100)<=2?(isFr?'Le chef approuve !':'Chef approved!'):(ownResult.percent??0)>(entry?.target.percent??0)?(isFr?'Trop généreux ! Garde un morceau plus petit.':'Too generous! Keep a smaller piece.'):(isFr?'Le chef a encore faim ! Garde un morceau plus grand.':'Chef is still hungry! Keep a larger piece.')}</p>}
         {celebration&&<div className={styles.celebration} role="status">✦ {celebration} ✦</div>}

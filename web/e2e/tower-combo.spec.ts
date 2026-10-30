@@ -1,7 +1,7 @@
 import economy from '../../shared/token-economy.json' with {type:'json'};
 import {test,expect} from '@playwright/test';
 import {interpolateTower,type PartyRun} from '../src/gameplay/party';
-for(const mode of ['practice','shared'])test(`three real perfect drops earn a lifeline and repair a real tower in ${mode}`,async({page},info)=>{
+for(const mode of ['practice','shared'])test(`three real perfect drops earn automatic protection without a repair choice in ${mode}`,async({page},info)=>{
  test.setTimeout(35000);if(info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});let run:PartyRun|undefined;const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  page.on('response',async response=>{if(response.url().includes('/api/link-challenges/')){try{const data=await response.json();if(data.party?.id==='onemore')run=Object.values(data.party.runs)[0] as PartyRun;}catch{}}});
  page.on('websocket',socket=>socket.on('framereceived',event=>{try{const data=JSON.parse(String(event.payload));if(data.type==='arena.state'&&data.party?.id==='onemore'){run=Object.values(data.party.runs)[0] as PartyRun;}}catch{}}));
@@ -37,7 +37,7 @@ for(const mode of ['practice','shared'])test(`three real perfect drops earn a li
   }),{level:i,source:interpolateTower.toString()});await expect(page.getByTestId('stack-canvas')).toHaveAttribute('data-level',String(i));
   await expect.poll(()=>run?.perfectStreak).toBe(i);
  }
- await expect(page.getByTestId('tower-support')).toHaveAttribute('data-protected','true');await expect(page.getByTestId('tower-support')).toContainText('BOUÉE PRÊTE');await page.screenshot({path:info.outputPath('earned-lifeline.png'),fullPage:true});
+ await expect(page.getByTestId('tower-support')).toHaveAttribute('data-protected','true');await expect(page.getByTestId('tower-support')).toContainText('BOUÉE AUTOMATIQUE');await page.screenshot({path:info.outputPath('earned-lifeline.png'),fullPage:true});
  // Deliberately place one offset block, using real movement and server collision.
  if(mode==='shared')await sharedDrop(false);else await page.evaluate(source=>new Promise<void>((resolve,reject)=>{
   const predict=eval(`(${source})`) as typeof interpolateTower,deadline=performance.now()+10000;
@@ -48,8 +48,7 @@ for(const mode of ['practice','shared'])test(`three real perfect drops earn a li
   };requestAnimationFrame(tick);
  }),interpolateTower.toString());
  await expect(page.getByTestId('stack-canvas')).toHaveAttribute('data-level','4');const narrow=run!.layers!.slice(-1)[0].width;
- const repair=page.getByTestId('tower-repair');await expect(repair).toBeEnabled();for(const control of [repair,page.getByRole('button',{name:mode==='shared'?'Sécuriser ma tour · 4':'Securiser',exact:true}),page.getByTestId('stack-canvas')]){const box=(await control.boundingBox())!;expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(page.viewportSize()!.height);}expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
- if(info.project.name.includes('mobile'))await repair.tap();else await repair.click();await expect.poll(()=>run?.repairs).toBe(1);expect(run!.layers!.slice(-1)[0].width).toBeGreaterThan(narrow);expect(run?.level).toBe(4);expect(run?.buoy).toBe(false);
- await page.screenshot({path:info.outputPath('tower-repaired.png')});
+ await expect(page.getByTestId('tower-repair')).toHaveCount(0);expect(run!.layers!.slice(-1)[0].width).toBe(narrow);expect(run?.level).toBe(4);expect(run?.buoy).toBe(true);
+ await page.screenshot({path:info.outputPath('tower-automatic-protection.png')});
  await page.getByRole('button',{name:mode==='shared'?'Sécuriser ma tour · 4':'Securiser',exact:true}).click();if(mode==='shared'){await expect(page.getByText('DEFI PRET',{exact:true})).toBeVisible();await expect(page.getByRole('heading',{name:'4 blocs'})).toBeVisible();}else await expect(page.getByTestId('solo-victory').getByRole('progressbar',{name:'Score de maîtrise'})).toHaveAttribute('aria-valuenow','200');await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance',String(economy.welcome+(mode==='shared'?0:economy.practiceReward)));expect(errors).toEqual([]);
 });

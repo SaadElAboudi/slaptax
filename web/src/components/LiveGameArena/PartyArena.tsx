@@ -2,7 +2,6 @@ import {TowerSupport} from './TowerSupport';
 import {GameFeedback} from './GameFeedback';
 import {startGameLoop} from '../../gameplay/gameLoop';
 import {newRandomId} from '../../platform/identity';
-import {chosenSnackCharacter} from '../../gameplay/snackCharacters';
 import {Absurd} from './Absurd/Absurd';
 import {Carnival} from './Carnival/Carnival';
 import {Toilet} from './Toilet/Toilet';
@@ -39,11 +38,9 @@ interface ArenaEvent {
     resumeAt: number; disconnectDeadline: number; party: PartyState; winnerId: string | null; soloReward?:SoloReward;
 }
 
-export function PartyArena({ gameId, round, isFr, session, finish, snackCharacter }: Props) {
+export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
     const userId = useGameStore((s) => s.userId) || '';
     const identity = session?.userId || userId;
-    const characterTurn=useRef(-1);
-    const selectedCharacter=useRef(snackCharacter||chosenSnackCharacter());
     const practiceId = useRef(newRandomId());
     const duelId = session?.duelId || `practice:${identity}:${practiceId.current}`;
     const socket = useRef<WebSocket | null>(null);
@@ -96,7 +93,6 @@ export function PartyArena({ gameId, round, isFr, session, finish, snackCharacte
                 offset.current = data.at - Date.now();
                 latest.current = data;
                 receivedAt.current = performance.now();
-                if(gameId==='snack'&&!session?.spectator&&data.phase==='playing'&&data.party.phase==='brawl'&&characterTurn.current!==data.party.turn){characterTurn.current=data.party.turn;ws.send(JSON.stringify({type:'arena.action',action:'character',character:selectedCharacter.current,turn:data.party.turn}));}
                 setEvent(data);
                 if (data.phase === 'done' && !completed.current) {
                     completed.current = true;

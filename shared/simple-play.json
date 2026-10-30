@@ -1,0 +1,101 @@
+{
+  "chicken": {
+    "goalFr": "Bouge · attrape · ramène 3 poules",
+    "goalEn": "Move · catch · bring home 3 chickens",
+    "gestureFr": "Un stick + BAFFE / LANCE",
+    "gestureEn": "One stick + SLAP / THROW",
+    "disabledActions": [
+      "character",
+      "skill",
+      "super",
+      "evade"
+    ]
+  },
+  "snack": {
+    "goalFr": "Ramène 3 goûters au dépôt jaune",
+    "goalEn": "Bring 3 snacks to the yellow depot",
+    "gestureFr": "Un stick + BAFFE / LANCE",
+    "gestureEn": "One stick + SLAP / THROW",
+    "disabledActions": [
+      "character",
+      "skill",
+      "super",
+      "evade"
+    ]
+  },
+  "pigeon": {
+    "goalFr": "Salie la voiture rose, évite la jaune",
+    "goalEn": "Hit the pink car, avoid the yellow one",
+    "gestureFr": "Glisse pour voler + LARGUE",
+    "gestureEn": "Drag to fly + DROP",
+    "disabledActions": [
+      "umbrella"
+    ]
+  },
+  "lift": {
+    "goalFr": "Choisis une place sans nuage vert",
+    "goalEn": "Pick a spot without a green cloud",
+    "gestureFr": "Touche une des 3 places · PROUT pour piéger",
+    "gestureEn": "Tap one of 3 spots · FART to set a trap",
+    "disabledActions": [
+      "breath"
+    ]
+  },
+  "pie": {
+    "goalFr": "Touche le rival avec tes tartes",
+    "goalEn": "Hit your rival with pies",
+    "gestureFr": "Touche la cible pour lancer · ESQUIVE pour te baisser",
+    "gestureEn": "Tap the target to throw · DUCK to dodge",
+    "disabledActions": [
+      "steer"
+    ]
+  },
+  "balloon": {
+    "goalFr": "Gonfle, relâche et garde tes points",
+    "goalEn": "Pump, release and keep your points",
+    "gestureFr": "Maintiens GONFLE · relâche pour encaisser",
+    "gestureEn": "Hold PUMP · release to bank",
+    "disabledActions": [
+      "vent"
+    ]
+  },
+  "toilet": {
+    "goalFr": "Ramasse le plus de canards",
+    "goalEn": "Collect the most ducks",
+    "gestureFr": "Glisse pour rouler + TURBO pour foncer",
+    "gestureEn": "Drag to drive + TURBO to dash"
+  },
+  "table": {
+    "goalFr": "Reste sur la table et pousse tes potes",
+    "goalEn": "Stay on the table and bump your friends",
+    "gestureFr": "Touche ta destination, relâche pour foncer",
+    "gestureEn": "Tap your destination, release to dash"
+  },
+  "garde": {
+    "goalFr": "Choisis ton coup puis découvre celui du rival",
+    "goalEn": "Pick a move, then reveal your rival’s choice",
+    "gestureFr": "Une carte par tour · les effets sont écrits dessus",
+    "gestureEn": "One card each turn · read its effect"
+  },
+  "onemore": {
+    "goalFr": "Empile ou sécurise ta tour",
+    "goalEn": "Stack or bank your tower",
+    "gestureFr": "Touche pour poser · SÉCURISER pour encaisser",
+    "gestureEn": "Tap to drop · BANK to keep your tower",
+    "disabledActions": [
+      "repair"
+    ]
+  },
+  "decoupe": {
+    "goalFr": "Coupe la portion demandée",
+    "goalEn": "Cut the requested portion",
+    "gestureFr": "Trace une ligne puis touche le morceau à servir",
+    "gestureEn": "Draw a line, then tap the piece to serve"
+  },
+  "bombpass": {
+    "goalFr": "Passe quand le repère est dans la zone verte",
+    "goalEn": "Pass while the marker is in the green zone",
+    "gestureFr": "Un bouton : PASSER au bon moment",
+    "gestureEn": "One button: PASS at the right time"
+  }
+}

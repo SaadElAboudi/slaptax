@@ -56,8 +56,6 @@ export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam
   if(p.guardRemaining){c.save();c.rotate(Math.atan2(p.guardY||0,p.guardX||1));c.strokeStyle='#fff0ad';c.lineWidth=6;c.beginPath();c.arc(0,0,41,-1.3,1.3);c.stroke();rect(c,31,-24,15,48,'#f6dd92',7);c.restore();}
   c.restore();
   c.textAlign='center';c.font='900 12px sans-serif';c.lineWidth=3;c.strokeStyle=ink;const name=p.id===id?(fr?'TOI':'YOU'):own?(fr?'POTE':'MATE'):p.bot?'BOT':'RIVAL';c.strokeText(name,p.x,p.y-48);c.fillStyle='#fff9df';c.fillText(name,p.x,p.y-48);
-  if(!s.chicken&&(p.superCharge||0)>=100){c.font='900 22px sans-serif';c.lineWidth=4;c.strokeStyle=ink;c.fillStyle='#ffe080';c.strokeText('★',p.x+31,p.y-18);c.fillText('★',p.x+31,p.y-18);}
-  if(!s.chicken)for(let i=0;i<3;i++)rect(c,p.x-17+i*12,p.y+37,9,5,i<(p.ammo??3)?'#ffe399':'#425a65',2);
   for(let i=0;i<(p.maxHp||4);i++)rect(c,p.x-(p.maxHp||4)*6.5+i*13,p.y-41,10,5,i<p.hp?(own?'#d1e991':'#efaca0'):'#506c6b',2);
  }
  if(me.carrying){
@@ -77,7 +75,4 @@ export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam
  const self=s.bodies.find(p=>p.id===id)||s.bodies[0],target=s.box.carrier===self.id?{x:team(self)?820:80,y:300}:s.box;
  const tx=(target.x-cam.x)*cam.zoom+450,ty=(target.y-cam.y)*cam.zoom+viewportHeight/2;
  if(tx<35||tx>865||ty<45||ty>viewportHeight-35){const x=Math.max(32,Math.min(868,tx)),y=Math.max(42,Math.min(viewportHeight-35,ty));c.save();c.translate(x,y);c.rotate(Math.atan2(ty-viewportHeight/2,tx-450));c.fillStyle='#ffe396';c.strokeStyle=ink;c.lineWidth=4;c.beginPath();c.moveTo(15,0);c.lineTo(-10,-12);c.lineTo(-10,12);c.closePath();c.fill();c.stroke();c.restore();}
- if(s.chicken)return;
- // Small overview: goals, real players and the box, without hiding any controls.
- c.save();c.translate(748,12);rect(c,0,0,140,94,'#233e45dd',9);c.scale(140/900,94/600);for(const w of s.walls){c.fillStyle='#90aaa0';c.fillRect(w.x,w.y,w.w,w.h);}for(const z of s.zones||[]){c.fillStyle=s.bodies.some(p=>p.id===z.owner&&friendly(p))?'#d7ed9e99':'#7cb967';c.beginPath();c.arc(z.x,z.y,z.radius,0,Math.PI*2);c.fill();}for(const p of s.bodies){if(p.respawnIn)continue;c.fillStyle=friendly(p)?'#ffe38e':'#f29f97';c.beginPath();c.arc(p.x,p.y,23,0,Math.PI*2);c.fill();}c.fillStyle='white';c.fillRect(s.box.x-13,s.box.y-13,26,26);c.restore();
 }

@@ -1,3 +1,4 @@
+import selection from '../../shared/game-selection.json' with {type:'json'};
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 
 async function player(request:APIRequestContext,name:string) {
@@ -16,7 +17,7 @@ async function stroke(page:Page,cut:boolean,mobile:boolean,offset=0) {
         for(const p of coords.slice(1))await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[p]});
         await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
     }else{await page.mouse.move(coords[0].x,coords[0].y);await page.mouse.down();for(const p of coords.slice(1))await page.mouse.move(p.x,p.y,{steps:5});await page.mouse.up();}
-    if(cut)await page.getByRole('button',{name:'Lock cut',exact:true}).click();
+    if(cut)await canvas.click({position:{x:box.width*.25,y:box.height*.5}});
 }
 async function complete(page:Page,cut:boolean,mobile:boolean,portion?:()=>number|undefined) {
     for(let i=0;i<3;i++){
@@ -29,7 +30,7 @@ async function complete(page:Page,cut:boolean,mobile:boolean,portion?:()=>number
 }
 for(const game of ['trace','decoupe'] as const) {
     test(`${game} practice accepts three real strokes and renders a nonblank responsive board`,async({page,request},info)=>{
-        test.setTimeout(75000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+        test.skip(!selection.some(g=>g.id===game),'Archived game: not offered in the current catalogue');test.setTimeout(75000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
         const user=await player(request,'DrawSolo');let portion:number|undefined;page.on('websocket',ws=>ws.on('framereceived',event=>{try{const data=JSON.parse(String(event.payload));const entry=data.party?.drawing?.history?.slice(-1)[0];if(entry)portion=entry.results[user.userId]?.percent;}catch{}}));await identify(page,user);await page.goto(`/?tab=training&game=${game}`);
         await page.getByRole('button',{name:'Enter the arena'}).click();
         await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase',game==='trace'?'observe':'drawpath');
@@ -45,7 +46,7 @@ for(const game of ['trace','decoupe'] as const) {
         expect(errors).toEqual([]);
     });
     test(`${game} link challenge runs host and visitor on identical server targets and survives reload`,async({page,request,browser},info)=>{
-        test.setTimeout(120000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const host=await player(request,'DrawHost'),friend=await player(request,'DrawFriend');
+        test.skip(!selection.some(g=>g.id===game),'Archived game: not offered in the current catalogue');test.setTimeout(120000);if(game==='decoupe'&&info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});const host=await player(request,'DrawHost'),friend=await player(request,'DrawFriend');
         await identify(page,host);await page.goto(`/?tab=training&link=new&game=${game}`);
         await page.getByRole('button',{name:'Create challenge'}).click();
         await expect(page).toHaveURL(/link=[0-9a-f-]+/);
@@ -68,7 +69,7 @@ for(const game of ['trace','decoupe'] as const) {
         }finally{await context.close();}
     });
     test(`${game} live duel commits secretly and completes with comparison and a replay`,async({browser,request},info)=>{
-        test.setTimeout(90000);const a=await player(request,'DrawingA'),b=await player(request,'DrawingB');
+        test.skip(!selection.some(g=>g.id===game),'Archived game: not offered in the current catalogue');test.setTimeout(90000);const a=await player(request,'DrawingA'),b=await player(request,'DrawingB');
         const post=async(path:string,data:object)=>{const values=data as Record<string,string>,actor=values.userId||values.challengerId,u=actor===a.userId?a:b;const r=await request.post(path,{data,headers:{'X-SlapTax-User':u.userId,'X-SlapTax-Client':u.clientId}});expect(r.ok(),await r.text()).toBe(true);return r.json();};
         const {duel}=await post('/api/duels',{challengerId:a.userId,opponentId:b.userId,stake:2,bestOf:1,draft:{challenger:{pick:game,ban:'onemore'},opponent:{pick:game,ban:'onemore'}}});
         for(const u of [a,b])await post(`/api/duels/${duel.id}/ban`,{userId:u.userId,gameId:'onemore'});

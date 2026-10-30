@@ -18,13 +18,8 @@ function event(g,kind,p,now,value=0){g.carnival.events.push({kind,id:p.id,at:now
 function pop(g,p,now){p.misses++;event(g,'pop',p,now);newBalloon(g,p,now);p.readyAt=now+600;}
 function execute(g,p,action,now){
  const c=g.carnival,other=c.bodies.find(q=>q.id!==p.id);
+ if(action.action==='vent'||g.id==='pie'&&action.action==='steer')return false;
  if(g.id==='pie'){
-  if(action.action==='steer'){
-   if(typeof action.x!=='number'||!Number.isFinite(action.x)||action.x<0||action.x>1)return false;
-   const last=p.moves.at(-1);if(last&&now-last.at<16)return false;
-   const from=piePosition(p,now,c.startedAt);p.manual=true;p.targetX=.08+action.x*.84;
-   p.moves.push({at:now,from,to:p.targetX});p.moves=p.moves.filter((m,i,all)=>i===all.length-1||all[i+1].at>=now-1000);return true;
-  }
   if(action.action==='duck'){
    if(now<p.duckReady)return false;p.duckAt=now;p.duckUntil=now+450;p.duckReady=now+2200;event(g,'duck',p,now);return true;
   }
@@ -35,7 +30,6 @@ function execute(g,p,action,now){
  if(action.action==='inflate'){
   if(now<p.readyAt)return false;p.inflating=true;p.inputAt=now;return true;
  }
- if(action.action==='vent'){if(now<p.ventReady||p.volume<REFINEMENT.ventLoss)return false;p.volume-=REFINEMENT.ventLoss;p.ventUntil=now+REFINEMENT.ventDuration;p.ventReady=now+REFINEMENT.ventCooldown;event(g,'vent',p,now);return true;}
  if(action.action==='bank'){
   p.inflating=false;
   if(p.volume<10)return true;
@@ -67,7 +61,7 @@ function tickCarnival(g,now,conclude){
      execute(g,p,{action:'throw',aim:Math.max(0,Math.min(1,(target.manual?target.x:position(target.slot,time+350-c.startedAt))+.19*Math.sin(time/930)))},time);
      if(c.shots.some(s=>s.target===p.id&&s.landsAt-time<250)&&Math.sin(time/1700)>.1)execute(g,p,{action:'duck'},time);
     }else{
-     if(c.sabotages.some(a=>a.target===p.id&&a.targetSerial===p.serial&&a.impactAt-time<250)&&Math.sin(time/900)>.1)execute(g,p,{action:'vent'},time);
+
      if(p.volume>=REFINEMENT.targets[(p.serial-1)%REFINEMENT.targets.length])execute(g,p,{action:'bank'},time);
      else execute(g,p,{action:'inflate'},time);
      if(Math.sin(time/1500)>.5)execute(g,p,{action:'poke'},time);

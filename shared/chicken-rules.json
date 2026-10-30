@@ -1,8 +1,8 @@
 {
   "durationMs": 60000,
   "deliveriesToWin": 3,
-  "carryLimitMs": 5500,
-  "fleeSpeed": 105,
+  "carryLimitMs": 8000,
+  "fleeSpeed": 75,
   "eggIntervalMs": 7000,
   "frenzyIntervalMs": 3500,
   "frenzyLastMs": 15000,

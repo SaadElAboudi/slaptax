@@ -1,16 +1,17 @@
+import simplePlay from '../../../shared/simple-play.json';
 /** Input instructions follow the existing authoritative actions, across every mode. */
 const controls:Record<string,[string,string,string,string]>={
- snack:['ZQSD / flèches · souris + clic · Espace : esquive · E : pouvoir · F : super','Stick gauche : bouger · BAFFE : frapper · LANCE : vers ton dépôt · stick de visée en option','WASD / arrows · mouse + click · Space: evade · E: ability · F: super','Left stick: move · SLAP: attack · THROW: toward your depot · optional aim stick'],
+ snack:["Flèches / ZQSD : bouger · Espace / clic : baffe ou lancer",'',"Arrows / WASD: move · Space / click: slap or throw",''],
  chicken:['Flèches / ZQSD : bouger · Espace / clic : baffe ou lancer','Un stick pour bouger · un bouton BAFFE / LANCE · 3 poules au poulailler','Arrows / WASD: move · Space / click: slap or throw','One stick to move · one SLAP / THROW button · bring home 3 chickens'],
- pigeon:['← → : voler · J : larguer · K : parasol','Glisse sur la scène pour voler · Largue pour viser la voiture rivale','← →: fly · J: drop · K: umbrella','Drag on the scene to fly · Drop to target the rival car'],
- lift:['1 / 2 / 3 : choisir une place · Espace : prout · K : respiration','Choisis Gauche, Milieu ou Droite à chaque passage · bouton Prout pour piéger','1 / 2 / 3: pick a spot · Space: fart · K: breath','Choose Left, Middle or Right each wave · Fart button sets a trap'],
- pie:['← → : bouger · souris en haut : viser et lancer · J : tarte · K : esquive','Glisse en bas pour bouger · touche en haut pour lancer · Esquive pour te baisser','← →: move · mouse above: aim and throw · J: pie · K: duck','Drag below to move · tap above to throw · Duck to dodge'],
- balloon:['Maintiens Espace : gonfler · relâche : encaisser · K : sabotage · L : soupape','Maintiens Gonfle puis relâche pour encaisser · le sabotage coûte 25 points','Hold Space: pump · release: bank · K: sabotage · L: vent','Hold Pump then release to bank · sabotage costs 25 points'],
+ pigeon:["← → : voler · Espace : larguer",'',"← →: fly · Space: drop",''],
+ lift:["1 / 2 / 3 : choisir une place · Espace : prout",'',"1 / 2 / 3: pick a spot · Space: fart",''],
+ pie:["Clic : viser et lancer · Espace : lancer · K : esquive",'',"Click: aim and throw · Space: throw · K: duck",''],
+ balloon:["Maintiens Espace : gonfler · relâche : encaisser · K : sabotage",'',"Hold Space: pump · release: bank · K: sabotage",''],
  toilet:['ZQSD / flèches : rouler · Espace : turbo · clic maintenu : suivre la souris','Maintiens et glisse pour rouler · Prout turbo pour fuir la chasse','WASD / arrows: drive · Space: turbo · hold click: follow mouse','Hold and drag to drive · Fart turbo escapes the flush'],
- table:['Flèches : choisir une direction · Espace : propulsion · glisser depuis ton personnage : doser','Touche la destination puis relâche pour te propulser · reste sur la table','Arrows: choose direction · Space: dash · drag from your character to set power','Touch your destination then release to dash · stay on the table'],
+ table:["Clique la destination puis relâche pour foncer",'',"Click your destination, then release to dash",''],
  garde:['1 : attaque · 2 : charge · 3 : défense · 4 : banane','Choisis une action avant la fin du tour · les choix sont révélés ensemble','1: attack · 2: charge · 3: defend · 4: banana','Pick before the turn ends · both choices reveal together'],
- onemore:['Clic ou Espace : poser le bloc · bouton Sécuriser : garder ta tour','Touche la scène pour poser · Sécuriser encaisse la tour · Bouée : protéger ou réparer','Click or Space: drop block · Bank button keeps your tower','Tap the scene to drop · Bank saves your tower · Lifeline: protect or repair'],
- decoupe:['Trace une ligne en maintenant le clic · clique le côté à garder · valide la coupe','Trace une ligne · touche le côté à garder · Valider la coupe','Hold click to draw a line · click the side to keep · lock the cut','Draw a line · tap the side to keep · Lock cut'],
+ onemore:["Clic / Espace : poser · Sécuriser : garder la tour",'',"Click / Space: drop · Bank: keep the tower",''],
+ decoupe:["Trace une ligne puis clique le morceau à servir",'',"Draw a line, then click the piece to serve",''],
  bombpass:['Clic ou Espace : passer quand le repère est dans la zone sûre','Touche Passer la bombe lorsque le repère traverse la zone sûre','Click or Space: pass while the marker is in the safe zone','Tap Pass the bomb while the marker crosses the safe zone'],
 };
-export function gameControls(id:string,fr:boolean,touch:boolean){return controls[id]?.[(fr?0:2)+(touch?1:0)]||'';}
+export function gameControls(id:string,fr:boolean,touch:boolean){const p=(simplePlay as Record<string,{gestureFr:string;gestureEn:string}>)[id];return touch&&p?(fr?p.gestureFr:p.gestureEn):controls[id]?.[fr?0:2]|| (p?(fr?p.gestureFr:p.gestureEn):'');}

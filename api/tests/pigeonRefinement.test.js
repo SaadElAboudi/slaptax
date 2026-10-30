@@ -11,16 +11,12 @@ test('pigeon: personal bullseye streak rewards actual collisions and caps bonus'
  assert.equal(act(g,'a',{action:'score',score:9999,deliveryStreak:50},6301),false);assert.equal(p.score,score);
 });
 test('pigeon: off-center delivery, blocked delivery, own goal and miss break the streak',()=>{
- for(const mode of ['off-center','blocked','own','miss']){const g=game(),p=g.absurd.bodies[0];fire(g,1000);tickParty(g,1900);assert.equal(p.deliveryStreak,1);
+ for(const mode of ['off-center','own','miss']){const g=game(),p=g.absurd.bodies[0];fire(g,1000);tickParty(g,1900);assert.equal(p.deliveryStreak,1);
  fire(g,2500,mode==='own'?0:1,mode==='off-center'?25:mode==='miss'?70:0);
  if(mode==='blocked')act(g,'b',{action:'umbrella'},3000);
  tickParty(g,3400);assert.equal(p.deliveryStreak,0,mode);assert.equal(p.perfects,1,mode);
  }
 });
-test('pigeon: last 200 ms parry rewards actual rival impacts; early shields and own shots cannot farm it',()=>{
- for(const [open,reward,parries] of [[1700,80,1],[1650,40,0],[1901,0,0]]){const g=game();fire(g,1000);act(g,'b',{action:'umbrella'},open);tickParty(g,Math.max(1900,open));assert.equal(g.absurd.bodies[1].score,reward);assert.equal(g.absurd.bodies[1].parries,parries);}
- const g=game();fire(g,1000,0);act(g,'a',{action:'umbrella'},1750);tickParty(g,1900);assert.equal(g.scores.a,0);assert.equal(g.absurd.bodies[0].parries,0);
-});
-test('pigeon: pause preserves a last-second parry and replay exposes real streak evidence',()=>{
- const g=game();fire(g,1000);act(g,'b',{action:'umbrella'},1750);tickParty(g,1800);pauseParty(g,5000,6800);tickParty(g,6900);const s=publicParty(g,'b',6900).absurd;assert.equal(s.bodies[1].parries,1);assert.equal(s.bodies[1].score,80);assert.equal(s.events.at(-1).kind,'parry');
+test('pigeon: pause preserves a real shot and cannot activate a removed defense',()=>{
+ const g=game();fire(g,1000);assert.equal(act(g,'b',{action:'umbrella'},1750),false);tickParty(g,1800);pauseParty(g,5000,6800);tickParty(g,6900);const s=publicParty(g,'b',6900).absurd;assert.equal(s.bodies[0].score,180);assert.equal(s.bodies[1].parries,0);assert.equal(s.events.at(-1).kind,'bullseye');
 });

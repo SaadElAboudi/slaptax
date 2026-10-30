@@ -172,10 +172,10 @@ test('tower challenges calculate server scores, hide the rival, persist the towe
  assert.equal(f.api.playLinkChallenge(challenge.id,'action',{...f.friend,action:'bank',turn:1,score:999}).code,409);
  const list=f.api.listLinkChallenges(f.host);assert.equal(list.challenges[0].standings[0].score,1);assert.ok(list.history.every(h=>h.completedAt<=131344));
 });
-test('tower shared challenge persists a real repair with unchanged wallets and exact block score',()=>{
+test('tower shared challenge preserves automatic protection and score without manual repairs',()=>{
  const f=setup(),before=f.store.read().users.map(u=>u.wallet),{challenge}=f.api.createLinkChallenge({...f.host,gameId:'onemore'});let data=f.api.playLinkChallenge(challenge.id,'start',f.host);
  const run=()=>data.party.runs[f.host.userId],action=a=>{data=f.api.playLinkChallenge(challenge.id,'action',{...f.host,action:a,turn:data.party.turn});assert.equal(data.ok,true);};
  for(let i=0;i<3;i++){f.advance(500/(.65+run().level*.07));action('drop');}
- assert.equal(run().buoy,true);const base=run().layers.at(-1);f.advance((base.x+.08)/(1-base.width)/(.65+run().level*.07)*1000);action('drop');assert.equal(run().level,4);const width=run().layers.at(-1).width;action('repair');assert.ok(run().layers.at(-1).width>width);assert.equal(run().repairs,1);assert.equal(run().buoy,false);action('bank');assert.equal(data.result.ownScore,4);assert.equal(data.result.ownRun.repairs,1);
- const restored=f.restart().playLinkChallenge(challenge.id,'state',f.host);assert.equal(restored.result.ownRun.repairs,1);assert.deepEqual(f.store.read().users.map(u=>u.wallet),before);
+ assert.equal(run().buoy,true);const base=run().layers.at(-1);f.advance((base.x+.08)/(1-base.width)/(.65+run().level*.07)*1000);action('drop');assert.equal(run().level,4);const width=run().layers.at(-1).width;const denied=f.api.playLinkChallenge(challenge.id,'action',{...f.host,action:'repair',turn:data.party.turn});assert.ok(denied.code>=400);assert.equal(run().layers.at(-1).width,width);assert.equal(run().repairs,0);assert.equal(run().buoy,true);action('bank');assert.equal(data.result.ownScore,4);assert.equal(data.result.ownRun.repairs,0);
+ const restored=f.restart().playLinkChallenge(challenge.id,'state',f.host);assert.equal(restored.result.ownRun.repairs,0);assert.deepEqual(f.store.read().users.map(u=>u.wallet),before);
 });

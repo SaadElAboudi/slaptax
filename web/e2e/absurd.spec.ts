@@ -13,7 +13,7 @@ async function play(page:Page,snapshot:()=>AbsurdState|undefined,id:string,mobil
   const canvas=page.getByTestId('pigeon-canvas');await tap(page,canvas,mobile);await page.waitForTimeout(300);expect(snapshot()!.bodies.find(p=>p.id===id)!.x).not.toBe(150);
   while(Date.now()-start<14000){const s=snapshot(),p=s?.bodies.find(p=>p.id===id),rival=s?.bodies.find(p=>p.id!==id);if((p?.score||0)>0)return;
    if(s&&p&&rival){const future=300+Math.sin((s.elapsed+1150)/1050+rival.slot*2.3)*205,drift=Math.sin((s.elapsed+450)/2300)*58*.9,aim=Math.max(50,Math.min(550,future-drift));
-    await page.getByRole('slider',{name:'Piloter le pigeon'}).fill(String(Math.round((aim-50)/5)/100));
+    const b=(await canvas.boundingBox())!;await page.mouse.move(b.x+aim/600*b.width,b.y+b.height*.25);await page.mouse.down();await page.mouse.up();
     // Re-read after the UI steering action: that action takes real time on a
     // phone. Aim for arrival, and bait the bot's umbrella before the next gift.
     const current=snapshot(),body=current?.bodies.find(q=>q.id===id),target=current?.bodies.find(q=>q.id!==id);
@@ -34,7 +34,7 @@ async function play(page:Page,snapshot:()=>AbsurdState|undefined,id:string,mobil
 for(const game of [{id:'pigeon',name:'Pigeon Express'},{id:'lift',name:'Ascenseur à Prouts'}]){
  test(`${game.id} solo has real controls, scores and a declared bot`,async({page,request},info)=>{
   test.setTimeout(45000);const u=await player(request,'AbsurdSolo'),snapshot=observe(page),errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await identify(page,u);await page.goto(`/?tab=training&game=${game.id}`);await page.getByRole('button',{name:'Entrer dans l arene'}).click();await expect.poll(()=>snapshot()?.bodies.length).toBe(2);expect(snapshot()!.bodies.filter(p=>p.bot).length).toBe(1);await play(page,snapshot,u.userId,info.project.name.includes('mobile'));
-  if(game.id==='pigeon'){await tap(page,page.getByRole('button',{name:'PARASOL !',exact:true}),info.project.name.includes('mobile'));await expect.poll(()=>snapshot()?.bodies.find(p=>p.id===u.userId)?.umbrella).toBe(true);}
+  if(game.id==='pigeon')await expect(page.getByRole('button',{name:'PARASOL !',exact:true})).toHaveCount(0);
   await page.screenshot({path:info.outputPath(`${game.id}-playing.png`),fullPage:true});await expect(page.getByTestId('solo-victory')).toBeVisible({timeout:27000});await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance',String(economy.welcome+economy.practiceReward));expect(errors).toEqual([]);
  });
  test(`${game.id} live duel has two humans and actual exportable results`,async({browser,request},info)=>{

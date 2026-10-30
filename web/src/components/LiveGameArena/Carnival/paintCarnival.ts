@@ -8,7 +8,7 @@ export function paintCarnival(c:CanvasRenderingContext2D,s:CarnivalState,identit
  const self=s.bodies.find(p=>p.id===identity)||s.bodies[0],rival=s.bodies.find(p=>p.id!==self.id)!;
  if(s.kind==='pie'){
   c.fillStyle='#18264216';c.fillRect(0,256,600,164);c.strokeStyle='#fff6d5aa';c.lineWidth=2;c.setLineDash([8,8]);c.beginPath();c.moveTo(18,256);c.lineTo(582,256);c.stroke();c.setLineDash([]);
-  c.font='900 11px sans-serif';c.textAlign='center';c.fillStyle='#364748';c.fillText(isFr?'← GLISSE ICI POUR FEINTER →':'← DRAG HERE TO JUKE →',300,408);
+  c.font='900 11px sans-serif';c.textAlign='center';c.fillStyle='#364748';c.fillText(isFr?'TOUCHE LE RIVAL POUR LANCER':'TAP THE RIVAL TO THROW',300,408);
   for(const shot of s.shots.filter(shot=>shot.target===self.id)){const x=70+shot.aim*460;c.strokeStyle='#cd405a';c.lineWidth=4;c.beginPath();c.ellipse(x,378,45,10,0,0,Math.PI*2);c.stroke();c.beginPath();c.arc(x,300,19,-Math.PI/2,-Math.PI/2+Math.PI*2*shot.progress);c.stroke();}
  }
  const bodies=s.kind==='pie'?[rival,self]:[self,rival];

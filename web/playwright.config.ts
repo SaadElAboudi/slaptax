@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
     testDir: './e2e',
-    testIgnore: '**/mixed-mobile-duel.spec.ts',
+    testIgnore: ['**/mixed-mobile-duel.spec.ts','**/webkit-mobile-catalog.spec.ts'],
     timeout: 30_000,
     expect: { timeout: 10_000 },
     fullyParallel: false,

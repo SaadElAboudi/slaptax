@@ -11,13 +11,12 @@ function beginAbsurd(g,now){
 }
 function emit(g,kind,p,at,value=0){const s=g.absurd;s.events.push({serial:++s.serial,kind,id:p.id,at,value});s.events=s.events.slice(-10);}
 function execute(g,p,a,now){const s=g.absurd,other=s.bodies.find(q=>q.id!==p.id);
+ if(['umbrella','breath'].includes(a.action))return false;
  if(g.id==='pigeon'){
   if(a.action==='steer'){if(typeof a.x!=='number'||!Number.isFinite(a.x)||a.x<0||a.x>1)return false;p.targetX=50+a.x*500;return true;}
-  if(a.action==='umbrella'){if(now<p.shieldReady)return false;p.umbrellaAt=now;p.umbrellaUntil=now+650;p.shieldReady=now+2800;emit(g,'umbrella',p,now);return true;}
   if(a.action!=='drop'||now<p.readyAt)return false;
   p.readyAt=now+1000;s.shots.push({id:++s.serial,owner:p.id,x:p.x,at:now,landsAt:now+900});emit(g,'drop',p,now);return true;
  }
- if(a.action==='breath'){if(now<p.breathReady)return false;p.breathUntil=now+REFINEMENT.breathDuration;p.breathReady=now+REFINEMENT.breathCooldown;p.playedWave=s.wave.index;emit(g,'breath',p,now);return true;}
  if(a.action==='lane'){
   if(!Number.isInteger(a.lane)||a.lane<0||a.lane>2||now<p.readyAt)return false;
   p.lane=a.lane;p.playedWave=s.wave.index;p.readyAt=now+160;return true;
@@ -37,11 +36,11 @@ function tickAbsurd(g,now,conclude){
    if(g.id==='pigeon'){
     const target=s.bodies.find(q=>q.id!==p.id),aim=carX(target.slot,elapsed+900)-windAt(elapsed)*.9+Math.sin(time/900)*65;p.targetX=Math.max(50,Math.min(550,aim));
     if(Math.abs(p.x-p.targetX)<50)execute(g,p,{action:'drop'},time);
-    if(s.shots.some(b=>b.owner!==p.id&&b.landsAt-time<500&&Math.abs(b.x-carX(p.slot,elapsed+300))<100))execute(g,p,{action:'umbrella'},time);
+
    }else{
     const danger=s.strikes.filter(a=>a.target===p.id&&a.impactAt-time<700).map(a=>a.lane),warning=s.wave.impactAt-time<=700;
     if(warning)danger.push(...s.wave.gases);
-    if((warning&&danger.includes(p.lane)&&s.wave.impactAt-time<250)||s.strikes.some(a=>a.target===p.id&&a.lane===p.lane&&a.impactAt-time<200))execute(g,p,{action:'breath'},time);
+
     if(warning||danger.includes(p.lane)){const target=warning&&!danger.includes(s.wave.bean)?s.wave.bean:[0,1,2].find(l=>!danger.includes(l));if(target!==undefined&&Math.sin(time/950)>-.8)execute(g,p,{action:'lane',lane:target},time);}
     if(Math.sin(time/1300)>.35)execute(g,p,{action:'prout'},time);
    }

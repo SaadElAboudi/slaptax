@@ -1,9 +1,8 @@
+import simplePlay from '../../../../shared/simple-play.json';
 import refinementRules from '../../../../shared/party-refinement.json';
 import {GameSession} from './GameSession/GameSession';
 import {startGameLoop} from '../../gameplay/gameLoop';
 import {gameWorld,gameTip} from '../../gameplay/gameExperience';
-import {SnackPortrait} from './Snack/SnackPortrait';
-import {SNACK_CHARACTERS,chosenSnackCharacter} from '../../gameplay/snackCharacters';
 import {GameReaction} from './GameReaction';
 import type {SoloReward} from '../../api/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -50,7 +49,6 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
     const [phase, setPhase] = useState<'briefing' | 'countdown' | 'playing' | 'complete'>('briefing');
     const [touchDevice,setTouchDevice]=useState(()=>matchMedia('(pointer:coarse)').matches);
     useEffect(()=>{const media=matchMedia('(pointer:coarse)'),sync=()=>setTouchDevice(media.matches);media.addEventListener('change',sync);return()=>media.removeEventListener('change',sync);},[]);
-    const [snackCast,setSnackCast]=useState(chosenSnackCharacter);
     const [countdown, setCountdown] = useState(3);
     const [result, setResult] = useState<{ score: number; detail: string } | null>(null);
     const startRef = useRef(0);
@@ -147,7 +145,6 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
                     <div className={styles.poster}><GamePoster gameId={gameId} /></div>
                     <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <span className={styles.worldLabel}>{gameWorld(gameId,isFr)}</span><h3>{gameLabel(gameId, isFr)}</h3>
-                    {gameId==='snack'&&<div className={styles.characterPicker} role="group" aria-label={isFr?'Choisis ton combattant':'Choose your fighter'}>{SNACK_CHARACTERS.map(c=><button key={c.id} type="button" aria-pressed={snackCast===c.id} onClick={()=>{setSnackCast(c.id as typeof snackCast);try{localStorage.setItem('slaptax_snack_character',c.id);}catch{/* Selection is optional on restricted storage. */}}}><SnackPortrait character={c.id}/><b>{c.name}</b><span>{c.hp} {isFr?'PV':'HP'} · {isFr?c.roleFr:c.roleEn}</span><strong>{isFr?c.powerFr:c.powerEn}</strong><small>SUPER · {isFr?c.superFr:c.superEn}</small><small>{isFr?c.descriptionFr:c.descriptionEn}</small></button>)}</div>}
                     <div className={styles.ruleSteps}>{briefSteps(gameId,isFr,touchDevice).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
                     <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p><p className={styles.coachTip}><strong>{isFr?'ASTUCE DU RIVAL : ':'RIVAL TIP: '}</strong>{gameTip(gameId,isFr)}</p></details>
                     <div className={styles.briefStats}>
@@ -163,7 +160,7 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
             {phase === 'playing' && (
                 <div className={styles.stage}>
                     {!isPartyGame(gameId)&&duelSession&&<GameReaction gameId={gameId} isFr={isFr}/>}
-                    {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} snackCharacter={snackCast} /> : duelSession && usesSharedArena ? (
+                    {isPartyGame(gameId) ? <PartyArena gameId={gameId} round={round} isFr={isFr} session={duelSession} finish={finish} /> : duelSession && usesSharedArena ? (
                         <SharedArenaRound round={round} gameId={gameId} isFr={isFr} finish={finish} session={duelSession} />
                     ) : gameId === 'bounce' ? (
                         <BounceRound round={round} isFr={isFr} finish={finish} />
@@ -1258,6 +1255,8 @@ function makeQuestion(round: number) {
 }
 
 function briefSteps(gameId: CompetitiveGameId,fr:boolean,touch=false):string[]{
+ const profile=(simplePlay as Record<string,{goalFr:string;goalEn:string;gestureFr:string;gestureEn:string}>)[gameId];
+ if(profile)return fr?[profile.goalFr,profile.gestureFr]:[profile.goalEn,profile.gestureEn];
  if(gameId==='chicken')return fr?['Un stick pour bouger. Attrape la poule en passant dessus.','Un bouton : BAFFE pour intercepter, LANCE vers ton poulailler.','Rapporte 3 poules pour gagner. Sors des cercles d’œufs.']:['One stick to move. Walk over the chicken to pick it up.','One button: SLAP to intercept, THROW toward your coop.','Bring home 3 chickens to win. Leave egg warning circles.'];
  if(gameId==='snack')return fr?['Ramène 3 goûters à ton dépôt.',touch?'Stick gauche pour bouger. BAFFE pour frapper.':'ZQSD / flèches pour bouger. Clic pour frapper.','LANCE vers ton dépôt. Esquive les baffes.']:['Bring 3 snacks to your depot.',touch?'Left stick moves. Tap SLAP to attack.':'WASD / arrows move. Click to slap.','THROW toward your depot. Evade incoming slaps.'];
  const steps:Record<string,[string[],string[]]>={

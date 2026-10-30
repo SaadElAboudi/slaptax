@@ -12,7 +12,7 @@ export function prepareGameMode(id:CompetitiveGameId,mode:Tab){
 }
 const tips:Record<string,[string,string,string,string]>={
  chicken:['L’usine à poulets royaux','Lance le poulet avant sa rébellion. Une zone d’œuf annoncée ne te suit pas : change de route !','The royal poultry factory','Throw before the chicken rebels. An egg warning stays put: change your route!'],
- snack:['La cantine des braqueurs','Passe avant de te faire coincer. Un partenaire démarqué vaut mieux qu’une baffe.','The snack thieves’ canteen','Pass before getting cornered. An open teammate beats another slap.'],
+ snack:['La cantine des braqueurs','Une baffe fait lâcher le goûter. LANCE vise automatiquement ton dépôt.','The snack thieves’ canteen','A slap drops the snack. THROW automatically aims at your depot.'],
  toilet:['Le grand bain des canards','Le turbo sert aussi à fuir la chasse : garde une sortie.','The great duck escape','Turbo also escapes the flush: keep an exit.'],
  pigeon:['Livraison très spéciale','La bonne trajectoire vaut plus qu’un tir précipité sur ta propre voiture.','Special delivery','A clean trajectory beats a rushed shot at your own car.'],
  lift:['Cabine sous pression','Observe la prochaine zone dangereuse et change de place avant le nuage.','A cabin under pressure','Watch the next danger zone and move before the cloud.'],
