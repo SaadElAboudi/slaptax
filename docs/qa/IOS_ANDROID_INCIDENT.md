@@ -15,3 +15,7 @@ Le chemin de compatibilité `roundRect` est également exercé côté WebKit. Ce
 Exécution : `APP_DISTRIBUTION=store npx playwright test --config=playwright.mixed-mobile.config.ts` depuis `web`, après construction du site avec des origines API publiques vides et installation de Chromium/WebKit. Le workflow `Mixed mobile browser validation` utilise Ubuntu 24.04 et publie un rapport avec captures.
 
 WebKit sur un runner Linux n’est pas un iPhone physique. Les limitations réseau, mémoire et système d’iOS nécessitent encore une vérification sur l’appareil concerné. Seuls les tests et leur configuration changent dans ce complément ; les résultats de CI sont vérifiés avant toute annonce de réussite.
+
+## Écran bleu signalé
+
+Le joueur précise que Safari affichait un écran bleu sans message. Une indisponibilité silencieuse de `getContext('2d')` laissait effectivement tourner la boucle sans dessin. Ce cas déclenche désormais la récupération visible et la fermeture de connexion, suivie de l’annulation et du remboursement par le serveur. La mise en arrière-plan reste une pause normale. Les tests d’entrée Chromium et de panne WebKit injectent maintenant un contexte nul ; le scénario Android conserve une exception. Cette faiblesse est reproductible par injection, mais la cause du signalement sur appareil reste non confirmée.

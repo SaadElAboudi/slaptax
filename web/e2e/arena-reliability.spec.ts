@@ -14,7 +14,7 @@ test('a canvas failure while entering a staked duel recovers visibly and refunds
  try{
   await new Promise<void>((resolve,reject)=>{rival.once('open',resolve);rival.once('error',reject);});rival.send(JSON.stringify({type:'arena.join',duelId:duel.id,round:1}));
   await page.addInitScript(u=>{for(const[k,v]of Object.entries({lang:'fr',onboarded:'1',client_id:u.clientId,user_id:u.userId,player_name:u.playerName}))localStorage.setItem('slaptax_'+k,v);
-   const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args:any[]){if(this.dataset.testid==='snack-canvas')throw Error('Injected canvas failure');return original.apply(this,args as any);} as typeof original;
+   const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args:any[]){if(this.dataset.testid==='snack-canvas')return null;return original.apply(this,args as any);} as typeof original;
   },a);
   await page.goto('/?tab=defy');await page.getByRole('button',{name:'Entrer dans l arene'}).click();
   await expect(page.getByRole('heading',{name:'La partie a rencontré un problème.'})).toBeVisible();await expect(page.getByRole('button',{name:'Recharger',exact:true})).toBeEnabled();

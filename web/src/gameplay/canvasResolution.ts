@@ -6,6 +6,9 @@ export function gameCanvasContext(canvas:HTMLCanvasElement|null,width:number,hei
  const w=Math.round(width*scale),h=Math.round(height*scale);
  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
  const context=canvas.getContext('2d');
- context?.setTransform(w/width,0,0,h/height,0,0);
+ // A visible game must never silently keep running over an empty canvas.
+ // The game loop catches this and opens the recovery screen, closing the duel connection.
+ if(!context)throw new Error('Game canvas is unavailable');
+ context.setTransform(w/width,0,0,h/height,0,0);
  return context;
 }

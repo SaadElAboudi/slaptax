@@ -40,7 +40,7 @@ for(const failing of ['ios','android'] as const)test(`Poultry Panic: ${failing} 
   const failed=failing==='ios'?f.iosPage:f.androidPage,other=failing==='ios'?f.androidPage:f.iosPage;
   for(const p of [failed,other])await expect(p.getByRole('heading',{name:'La partie a rencontré un problème.'})).toHaveCount(0);
   expect(f.errors).toEqual([]);
-  await failed.evaluate(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args:any[]){if(this.dataset.testid==='snack-canvas')throw Error('Cross-browser injected drawing failure');return original.apply(this,args as any);} as typeof original;});
+  await failed.evaluate((silent)=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args:any[]){if(this.dataset.testid==='snack-canvas'){if(silent)return null;throw Error('Cross-browser injected drawing failure');}return original.apply(this,args as any);} as typeof original;},failing==='ios');
   await expect(failed.getByRole('heading',{name:'La partie a rencontré un problème.'})).toBeVisible();
   await expect.poll(async()=>(await f.match()).status,{timeout:27000}).toBe('cancelled');
   const result=await f.match();expect(result.winnerId).toBeNull();expect(result.rounds).toHaveLength(0);
