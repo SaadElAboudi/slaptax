@@ -1,3 +1,4 @@
+import {factoryAftermath} from '../../gameplay/factoryComedy';
 import {StakeQuote} from '../TokenWallet/StakeQuote';
 import {publicUrl} from '../../platform/environment';
 import {canShareLink,shareLink as shareNativeLink,copyText} from '../../platform/sharing';
@@ -683,7 +684,7 @@ export function FriendDuelPanel() {
             <header><span>{decisiveGame} / {isFr?'LE VERDICT':'THE VERDICT'}</span><span>{isFr?'PARTIE TERMINEE':'MATCH COMPLETE'}</span></header>
             <div className={club.faceoff}><div><ClubAvatar variant={avatar}/><span>{playerName}</span><strong>{match.score[myRole]}</strong></div><b>VS</b><div><ClubAvatar rival/><span>{match.opponentName}</span><strong>{match.score[rivalRole]}</strong></div></div>
             <h2>{won?(isFr?'Tu peux chambrer.':'Bragging rights: yours.'):(isFr?'Une revanche ?':'Another round?')}</h2>
-            <p>{shareHeadline}</p><p data-testid="token-match-receipt">{isFr?'Jetons nets : ':'Net tokens: '}{match.tokenSettlement?`${match.tokenSettlement.net>=0?'+':''}${match.tokenSettlement.net.toLocaleString(isFr?'fr-FR':'en-US')} · ${isFr?'versement':'payout'} ${won?match.tokenSettlement.payout:0}`:(isFr?'Voir le journal des jetons.':'See your token journal.')}</p>
+            <p>{shareHeadline}</p><p data-testid="factory-aftermath">{factoryAftermath(decisiveRound.gameId,isFr)}</p><p data-testid="token-match-receipt">{isFr?'Jetons nets : ':'Net tokens: '}{match.tokenSettlement?`${match.tokenSettlement.net>=0?'+':''}${match.tokenSettlement.net.toLocaleString(isFr?'fr-FR':'en-US')} · ${isFr?'versement':'payout'} ${won?match.tokenSettlement.payout:0}`:(isFr?'Voir le journal des jetons.':'See your token journal.')}</p>
             <div className={club.rematch}>{rematchControls}</div>
             <div className={club.share}><button type="button" onClick={()=>void shareResult(shareMoment)}><Share2 size={18}/>{isFr?'Partager le moment':'Share moment'}</button><button type="button" title={isFr?'Copier le lien':'Copy link'} aria-label={isFr?'Copier le lien':'Copy link'} onClick={()=>void copyShareLink(shareMoment)}><Link size={18}/></button><span role="status">{shareCopied?(isFr?'Lien copie':'Link copied'):''}</span></div>
             {shareLink&&<input readOnly value={shareLink} aria-label={isFr?'Lien de revanche':'Rematch link'}/>}

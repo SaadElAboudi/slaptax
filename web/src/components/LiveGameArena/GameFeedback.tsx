@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import type {PartyState} from '../../gameplay/party';
+import {canteenDrama} from '../../gameplay/factoryComedy';
 import {gameFeedback,type GameMoment} from '../../gameplay/gameFeedback';
 import {hapticPulse} from '../../hooks/useFeedbackPreferences';
 import styles from './GameFeedback.module.css';
@@ -9,7 +10,7 @@ export function GameFeedback({party,identity,isFr,active}:{party?:PartyState;ide
  useEffect(()=>{
   const before=previous.current;previous.current=party;
   if(!party||!before||!active)return;
-  const next=gameFeedback(before,party,identity),now=performance.now();
+  const next=canteenDrama(before,party,identity)??gameFeedback(before,party,identity),now=performance.now();
   if(next&&now-lastCue.current>650){lastCue.current=now;setMoment({...next,serial:now});if(next.kind!=='warning')hapticPulse(next.kind==='skill'?16:10);}
  },[party,identity,active]);
  useEffect(()=>{if(!moment)return;const timer=window.setTimeout(()=>setMoment(null),1250);return()=>clearTimeout(timer);},[moment]);

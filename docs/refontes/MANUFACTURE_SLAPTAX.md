@@ -90,3 +90,21 @@ encore des jauges, monnaies ou pouvoirs avant ces validations disperserait le tr
   transport reste distinct du temps de jeu, pour éviter une mèche qui avance à tort.
 - Construction web et synchronisation Android/iOS réussies, source `06c576e4c02d`.
 - Les essais sur téléphones physiques et les mesures de plaisir restent nécessaires.
+
+## Le feuilleton de la brigade
+
+Une nouvelle couche comique suit les parties sans ajouter de commande :
+- À la Cantine, les trois livraisons déroulent le gag du stagiaire et du frigo.
+- Une égalisation réellement confirmée et le franchissement des 15 secondes
+  déclenchent un commentaire bref. Aucune annonce de victoire locale.
+- Les captures produisent une courte gerbe de confettis autour du dépôt ; les
+  mouvements sont réduits avec la préférence système. Pas de nouvelle musique.
+- Les douze ateliers ont un épilogue visible en entraînement et au verdict du duel.
+- L’accueil suggère quatre épisodes cycliques d’après le nombre de parties dans
+  l’historique chargé et les entraînements enregistrés sur cet appareil. C’est
+  une suggestion narrative, pas une campagne persistante ou une récompense.
+  L’historique local peut être effacé et tous les jeux restent accessibles.
+
+La prochaine validation produit doit mesurer si les joueurs comprennent la blague,
+se rappellent l’Intendant et proposent spontanément une revanche. Cette version
+améliore les réactions et la continuité ; elle ne prouve pas à elle seule la rétention.

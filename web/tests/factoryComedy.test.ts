@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {canteenDrama,factoryEpisode,factoryAftermath} from '../src/gameplay/factoryComedy.ts';
+import type {PartyState} from '../src/gameplay/party.ts';
+function state(remaining=16000,own=0,rival=1){return {id:'snack',turn:1,phase:'brawl',remaining,snack:{bodies:[{id:'me',slot:0,captures:own},{id:'rival',slot:1,captures:rival}]}} as unknown as PartyState;}
+test('final countdown triggers once at the crossing, never during a pause or reset',()=>{assert.ok(canteenDrama(state(),state(15000),'me'));assert.equal(canteenDrama(state(15000),state(14900),'me'),null);const paused=state(15000);paused.phase='wait';assert.equal(canteenDrama(state(),paused,'me'),null);const reset=state(15000);reset.turn=2;assert.equal(canteenDrama(state(),reset,'me'),null);});
+test('comeback uses deliveries including team totals, never unrelated points',()=>{assert.match(canteenDrama(state(),state(15500,1),'me')!.fr,/ÉGALITÉ/);assert.equal(canteenDrama(state(),state(15500),'me'),null);const a=state(),b=state(15500);a.snack!.teamScores=[0,2];b.snack!.teamScores=[2,2];assert.match(canteenDrama(a,b,'me')!.fr,/ÉGALITÉ/);});
+test('episodes cycle without clocks or locked content and every workshop has an aftermath',()=>{assert.equal(factoryEpisode(0).game,'snack');assert.equal(factoryEpisode(4).game,'snack');assert.equal(factoryEpisode(NaN).game,'snack');for(const game of ['snack','chicken','decoupe','onemore','bombpass','pigeon','lift','pie','balloon','toilet','table','garde']){assert.ok(factoryAftermath(game,true));assert.ok(factoryAftermath(game,false));}});

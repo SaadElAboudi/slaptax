@@ -1,3 +1,4 @@
+import {factoryAftermath} from '../../gameplay/factoryComedy';
 import {CENTRAL_GAME,gameChapter} from '../../gameplay/world';
 import {hasScoreChallenge,preferredGame,prepareGameMode} from '../../gameplay/gameExperience';
 import type {SoloReward} from '../../api/client';
@@ -83,6 +84,7 @@ export function TrainingPanel() {
                 <span>{gameChapter(gameId,isFr)?.place}</span><SoloVictory result={result} best={best} isFr={isFr}/>
                 <span>{isRecord ? (isFr ? 'NOUVEAU RECORD' : 'NEW RECORD') : (isFr ? 'SESSION TERMINEE' : 'SESSION COMPLETE')}</span>
                 <h2>{result.score}<small> / 1000</small></h2>
+                <p data-testid="factory-aftermath">{factoryAftermath(gameId,isFr)}</p>
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
                 <div className={styles.resultActions}>
 

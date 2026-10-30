@@ -68,6 +68,12 @@ export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam
  if(s.box.flying&&!reduced){c.strokeStyle='#fff0a899';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(s.box.x-(s.box.vx||0)*.05,s.box.y-(s.box.vy||0)*.05);c.lineTo(s.box.x,s.box.y);c.stroke();c.lineCap='butt';}
  if(!s.box.readyIn){const carrier=s.bodies.find(p=>p.id===s.box.carrier),x=s.box.x,y=s.box.y-(carrier?55:0);if(s.chicken){const panic=carrier?1-s.chicken.carryRemaining/s.chicken.carryLimit:0;paintRoyalChicken(c,x,y,1,panic,now,reduced);if(carrier){c.strokeStyle=panic>.75?'#ff9b8b':'#ffe799';c.lineWidth=5;c.beginPath();c.arc(x,y,36,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-panic));c.stroke();}}else{rect(c,x-21,y-16,42,32,'#ffe7a0',7);c.strokeStyle='#ad7750';c.lineWidth=4;c.beginPath();c.moveTo(x-21,y-6);c.lineTo(x+21,y-6);c.moveTo(x,y-16);c.lineTo(x,y+16);c.stroke();c.fillStyle='#c97570';c.beginPath();c.arc(x,y,6,0,Math.PI*2);c.fill();}}
  for(const e of s.events.filter(e=>['super-wave','ward','ward-block','super-brine','heal','chicken-escape','egg-splat','hit','ko','capture','pickup','swing','boing','blocked','guard','throw','pass','intercept','ricochet'].includes(e.kind)&&e.age<650)){
+  if(e.kind==='capture'){
+   // A short local celebration around the real delivery, away from the controls.
+   c.save();c.globalAlpha=1-e.age/650;
+   for(let i=0;i<12;i++){const angle=i*Math.PI/6,t=reduced?0.55:e.age/650,r=18+t*65;c.fillStyle=['#ffe095','#f794b8','#b0edda'][i%3];c.fillRect(e.x+Math.cos(angle)*r-3,e.y+Math.sin(angle)*r-t*20-3,6,8);}
+   c.restore();
+  }
   if(e.kind==='super-wave'){c.save();c.strokeStyle='#ffde78';c.lineWidth=10;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(e.x,e.y,reduced?175:50+e.age*.2,0,Math.PI*2);c.stroke();c.restore();}
   if(e.kind==='boing'){c.save();c.strokeStyle='#fff0a4';c.lineWidth=8;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(e.x,e.y,reduced?135:135+e.age*.08,0,Math.PI*2);c.stroke();c.restore();}
   if(e.kind==='swing'){c.save();c.translate(e.x,e.y);c.rotate(Math.atan2(e.ay||0,e.ax||1));c.strokeStyle='#fff2bc';c.lineWidth=8;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(0,0,70,-.8,.8);c.stroke();c.restore();continue;}

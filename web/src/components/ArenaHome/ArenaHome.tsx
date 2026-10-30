@@ -1,3 +1,5 @@
+import {factoryEpisode,factoryAftermath} from '../../gameplay/factoryComedy';
+import {readPracticeHistory} from '../../gameplay/practiceHistory';
 import {CENTRAL_GAME,worldName,worldPremise,gameChapter} from '../../gameplay/world';
 import {prepareGameMode} from '../../gameplay/gameExperience';
 import {SoloJourney} from '../SoloJourney/SoloJourney';
@@ -19,6 +21,9 @@ interface ArenaHomeProps { onEnter: (tab: Tab) => void }
 export function ArenaHome({ onEnter }: ArenaHomeProps) {
     const { language, userId, playerName, history, favoriteRivalId, progression } = useGameStore();
     const isFr = language === 'fr';
+    const practices=readPracticeHistory(userId||'');
+    const completed=history.length+practices.length;
+    const episode=factoryEpisode(completed);
     const [activeDuel, setActiveDuel] = useState(false);
     const [activeTournament, setActiveTournament] = useState(false);
     const [queued, setQueued] = useState(false);
@@ -111,6 +116,13 @@ export function ArenaHome({ onEnter }: ArenaHomeProps) {
                 <button type="button" aria-label={isFr?'Jouer entre amis · 2v2':'Play with friends · 2v2'} onClick={openTeams}><Users size={21}/><span>{isFr?'Jouer entre amis · 2v2':'Play with friends · 2v2'}<small>{isFr?'Deux équipes. Un goûter à voler.':'Two teams. One snack to steal.'}</small></span><ArrowRight size={18}/></button>
                 <button type="button" aria-label={isFr?'Découvrir l’arène en solo':'Learn the arena solo'} onClick={()=>enter('snack','training')}><Play size={21}/><span>{isFr?'Découvrir l’arène en solo':'Learn the arena solo'}<small>{isFr?'Teste les commandes à ton rythme.':'Learn the controls at your own pace.'}</small></span><ArrowRight size={18}/></button>
             </div>
+        </section>
+        <section className={styles.episode} data-testid="factory-episode" aria-label={isFr?'Le feuilleton de la brigade':'The crew’s serial'}>
+            <span>{isFr?'LE FEUILLETON DE LA BRIGADE':'THE CREW’S SERIAL'}</span>
+            <h2>{isFr?episode.fr:episode.en}</h2><p>{isFr?episode.lineFr:episode.lineEn}</p>
+            {practices[0]&&<small>{isFr?'Dernier incident : ':'Last incident: '}{factoryAftermath(practices[0].gameId,isFr)}</small>}
+            <button onClick={()=>enter(episode.game,'training')}>{isFr?'Jouer cet épisode':'Play this episode'}<ArrowRight size={16}/></button>
+            <small>{isFr?'Un clin d’œil à tes parties terminées. Tous les ateliers restent accessibles.':'A nod to your completed games. Every workshop remains available.'}</small>
         </section>
         <section className={styles.worldRoute} aria-label={isFr?'L’histoire de la Manufacture':'The factory story'} data-testid="factory-story"><div><span>{worldName(isFr)}</span><h2>{isFr?'Une brigade. Toute une usine à défier.':'One crew. A whole factory to challenge.'}</h2><p>{isFr?'La Cantine est votre arène. Les ateliers sont vos terrains de revanche : chaque défi raconte un autre incident du même casse.':'The Canteen is your arena. The workshops are your rematch grounds: every challenge tells another incident from the same heist.'}</p></div><ol>{['snack','decoupe','onemore','bombpass'].map(id=><li key={id}><b>{gameChapter(id,isFr)?.place}</b><span>{gameChapter(id,isFr)?.title}</span><button onClick={()=>enter(id as CompetitiveGameId,'training')}>{id==='snack'?(isFr?'Entrer à la Cantine':'Enter the Canteen'):(isFr?'Essayer le défi':'Try the challenge')}<ArrowRight size={15}/></button></li>)}</ol></section>
         <section className={styles.newGame} aria-label={isFr?'Nouveau jeu : Poule Position':'New game: Poultry Panic'}>

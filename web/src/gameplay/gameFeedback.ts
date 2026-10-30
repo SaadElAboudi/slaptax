@@ -5,7 +5,7 @@ export function gameFeedback(before:PartyState,after:PartyState,id:string):GameM
  if(before.id!==after.id||before.turn!==after.turn)return null;
  const cue=(fr:string,en:string,value?:string,kind:GameMoment['kind']='success'):GameMoment=>({fr,en,value,kind});
  if(after.snack&&before.snack){const a=before.snack.bodies.find(p=>p.id===id),b=after.snack.bodies.find(p=>p.id===id);if(!a||!b)return null;
-  if(b.captures>a.captures)return cue(after.id==='chicken'?'Le roi est au bercail !':'Braquage réussi !',after.id==='chicken'?'The king is home!':'Heist complete!',`${b.captures} / 3`);
+  if(b.captures>a.captures)return cue(after.id==='chicken'?'Le roi est au bercail !':['','Une caisse ! L’Intendant accuse le stagiaire.','Deux caisses ! Le stagiaire accuse le frigo.','Trois caisses ! Le frigo démissionne.'][Math.min(3,b.captures)]||'Braquage réussi !',after.id==='chicken'?'The king is home!':['','One crate! The Steward blames the intern.','Two crates! The intern blames the fridge.','Three crates! The fridge resigns.'][Math.min(3,b.captures)]||'Heist complete!',`${b.captures} / 3`);
   if((b.interceptions||0)>(a.interceptions||0))return cue('Interception ! C’est pour moi.','Intercepted! Mine now.',undefined,'skill');
   if(b.hp<a.hp)return cue(b.carrying?'Aïe ! Protège ton butin.':'PAF ! Reprends ta place.',b.carrying?'Ouch! Protect your loot.':'BONK! Get back in position.',undefined,'warning');
   if(b.kos>a.kos)return cue('Bien placé. Au suivant !','Clean hit. Next!',`${b.kos} KO`);
