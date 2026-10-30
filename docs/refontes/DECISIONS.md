@@ -96,3 +96,31 @@ Validation du lot : 338 tests serveur, 20 tests unitaires web, puis 8 tests navi
 - Salon entre amis sur téléphone : réutiliser la même coque plein écran que l’entraînement et les duels, avec une sortie « Quitter le salon ». Le jeu ne reste plus coincé sous le menu du salon et la navigation. La barre du poulet reste visible en paysage.
 
 Validation du complément : les six parcours mobiles ciblés passent, dont la panne avec remboursement et la soirée à quatre avec reconnexion/sortie. Le contrôle paysage a été relancé après ajustement de caméra et vérifie une scène d’au moins 300 × 190 px, le déplacement à gauche du terrain et l’attaque à droite. Capture : `captures/mobile-simple-snack-landscape.png`. Source commune web/Android/iOS : `c51fa541e081`. La CI du correctif principal (`65f4fbb`) est entièrement verte, compilations natives comprises ; le complément a sa propre validation de publication.
+
+## Poule Position — une action contextuelle (30 octobre 2026)
+
+Décision : priorité à la compréhension immédiate sur téléphone. Un déplacement et
+un seul bouton BAFFE / LANCE. Ramassage automatique, visée de frappe vers le rival
+et lancer vers son propre poulailler calculés côté serveur. Une baffe fait lâcher
+la poule sans attendre un KO. Un lancer arrivant au poulailler marque réellement.
+Trois livraisons gagnent ; au chrono seules les livraisons départagent, puis revanche
+commune en cas d'égalité. Les KO n'ajoutent pas de points dans ce jeu.
+
+Pas de pouvoir, super, esquive, choix de combattant ou munitions dans ce jeu ; le
+bot obéit aux mêmes restrictions. Arène entièrement visible, pas de caméra à gérer
+ni de minimap. Le conseil visible évolue entre ramassage, interception et retour.
+Le rebondissement des œufs et la fuite de la poule restent des obstacles visibles.
+Les bonus supplémentaires attendent une validation de ce cœur de jeu simplifié.
+
+Le serveur commun applique ces règles en entraînement, défi, challenge et tournoi.
+Braquage du Goûter conserve son gameplay actuel ; ce travail n'est pas une refonte
+terminée de l'ensemble du catalogue. Ne pas confondre tests de fonctionnement et
+validation du plaisir par de vrais joueurs sur leurs téléphones.
+
+Validation : 341 tests serveur passent avant les deux derniers cas ajoutés ; les
+17 tests Poule Position et les 5 scénarios de remboursement passent ensuite.
+Les 21 tests unitaires web passent. Quatre E2E mobiles passent : entraînement avec
+déplacement tactile, duel à deux avec lancer contextuel/résultat/replay, portrait
+320 × 650 et paysage 800 × 390. L'entrée et les commandes clavier sur ordinateur
+passent aussi. `build:all` synchronise la source `88a2a4bc2d02` dans Android/iOS.
+Les essais WebKit et la compilation iOS doivent être confirmés par la CI du push.

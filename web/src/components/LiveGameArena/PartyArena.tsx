@@ -96,7 +96,7 @@ export function PartyArena({ gameId, round, isFr, session, finish, snackCharacte
                 offset.current = data.at - Date.now();
                 latest.current = data;
                 receivedAt.current = performance.now();
-                if(['snack','chicken'].includes(gameId)&&!session?.spectator&&data.phase==='playing'&&data.party.phase==='brawl'&&characterTurn.current!==data.party.turn){characterTurn.current=data.party.turn;ws.send(JSON.stringify({type:'arena.action',action:'character',character:selectedCharacter.current,turn:data.party.turn}));}
+                if(gameId==='snack'&&!session?.spectator&&data.phase==='playing'&&data.party.phase==='brawl'&&characterTurn.current!==data.party.turn){characterTurn.current=data.party.turn;ws.send(JSON.stringify({type:'arena.action',action:'character',character:selectedCharacter.current,turn:data.party.turn}));}
                 setEvent(data);
                 if (data.phase === 'done' && !completed.current) {
                     completed.current = true;

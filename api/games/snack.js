@@ -15,7 +15,7 @@ function beginSnack(g,now){
  g.phase='brawl';g.deadline=now+(g.id==='chicken'?chickenRules.durationMs:DURATION);
  const ids=g.players.length===1?[...g.players,'snack-bot']:g.players;
  g.snack={startedAt:now,tickAt:now,winnerId:null,winnerTeam:null,teamMode:ids.length===4,events:[],zones:[],walls:WALLS,box:{x:450,y:300,carrier:null,availableAt:now},
- bodies:ids.map((id,slot)=>({id,slot,team:slot%2,throws:0,passes:0,interceptions:0,assists:0,character:!g.players.includes(id)?'pickle':'flan',chosen:false,locked:false,skillAt:now,skillResolveAt:0,guardUntil:0,guardX:1,guardY:0,slowed:false,botSkillDecisionAt:now+1500,botReactAt:0,botSeenSwing:0,botWaypoint:null,botLastPlanAt:0,bot:!g.players.includes(id),x:slot%2?820:80,y:slot>=2?360:300,dx:0,dy:0,ax:slot%2?-1:1,ay:0,kx:0,ky:0,hp:4,kos:0,captures:0,inputAt:now,attackAt:0,resolveAt:0,dashAt:0,dashUntil:0,respawnAt:0,shieldUntil:now+1000,swings:0}))};
+ bodies:ids.map((id,slot)=>({id,slot,team:slot%2,throws:0,passes:0,interceptions:0,assists:0,character:g.id==='chicken'?'flan':!g.players.includes(id)?'pickle':'flan',chosen:false,locked:false,skillAt:now,skillResolveAt:0,guardUntil:0,guardX:1,guardY:0,slowed:false,botSkillDecisionAt:now+1500,botReactAt:0,botSeenSwing:0,botWaypoint:null,botLastPlanAt:0,bot:!g.players.includes(id),x:slot%2?820:80,y:slot>=2?360:300,dx:0,dy:0,ax:slot%2?-1:1,ay:0,kx:0,ky:0,hp:4,kos:0,captures:0,inputAt:now,attackAt:0,resolveAt:0,dashAt:0,dashUntil:0,respawnAt:0,shieldUntil:now+1000,swings:0}))};
  for(const p of g.snack.bodies)initializeCombat(p,now);
  if(g.id==='chicken')beginChicken(g.snack,now);
 }
@@ -25,7 +25,7 @@ function moveBody(p,dx,dy){
  p.y=clamp(p.y+dy,28,572);
  for(const w of WALLS)if(p.x>w.x-R&&p.x<w.x+w.w+R&&p.y>w.y-R&&p.y<w.y+w.h+R)p.y=dy>0?w.y-R:w.y+w.h+R;
 }
-function attack(s,p,now){if(p.respawnAt||s.box.carrier===p.id||now<p.attackAt||p.skillResolveAt||p.superResolveAt)return false;if(!spendAmmo(p,now))return false;combatActivity(p,now);const config=character(p.character);p.locked=true;p.guardUntil=0;p.attackAt=now+config.attackCooldown;p.resolveAt=now+config.windup;p.strikeX=p.ax;p.strikeY=p.ay;p.swings++;p.shieldUntil=0;event(s,'windup',p,now,{ax:p.ax,ay:p.ay});return true;}
+function attack(s,p,now){if(p.respawnAt||s.box.carrier===p.id||now<p.attackAt||p.skillResolveAt||p.superResolveAt)return false;if(!s.chicken&&!spendAmmo(p,now))return false;combatActivity(p,now);const config=character(p.character);p.locked=true;p.guardUntil=0;p.attackAt=now+config.attackCooldown;p.resolveAt=now+config.windup;p.strikeX=p.ax;p.strikeY=p.ay;p.swings++;p.shieldUntil=0;event(s,'windup',p,now,{ax:p.ax,ay:p.ay});return true;}
 function dash(s,p,now){if(p.respawnAt||now<p.dashAt)return false;p.locked=true;p.dashAt=now+2400;p.dashUntil=now+160;const d=Math.hypot(p.dx,p.dy);p.dashX=d?p.dx/d:p.ax;p.dashY=d?p.dy/d:p.ay;event(s,'dash',p,now);return true;}
 function clearLine(x,y,tx,ty){const steps=Math.max(8,Math.ceil(Math.hypot(tx-x,ty-y)/12));for(let i=1;i<=steps;i++){const px=x+(tx-x)*i/steps,py=y+(ty-y)*i/steps;if(WALLS.some(w=>px>=w.x&&px<=w.x+w.w&&py>=w.y&&py<=w.y+w.h))return false;}return true;}
 function skill(s,p,now){
@@ -52,6 +52,12 @@ function superPower(s,p,now){
 }
 function actSnack(g,id,a,now){
  const s=g.snack,p=s?.bodies.find(p=>p.id===id);if(g.phase!=='brawl'||!p||p.bot||p.respawnAt)return false;
+ if(s.chicken&&['character','skill','super','evade'].includes(a.action))return false;
+ if(s.chicken&&['attack','throw'].includes(a.action)){
+  const target=s.box.carrier===id?{x:homeX(p),y:300}:s.bodies.filter(q=>enemies(p,q)&&!q.respawnAt).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
+  if(target){const dx=target.x-p.x,dy=target.y-p.y,d=Math.hypot(dx,dy)||1;p.ax=dx/d;p.ay=dy/d;}
+  return s.box.carrier===id?throwBox(s,p,now):a.action==='attack'?attack(s,p,now):false;
+ }
  if(a.action==='character'){const config=CHARACTERS.find(c=>c.id===a.character);if(!config||p.chosen||p.locked||now-s.startedAt>5000)return false;p.character=config.id;p.hp=config.hp;p.chosen=true;const rival=s.bodies.find(q=>q.bot);if(rival&&!rival.locked){const next=CHARACTERS[(CHARACTERS.findIndex(c=>c.id===config.id)+1)%CHARACTERS.length];rival.character=next.id;rival.hp=next.hp;}event(s,'character',p,now);return true;}
  if(a.action==='super')return superPower(s,p,now);
  if(a.action==='throw')return throwBox(s,p,now);
@@ -83,11 +89,17 @@ function tickBox(s,now){
  }
 }
 function drop(s,p,now){if(s.box.carrier!==p.id)return;s.box={x:p.x,y:p.y,carrier:null,availableAt:now+450};event(s,'drop',p,now);}
+function deliver(g,p,time){
+ const s=g.snack;p.captures++;chargeSuper(p,combatRules.chargeCapture);
+ if(s.box.assistBy&&time-s.box.assistAt<5000){const passer=s.bodies.find(q=>q.id===s.box.assistBy);if(passer&&passer.id!==p.id)passer.assists++;}
+ event(s,'capture',p,time);s.box={x:450,y:300,carrier:null,availableAt:time+1200};
+ if(s.bodies.filter(q=>team(q)===team(p)).reduce((n,q)=>n+q.captures,0)>=3){finish(g);return true;}return false;
+}
 function finish(g){
- const s=g.snack,totals=[0,1].map(t=>({team:t,captures:s.bodies.filter(p=>team(p)===t).reduce((n,p)=>n+p.captures,0),kos:s.bodies.filter(p=>team(p)===t).reduce((n,p)=>n+p.kos,0)})).sort((a,b)=>b.captures-a.captures||b.kos-a.kos),[a,b]=totals;
- const tied=a.captures===b.captures&&a.kos===b.kos;s.winnerTeam=tied?null:a.team;s.winnerId=tied?null:s.bodies.find(p=>team(p)===a.team).id;g.winnerId=s.winnerId;
- for(const id of g.players){const p=s.bodies.find(p=>p.id===id);g.scores[id]=Math.min(1000,p.captures*250+Math.min(200,p.kos*20+p.assists*50+p.passes*20+p.interceptions*30)+(p.captures&&team(p)===s.winnerTeam?250:0));}
- g.summary=g.id==='chicken'?'chicken-deliveries-then-knockouts':'snack-captures-then-knockouts';g.phase=tied&&g.players.length>1?'draw':'done';g.ready=[];
+ const s=g.snack,totals=[0,1].map(t=>({team:t,captures:s.bodies.filter(p=>team(p)===t).reduce((n,p)=>n+p.captures,0),kos:s.bodies.filter(p=>team(p)===t).reduce((n,p)=>n+p.kos,0)})).sort((a,b)=>b.captures-a.captures||(s.chicken?0:b.kos-a.kos)),[a,b]=totals;
+ const tied=a.captures===b.captures&&(s.chicken||a.kos===b.kos);s.winnerTeam=tied?null:a.team;s.winnerId=tied?null:s.bodies.find(p=>team(p)===a.team).id;g.winnerId=s.winnerId;
+ for(const id of g.players){const p=s.bodies.find(p=>p.id===id);g.scores[id]=Math.min(1000,p.captures*250+(s.chicken?0:Math.min(200,p.kos*20+p.assists*50+p.passes*20+p.interceptions*30))+(p.captures&&team(p)===s.winnerTeam?250:0));}
+ g.summary=g.id==='chicken'?'chicken-deliveries':'snack-captures-then-knockouts';g.phase=tied&&g.players.length>1?'draw':'done';g.ready=[];
 }
 function clearMove(x,y,tx,ty){const steps=Math.max(1,Math.ceil(Math.hypot(tx-x,ty-y)/12));for(let i=1;i<=steps;i++){const px=x+(tx-x)*i/steps,py=y+(ty-y)*i/steps;if(WALLS.some(w=>px>w.x-R-2&&px<w.x+w.w+R+2&&py>w.y-R-2&&py<w.y+w.h+R+2))return false;}return true;}
 function waypoint(p,target,now){
@@ -106,8 +118,8 @@ function bot(s,p,now){
  if(s.chicken&&box.carrier===p.id&&box.panicAt-now<1400){p.ax=(home.x-p.x)/(Math.hypot(home.x-p.x,home.y-p.y)||1);p.ay=(home.y-p.y)/(Math.hypot(home.x-p.x,home.y-p.y)||1);throwBox(s,p,now);}
  if(!rival.respawnAt){const rx=rival.x-p.x,ry=rival.y-p.y,r=Math.hypot(rx,ry)||1;p.ax=rx/r;p.ay=ry/r;
   const signal=rival.resolveAt||rival.skillResolveAt||0;if(signal&&p.botSeenSwing!==signal){p.botSeenSwing=signal;p.botReactAt=now+160;}
-  if(signal>now&&p.botReactAt&&now>=p.botReactAt&&r<150){dash(s,p,now);p.botReactAt=0;}
-  if(now>=p.botSkillDecisionAt){p.botSkillDecisionAt=now+700;if(p.superCharge>=combatRules.superMax&&(r<210||p.character==='toast'&&(box.carrier===p.id||p.hp<=2)))superPower(s,p,now);if(r<190&&(p.character==='pickle'||p.character==='flan'&&r<130||p.character==='toast'&&(signal>now||box.carrier===p.id)))skill(s,p,now);}
+  if(!s.chicken&&signal>now&&p.botReactAt&&now>=p.botReactAt&&r<150){dash(s,p,now);p.botReactAt=0;}
+  if(!s.chicken&&now>=p.botSkillDecisionAt){p.botSkillDecisionAt=now+700;if(p.superCharge>=combatRules.superMax&&(r<210||p.character==='toast'&&(box.carrier===p.id||p.hp<=2)))superPower(s,p,now);if(r<190&&(p.character==='pickle'||p.character==='flan'&&r<130||p.character==='toast'&&(signal>now||box.carrier===p.id)))skill(s,p,now);}
   if(box.carrier!==p.id&&p.guardUntil<=now&&r<character(p.character).range-7)attack(s,p,now);
  }
 }
@@ -148,13 +160,14 @@ function tickSnack(g,now){
    if(q.hp<=0)continue;
    if(q.wardCharges&&q.wardUntil>time){q.wardCharges=0;chargeSuper(q,combatRules.chargeBlock);event(s,'ward-block',q,time,{by:p.id});continue;}
    if(q.guardUntil>time&&(-dx*q.guardX-dy*q.guardY)/d>=.25){q.guardUntil=0;chargeSuper(q,combatRules.chargeBlock);p.kx=-dx/d*340;p.ky=-dy/d*340;event(s,'blocked',q,time,{by:p.id});continue;}
-   const taken=Math.min(q.hp,damage);q.hp-=taken;combatActivity(p,time);combatActivity(q,time);if(!superHit)chargeSuper(p,combatRules.chargeHit);chargeSuper(q,combatRules.chargeDamageTaken*taken);q.locked=true;q.kx=dx/d*power;q.ky=dy/d*power;event(s,'hit',q,time,{by:p.id});
+   const taken=Math.min(q.hp,damage);q.hp-=taken;combatActivity(p,time);combatActivity(q,time);if(!superHit)chargeSuper(p,combatRules.chargeHit);chargeSuper(q,combatRules.chargeDamageTaken*taken);q.locked=true;q.kx=dx/d*power;q.ky=dy/d*power;event(s,'hit',q,time,{by:p.id});if(s.chicken)drop(s,q,time);
    if(!q.hp){p.kos++;drop(s,q,time);q.respawnAt=time+2400;q.superCharge=Math.floor(q.superCharge*combatRules.chargeRetainedOnKo);q.superResolveAt=0;q.wardCharges=0;q.resolveAt=0;q.skillResolveAt=0;q.guardUntil=0;q.dashUntil=0;q.dx=0;q.dy=0;event(s,'ko',q,time,{by:p.id});}
   }
   tickBox(s,time);
+  if(s.chicken&&s.box.flightUntil&&s.box.thrownBy){const thrower=s.bodies.find(p=>p.id===s.box.thrownBy);if(thrower&&Math.hypot(s.box.x-homeX(thrower),s.box.y-300)<52){if(deliver(g,thrower,time))return;}}
   if(!s.box.carrier&&time>=s.box.availableAt){const near=s.bodies.filter(p=>!p.respawnAt&&!(s.box.bannedId===p.id&&time<s.box.bannedUntil)&&!(s.box.thrownBy===p.id&&time<s.box.selfCatchAt)&&Math.hypot(p.x-s.box.x,p.y-s.box.y)<(s.box.flightUntil?32:40)&&clearLine(p.x,p.y,s.box.x,s.box.y)).sort((a,b)=>Math.hypot(a.x-s.box.x,a.y-s.box.y)-Math.hypot(b.x-s.box.x,b.y-s.box.y));s.box.contested=near.some(q=>enemies(near[0],q)&&Math.abs(Math.hypot(near[0].x-s.box.x,near[0].y-s.box.y)-Math.hypot(q.x-s.box.x,q.y-s.box.y))<1);const p=near[0];if(p&&!s.box.contested){const b=s.box,from=s.bodies.find(q=>q.id===b.thrownBy);if(b.flightUntil&&from&&from.id!==p.id){if(enemies(from,p)){p.interceptions++;chargeSuper(p,combatRules.chargeInterception);event(s,'intercept',p,time,{by:from.id});b.assistBy=null;}else{from.passes++;if(time>=from.passChargeAt){chargeSuper(from,combatRules.chargePass);from.passChargeAt=time+combatRules.passChargeCooldownMs;}b.assistBy=from.id;b.assistAt=time;event(s,'pass',p,time,{by:from.id});}}b.carrier=p.id;if(s.chicken)b.panicAt=time+chickenRules.carryLimitMs;b.flightUntil=0;b.vx=0;b.vy=0;b.thrownBy=null;p.locked=true;event(s,'pickup',p,time);}}
   if(s.box.carrier){const p=s.bodies.find(p=>p.id===s.box.carrier);s.box.x=p.x;s.box.y=p.y;
-   if(Math.hypot(p.x-homeX(p),p.y-300)<52){p.captures++;chargeSuper(p,combatRules.chargeCapture);if(s.box.assistBy&&time-s.box.assistAt<5000){const passer=s.bodies.find(q=>q.id===s.box.assistBy);if(passer&&passer.id!==p.id)passer.assists++;}event(s,'capture',p,time);s.box={x:450,y:300,carrier:null,availableAt:time+1200};if(s.bodies.filter(q=>team(q)===team(p)).reduce((n,q)=>n+q.captures,0)>=3){finish(g);return;}}
+   if(Math.hypot(p.x-homeX(p),p.y-300)<52&&deliver(g,p,time))return;
   }
  }
  if(now>=g.deadline)finish(g);
