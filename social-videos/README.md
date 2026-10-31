@@ -1,3 +1,23 @@
+## Lot actuel : quatre mécaniques distinctes
+
+Dans l’éditeur, les quatre premières compositions sont maintenant :
+- `02-braquage-butins` : poursuite et interception, cadrage rapproché du porteur ;
+- `01-decoupe-37` : précision, ligne de coupe et résultat mesuré ;
+- `07-encore-un` : tour et bifurcation réelle sécuriser six blocs / risquer la chute ;
+- `19-bombpass-pression` : trois passes acceptées puis explosion serveur.
+
+Les anciennes variantes sont dans « Archives-storyboards ». Les représentations
+sont des démos scénarisées, pas des parties humaines. La tour contient un arrêt
+sur image éditorial pour laisser le temps de lire le choix. La bombe utilise les
+états du gestionnaire multijoueur, avec une mise en scène éditoriale du transfert.
+Le module `scripts/distinct-demos.mjs` ne contacte aucun joueur ni serveur distant.
+Le code des jeux de l’app n’est pas modifié par ces compositions publicitaires.
+
+Commande : `npm run render:batch`. Sorties dans `exports/` ; le lot courant est
+également copié dans `sources vidéos/lot-02-jeux-distincts/` à la racine du repo.
+
+---
+
 # SLAP TAX — atelier vidéo
 
 Compositions React / HTML / CSS avec Remotion, export MP4 H.264 vertical 1080 × 1920 à 30 images/s. Projet npm autonome : aucune dépendance ajoutée au jeu ou à son déploiement.

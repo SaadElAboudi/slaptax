@@ -3,7 +3,7 @@
   "day": 2,
   "game": "snack",
   "series": "Défi solo",
-  "hook": "L’Intendant a taxé ton goûter.",
+  "hook": "Rends. Le. Goûter.",
   "duration": 12,
   "cta": "Défie ton pote. Joue sur SlapTax.",
   "status": "demo",
@@ -36,5 +36,6 @@
   "renderer": "snack-engine-demo",
   "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
   "demoStart": 0,
-  "demoSpeed": 1
+  "demoSpeed": 1,
+  "closeup": true
 }

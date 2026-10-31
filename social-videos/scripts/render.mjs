@@ -1,5 +1,5 @@
 import {spawnSync} from 'node:child_process';
-import {mkdir,readdir,access} from 'node:fs/promises';
+import {mkdir,readdir,access,rm} from 'node:fs/promises';
 import {homedir,release} from 'node:os';
 import {encodeLegacy} from './legacy-export.mjs';
 import path from 'node:path';
@@ -28,6 +28,7 @@ const browserArgs=browser?[`--browser-executable=${browser}`]:[];
 const output=path.join(root,'exports',id,`${process.argv.includes('--publish')?'final':'draft'}.mp4`);
 const legacy=process.platform==='darwin' && Number(release().split('.')[0])<=21;
 const frames=path.join(root,'exports',id,'frames');
+if(legacy)await rm(frames,{recursive:true,force:true});
 const args=legacy?['render','src/index.jsx',id,frames,'--sequence','--muted','--image-format=jpeg','--concurrency=2',...browserArgs]:['render','src/index.jsx',id,output,'--codec=h264','--pixel-format=yuv420p','--concurrency=2',...browserArgs];
 const result=spawnSync(path.join(root,'node_modules/.bin/remotion'),args,{cwd:root,stdio:'inherit'});
 if(result.error) throw result.error;

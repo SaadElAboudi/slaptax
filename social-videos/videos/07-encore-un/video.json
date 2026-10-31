@@ -3,29 +3,21 @@
   "day": 7,
   "game": "onemore",
   "series": "Moment décisif",
-  "hook": "Il pouvait s’arrêter là.",
-  "duration": 15,
+  "hook": "« Encore un. »",
+  "duration": 12,
   "cta": "Défie ton pote. Lien en bio.",
-  "status": "storyboard",
+  "status": "demo",
   "footage": null,
   "voice": null,
-  "music": "audio/slaptax-pulse.wav",
-  "voiceText": "Tout allait bien. Puis il a voulu un bloc de plus. Toi, tu t’arrêtais quand ?",
+  "music": null,
+  "voiceText": "« Encore un. » Défie ton pote sur SlapTax.",
   "scenes": [
     {
       "from": 0,
-      "to": 3,
-      "text": "Il pouvait s’arrêter là."
-    },
-    {
-      "from": 3,
       "to": 12,
-      "text": "À toi de faire mieux."
-    },
-    {
-      "from": 12,
-      "to": 15,
-      "text": "Défie ton pote. Lien en bio."
+      "text": "« Encore un. »"
     }
-  ]
+  ],
+  "renderer": "tower-engine-demo",
+  "effects": false
 }

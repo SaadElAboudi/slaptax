@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {root} from './prepare.mjs';
 import path from 'node:path';
 const ids=process.argv.slice(2);
-if(!ids.length)ids.push('01-decoupe-37','02-braquage-butins','03-baffe-et-butins','04-revanche-cantine');
+if(!ids.length)ids.push('02-braquage-butins','01-decoupe-37','07-encore-un','19-bombpass-pression');
 const manifest={startedAt:new Date().toISOString(),status:'rendering',silent:true,published:false,completed:[]};
 await mkdir(path.join(root,'exports'),{recursive:true});
 for(const id of ids){

@@ -52,7 +52,7 @@
     "day": 2,
     "game": "snack",
     "series": "Défi solo",
-    "hook": "L’Intendant a taxé ton goûter.",
+    "hook": "Rends. Le. Goûter.",
     "duration": 12,
     "cta": "Défie ton pote. Joue sur SlapTax.",
     "status": "demo",
@@ -85,7 +85,8 @@
     "renderer": "snack-engine-demo",
     "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
     "demoStart": 0,
-    "demoSpeed": 1
+    "demoSpeed": 1,
+    "closeup": true
   },
   {
     "id": "03-baffe-et-butins",
@@ -234,31 +235,23 @@
     "day": 7,
     "game": "onemore",
     "series": "Moment décisif",
-    "hook": "Il pouvait s’arrêter là.",
-    "duration": 15,
+    "hook": "« Encore un. »",
+    "duration": 12,
     "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
+    "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Tout allait bien. Puis il a voulu un bloc de plus. Toi, tu t’arrêtais quand ?",
+    "music": null,
+    "voiceText": "« Encore un. » Défie ton pote sur SlapTax.",
     "scenes": [
       {
         "from": 0,
-        "to": 3,
-        "text": "Il pouvait s’arrêter là."
-      },
-      {
-        "from": 3,
         "to": 12,
-        "text": "À toi de faire mieux."
-      },
-      {
-        "from": 12,
-        "to": 15,
-        "text": "Défie ton pote. Lien en bio."
+        "text": "« Encore un. »"
       }
-    ]
+    ],
+    "renderer": "tower-engine-demo",
+    "effects": false
   },
   {
     "id": "08-decoupe-duel",
@@ -606,31 +599,23 @@
     "day": 19,
     "game": "bombpass",
     "series": "Entre amis",
-    "hook": "Surtout, ne la garde pas.",
-    "duration": 15,
+    "hook": "Tiens. C’est pour toi.",
+    "duration": 10,
     "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
+    "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Une bombe. Deux potes. Et personne ne veut être le dernier.",
+    "music": null,
+    "voiceText": "Tiens. C’est pour toi. Défie ton pote sur SlapTax.",
     "scenes": [
       {
         "from": 0,
-        "to": 3,
-        "text": "Surtout, ne la garde pas."
-      },
-      {
-        "from": 3,
-        "to": 12,
-        "text": "À toi de faire mieux."
-      },
-      {
-        "from": 12,
-        "to": 15,
-        "text": "Défie ton pote. Lien en bio."
+        "to": 10,
+        "text": "Tiens. C’est pour toi."
       }
-    ]
+    ],
+    "renderer": "bomb-engine-demo",
+    "effects": false
   },
   {
     "id": "20-cupshuffle-suivi",

@@ -11,7 +11,7 @@ function interpolate(x,keys,values){
   return values.at(-1);
 }
 export async function encodeLegacy(root,v,frames,output){
-  if((!v.music&&!v.voice&&v.effects===false)||v.renderer==='snack-engine-demo'){
+  if((!v.music&&!v.voice&&v.effects===false)||['snack-engine-demo','tower-engine-demo','bomb-engine-demo'].includes(v.renderer)){
     const images=(await readdir(frames)).filter(n=>/^element-\d+\.jpeg$/.test(n)).sort();
     if(images.length!==v.duration*30)throw Error('Incomplete frame sequence');
     const padding=images[0].match(/element-(\d+)/)[1].length;

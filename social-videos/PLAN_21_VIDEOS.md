@@ -1,3 +1,12 @@
+## Direction corrigée : un format par mécanique
+
+Le lot actuel retient **02 Cantine · 01 Chef Couic · 07 Tour de Trop · 19 Passe ou BOUM**.
+Les trois variantes de Cantine du premier lot ne sont plus la sélection principale.
+Chaque vidéo doit montrer un geste, une décision et sa conséquence, avec un rythme
+et un cadrage propres. Les exports restent muets, sans génération vocale payante.
+
+---
+
 # Reprise — 31 octobre 2026
 
 Premier lot : quatre démonstrations du moteur actuel, en MP4 vertical 1080 × 1920,

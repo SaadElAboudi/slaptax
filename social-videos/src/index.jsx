@@ -1,5 +1,6 @@
+import {TowerFilm,BombFilm} from './DistinctFilms';
 import React from 'react';
-import {registerRoot,Composition,AbsoluteFill,Audio,OffthreadVideo,Sequence,staticFile,useCurrentFrame,useVideoConfig,interpolate} from 'remotion';
+import {registerRoot,Composition,Folder,AbsoluteFill,Audio,OffthreadVideo,Sequence,staticFile,useCurrentFrame,useVideoConfig,interpolate} from 'remotion';
 import videos from './catalog.json';
 import {SnackFilm} from './SnackFilm';
 import {DecoupeFilm} from './DecoupeFilm';
@@ -30,5 +31,7 @@ function Film({video:v}) {
     {v.voice&&<Sequence from={8}><Audio src={staticFile(v.voice)} volume={1}/></Sequence>}
   </AbsoluteFill>;
 }
-function Root(){return <>{videos.map(video=><Composition key={video.id} id={video.id} component={video.renderer==='snack-engine-demo'?SnackFilm:video.id==='01-decoupe-37'?DecoupeFilm:Film} defaultProps={{video}} durationInFrames={video.duration*30} fps={30} width={1080} height={1920}/>)}</>;}
+const featured=['02-braquage-butins','01-decoupe-37','07-encore-un','19-bombpass-pression'];
+function composition(video){const component=video.renderer==='tower-engine-demo'?TowerFilm:video.renderer==='bomb-engine-demo'?BombFilm:video.renderer==='snack-engine-demo'?SnackFilm:video.id==='01-decoupe-37'?DecoupeFilm:Film;return <Composition key={video.id} id={video.id} component={component} defaultProps={{video}} durationInFrames={video.duration*30} fps={30} width={1080} height={1920}/>;}
+function Root(){return <>{featured.map(id=>composition(videos.find(v=>v.id===id)))}<Folder name="Archives-storyboards">{videos.filter(v=>!featured.includes(v.id)).map(composition)}</Folder></>;}
 registerRoot(Root);
