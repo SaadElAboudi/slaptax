@@ -1,6 +1,7 @@
 import {readdir, readFile, writeFile, mkdir, access} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {prepareSnack} from './snack-demo.mjs';
 import {prepareDecoupe} from './decoupe-demo.mjs';
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export async function loadVideos() {
@@ -28,6 +29,7 @@ export async function loadVideos() {
 export async function prepare() {
   const videos=await loadVideos();
   await prepareDecoupe(root);
+  await prepareSnack(root);
   await writeFile(path.join(root,'src/catalog.json'),JSON.stringify(videos,null,2)+'\n');
   // Original 120 BPM pulse, synthesized without samples. Quiet backing for voice.
   const rate=44100, seconds=32, count=rate*seconds, pcm=Buffer.alloc(count*2);

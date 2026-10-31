@@ -1,3 +1,23 @@
+# Reprise — 31 octobre 2026
+
+Premier lot : quatre démonstrations du moteur actuel, en MP4 vertical 1080 × 1920,
+30 images/s, sans musique, voix ni publication automatique.
+
+| Dossier | Concept | Durée |
+|---|---|---|
+| 01-decoupe-37 | Chef Couic : trace puis touche la portion | 15 s |
+| 02-braquage-butins | L’Intendant a taxé ton goûter | 12 s |
+| 03-baffe-et-butins | Une baffe fait tomber le butin | 10 s |
+| 04-revanche-cantine | « Une dernière. Promis. » | 12 s |
+
+Les scènes sont résolues par les moteurs de production. Ce ne sont pas des parties
+humaines enregistrées. Les MP4 restent des propositions à revoir avant diffusion.
+Les emplacements 02–04 remplacent les anciens concepts Trace/Faux départ.
+Les jours 05–21 ci-dessous sont l’ancien plan, à réécrire avant rendu : plusieurs
+jeux ont été retirés du catalogue. Ne pas promouvoir ces jeux archivés.
+
+---
+
 # SLAP TAX — lancement : 21 vidéos en 21 jours
 
 Statut : préparation éditoriale et maquettes. Aucun résultat, joueur ou record ne doit être fabriqué. Les vidéos ne sont pas encore prêtes à publier.
@@ -13,9 +33,9 @@ Un concept original par jour sur TikTok et Instagram ; export propre sans filigr
 | Jour | Dossier | Jeu | Accroche | Série | Durée |
 |---|---|---|---|---|---|
 | 1 | [01-decoupe-37](videos/01-decoupe-37/README.md) | decoupe | Découpe exactement 37 %. | Défi solo | 15 s |
-| 2 | [02-trace-memoire](videos/02-trace-memoire/README.md) | trace | Tu as deux secondes pour retenir ça. | Défi solo | 15 s |
-| 3 | [03-faux-depart](videos/03-faux-depart/README.md) | falsestart | Attends GO. Pas avant. | Défi solo | 12 s |
-| 4 | [04-pote-revanche](videos/04-pote-revanche/README.md) | falsestart | Le pote qui demande toujours une revanche. | Entre amis | 20 s |
+| 2 | [02-braquage-butins](videos/02-braquage-butins/README.md) | snack | L’Intendant a taxé ton goûter. | Cantine | 12 s |
+| 3 | [03-baffe-et-butins](videos/03-baffe-et-butins/README.md) | snack | Il portait MON goûter. | Cantine | 10 s |
+| 4 | [04-revanche-cantine](videos/04-revanche-cantine/README.md) | snack | Une dernière. Promis. | Cantine | 12 s |
 | 5 | [05-chroma-couleur](videos/05-chroma-couleur/README.md) | chroma | Vous voyez vraiment la même couleur ? | Défi solo | 15 s |
 | 6 | [06-chrono-cinq](videos/06-chrono-cinq/README.md) | onesecond | Compte cinq secondes. Sans chrono. | Défi solo | 15 s |
 | 7 | [07-encore-un](videos/07-encore-un/README.md) | onemore | Il pouvait s’arrêter là. | Moment décisif | 15 s |

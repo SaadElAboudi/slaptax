@@ -1,6 +1,7 @@
 import React from 'react';
 import {registerRoot,Composition,AbsoluteFill,Audio,OffthreadVideo,Sequence,staticFile,useCurrentFrame,useVideoConfig,interpolate} from 'remotion';
 import videos from './catalog.json';
+import {SnackFilm} from './SnackFilm';
 import {DecoupeFilm} from './DecoupeFilm';
 const accent='#def56a', bg='#101514';
 function Film({video:v}) {
@@ -29,5 +30,5 @@ function Film({video:v}) {
     {v.voice&&<Sequence from={8}><Audio src={staticFile(v.voice)} volume={1}/></Sequence>}
   </AbsoluteFill>;
 }
-function Root(){return <>{videos.map(video=><Composition key={video.id} id={video.id} component={video.id==='01-decoupe-37'?DecoupeFilm:Film} defaultProps={{video}} durationInFrames={video.duration*30} fps={30} width={1080} height={1920}/>)}</>;}
+function Root(){return <>{videos.map(video=><Composition key={video.id} id={video.id} component={video.renderer==='snack-engine-demo'?SnackFilm:video.id==='01-decoupe-37'?DecoupeFilm:Film} defaultProps={{video}} durationInFrames={video.duration*30} fps={30} width={1080} height={1920}/>)}</>;}
 registerRoot(Root);

@@ -91,3 +91,14 @@ Les contrôles de configuration ne prouvent pas qu’un MP4 a été rendu. Au mo
 `01-decoupe-37` utilise maintenant une composition dédiée qui réutilise le Canvas du jeu et un scénario validé par le moteur de production. Voir [le détail de cette version](videos/01-decoupe-37/README.md). Les 20 autres compositions restent des storyboards. La première installation npm a depuis réussi et le Studio a été démarré ; le paragraphe historique sur l’échec réseau décrit uniquement l’état lors de la création initiale.
 
 Sur macOS 12, l’export de la première vidéo passe automatiquement par une séquence d’images et un encodage FFmpeg statique : les binaires multimédias livrés avec cette version de Remotion ne chargent pas sur cette version de macOS. Cette voie conserve le mixage musique/effets de la composition Découpe. Le fallback audio actuel est spécifique à cette composition ; les autres restent à adapter avant export sur macOS 12. Les deux outils statiques sont des dépendances de développement épinglées. La préparation de la démo utilise aussi les dépendances de l’API du repo (`npm install` à la racine si elles ne sont pas déjà installées).
+
+## Reprise du 31 octobre 2026
+
+Premier lot : `01-decoupe-37`, `02-braquage-butins`, `03-baffe-et-butins`,
+`04-revanche-cantine`. Les trois dernières utilisent le moteur serveur de la Cantine
+et son Canvas partagé, sans duplication de gameplay. `npm run prepare` régénère
+les snapshots via `scripts/snack-demo.mjs` (fichier généré ignoré par Git).
+
+Le lot est sans musique ni voix ; aucun crédit externe n’est utilisé. Les trois
+vidéos Cantine et Chef Couic fonctionnent avec l’encodage muet sur macOS 12.
+Les autres compositions conservent leur état de storyboard historique.

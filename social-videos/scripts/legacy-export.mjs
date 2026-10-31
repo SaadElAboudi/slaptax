@@ -11,7 +11,15 @@ function interpolate(x,keys,values){
   return values.at(-1);
 }
 export async function encodeLegacy(root,v,frames,output){
-  if(v.id!=='01-decoupe-37')throw Error('The macOS 12 audio fallback currently supports the dedicated Découpe composition only.');
+  if((!v.music&&!v.voice&&v.effects===false)||v.renderer==='snack-engine-demo'){
+    const images=(await readdir(frames)).filter(n=>/^element-\d+\.jpeg$/.test(n)).sort();
+    if(images.length!==v.duration*30)throw Error('Incomplete frame sequence');
+    const padding=images[0].match(/element-(\d+)/)[1].length;
+    const result=spawnSync(require('@ffmpeg-installer/ffmpeg').path,['-y','-framerate','30','-i',path.join(frames,`element-%0${padding}d.jpeg`),'-an','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-movflags','+faststart',output],{stdio:'inherit'});
+    if(result.status!==0)throw Error('Silent encoding failed');
+    return;
+  }
+  if(v.id!=='01-decoupe-37')throw Error('Legacy audio mix is only available for the cut demo.');
   const images=(await readdir(frames)).filter(n=>/^element-\d+\.jpeg$/.test(n)).sort();
   if(images.length!==v.duration*30)throw Error('Incomplete frame sequence');
   const padding=images[0].match(/element-(\d+)/)[1].length;

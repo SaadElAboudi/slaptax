@@ -1,0 +1,40 @@
+{
+  "id": "03-baffe-et-butins",
+  "day": 3,
+  "game": "snack",
+  "series": "Défi solo",
+  "hook": "Il portait MON goûter.",
+  "duration": 10,
+  "cta": "Défie ton pote. Joue sur SlapTax.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": null,
+  "voiceText": "Il portait MON goûter. Une baffe fait tomber la caisse. Après, il faut la ramener.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 2,
+      "text": "Le porteur arrive…"
+    },
+    {
+      "from": 2,
+      "to": 5,
+      "text": "PAF ! Le goûter tombe."
+    },
+    {
+      "from": 5,
+      "to": 7.5,
+      "text": "Baffer ne suffit pas : livre au dépôt !"
+    },
+    {
+      "from": 7.5,
+      "to": 10,
+      "text": "À ton tour de l’intercepter."
+    }
+  ],
+  "renderer": "snack-engine-demo",
+  "setup": "Une baffe fait tomber la caisse. Après, il faut la ramener.",
+  "demoStart": 3,
+  "demoSpeed": 1
+}

@@ -39,3 +39,7 @@ Le mode `--publish` reste réservé aux captures et configurations approuvées. 
 - Validation du côté conservé, absence de pourcentage prédit avant la révélation.
 - Aucun gain monétaire, joueur réel ou record revendiqué.
 - Avant publication : renseigner le vrai lien du profil, revoir les zones recouvertes par l’application et écouter le mixage sur téléphone.
+
+Reprise du 31 octobre : export sans musique, voix ni effets. La sélection du
+morceau sert directement la portion, conformément au geste simplifié actuel.
+Le résultat est issu du moteur ; il ne représente pas une performance humaine.

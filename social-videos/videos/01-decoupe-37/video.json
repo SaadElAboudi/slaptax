@@ -9,8 +9,8 @@
   "status": "demo",
   "footage": null,
   "voice": null,
-  "music": "audio/slaptax-pulse.wav",
-  "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Choisis le côté que tu gardes. Valide. Quarante-trois virgule trois pour cent. Tu fais mieux ? À toi de jouer sur Slap Tax.",
+  "music": null,
+  "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Touche le morceau à servir. Tu fais mieux ?",
   "scenes": [
     {
       "from": 0,
@@ -30,7 +30,7 @@
     {
       "from": 6.5,
       "to": 7.033333333333333,
-      "text": "Valide ta coupe."
+      "text": "Le morceau est servi."
     },
     {
       "from": 7.033333333333333,
@@ -43,5 +43,6 @@
       "text": "Tu fais mieux ? À toi de jouer."
     }
   ],
-  "renderer": "decoupe-engine-demo"
+  "renderer": "decoupe-engine-demo",
+  "effects": false
 }

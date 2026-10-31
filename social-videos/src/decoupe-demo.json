@@ -23,7 +23,9 @@
         0.24783655884584882
       ]
     ],
-    "percent": 37
+    "percent": 37,
+    "recipe": "biscuit",
+    "axis": "free"
   },
   "points": [
     [
@@ -96,7 +98,9 @@
             0.24783655884584882
           ]
         ],
-        "percent": 37
+        "percent": 37,
+        "recipe": "biscuit",
+        "axis": "free"
       },
       "results": {
         "demo": {

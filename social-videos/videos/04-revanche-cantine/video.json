@@ -1,0 +1,40 @@
+{
+  "id": "04-revanche-cantine",
+  "day": 4,
+  "game": "snack",
+  "series": "Entre amis",
+  "hook": "« Une dernière. Promis. »",
+  "duration": 12,
+  "cta": "Défie ton pote. Joue sur SlapTax.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": null,
+  "voiceText": "« Une dernière. Promis. » Le goûter est livré. L’ego, lui, est encore en cuisine.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Le plan : récupérer le goûter."
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "text": "Le problème : ton pote a le même plan."
+    },
+    {
+      "from": 6,
+      "to": 9.5,
+      "text": "La solution : régler ça à la Cantine."
+    },
+    {
+      "from": 9.5,
+      "to": 12,
+      "text": "Envoie-lui le lien. Revanche ?"
+    }
+  ],
+  "renderer": "snack-engine-demo",
+  "setup": "Le goûter est livré. L’ego, lui, est encore en cuisine.",
+  "demoStart": 0,
+  "demoSpeed": 0.85
+}

@@ -1,0 +1,40 @@
+{
+  "id": "02-braquage-butins",
+  "day": 2,
+  "game": "snack",
+  "series": "Défi solo",
+  "hook": "L’Intendant a taxé ton goûter.",
+  "duration": 12,
+  "cta": "Défie ton pote. Joue sur SlapTax.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": null,
+  "voiceText": "L’Intendant a taxé ton goûter. Reprends les caisses. Son stagiaire n’a rien demandé.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Son plan : garder ton goûter."
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "text": "Le rival arrive. PAF : le goûter tombe !"
+    },
+    {
+      "from": 6,
+      "to": 9.5,
+      "text": "Ton plan : tout ramener au dépôt."
+    },
+    {
+      "from": 9.5,
+      "to": 12,
+      "text": "Défie ton pote au Braquage."
+    }
+  ],
+  "renderer": "snack-engine-demo",
+  "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
+  "demoStart": 0,
+  "demoSpeed": 1
+}

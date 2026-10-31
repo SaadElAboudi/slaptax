@@ -1,0 +1,8 @@
+Découpe exactement 37 %.
+
+Trace une ligne, touche ta portion. Ton pote coupe mieux ?
+
+Jouer : https://slaptax-r9na.onrender.com
+
+Démonstration scénarisée avec le moteur du jeu.
+#SlapTax #DefisEntreAmis

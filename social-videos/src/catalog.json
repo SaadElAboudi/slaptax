@@ -10,8 +10,8 @@
     "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Choisis le côté que tu gardes. Valide. Quarante-trois virgule trois pour cent. Tu fais mieux ? À toi de jouer sur Slap Tax.",
+    "music": null,
+    "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Touche le morceau à servir. Tu fais mieux ?",
     "scenes": [
       {
         "from": 0,
@@ -31,7 +31,7 @@
       {
         "from": 6.5,
         "to": 7.033333333333333,
-        "text": "Valide ta coupe."
+        "text": "Le morceau est servi."
       },
       {
         "from": 7.033333333333333,
@@ -44,100 +44,128 @@
         "text": "Tu fais mieux ? À toi de jouer."
       }
     ],
-    "renderer": "decoupe-engine-demo"
+    "renderer": "decoupe-engine-demo",
+    "effects": false
   },
   {
-    "id": "02-trace-memoire",
+    "id": "02-braquage-butins",
     "day": 2,
-    "game": "trace",
+    "game": "snack",
     "series": "Défi solo",
-    "hook": "Tu as deux secondes pour retenir ça.",
-    "duration": 15,
-    "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
-    "footage": null,
-    "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Regarde bien. Maintenant, refais cette forme de mémoire. À toi de jouer.",
-    "scenes": [
-      {
-        "from": 0,
-        "to": 3,
-        "text": "Tu as deux secondes pour retenir ça."
-      },
-      {
-        "from": 3,
-        "to": 12,
-        "text": "À toi de faire mieux."
-      },
-      {
-        "from": 12,
-        "to": 15,
-        "text": "Défie ton pote. Lien en bio."
-      }
-    ]
-  },
-  {
-    "id": "03-faux-depart",
-    "day": 3,
-    "game": "falsestart",
-    "series": "Défi solo",
-    "hook": "Attends GO. Pas avant.",
+    "hook": "L’Intendant a taxé ton goûter.",
     "duration": 12,
-    "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
+    "cta": "Défie ton pote. Joue sur SlapTax.",
+    "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Tu sais attendre ? Même quand ton pote essaie de te piéger ?",
+    "music": null,
+    "voiceText": "L’Intendant a taxé ton goûter. Reprends les caisses. Son stagiaire n’a rien demandé.",
     "scenes": [
       {
         "from": 0,
         "to": 3,
-        "text": "Attends GO. Pas avant."
+        "text": "Son plan : garder ton goûter."
       },
       {
         "from": 3,
-        "to": 9,
-        "text": "À toi de faire mieux."
+        "to": 6,
+        "text": "Le rival arrive. PAF : le goûter tombe !"
       },
       {
-        "from": 9,
+        "from": 6,
+        "to": 9.5,
+        "text": "Ton plan : tout ramener au dépôt."
+      },
+      {
+        "from": 9.5,
         "to": 12,
-        "text": "Défie ton pote. Lien en bio."
+        "text": "Défie ton pote au Braquage."
       }
-    ]
+    ],
+    "renderer": "snack-engine-demo",
+    "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
+    "demoStart": 0,
+    "demoSpeed": 1
   },
   {
-    "id": "04-pote-revanche",
-    "day": 4,
-    "game": "falsestart",
-    "series": "Entre amis",
-    "hook": "Le pote qui demande toujours une revanche.",
-    "duration": 20,
-    "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
+    "id": "03-baffe-et-butins",
+    "day": 3,
+    "game": "snack",
+    "series": "Défi solo",
+    "hook": "Il portait MON goûter.",
+    "duration": 10,
+    "cta": "Défie ton pote. Joue sur SlapTax.",
+    "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Il a dit : une dernière. Trois fois. Défie ton mauvais perdant préféré.",
+    "music": null,
+    "voiceText": "Il portait MON goûter. Une baffe fait tomber la caisse. Après, il faut la ramener.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 2,
+        "text": "Le porteur arrive…"
+      },
+      {
+        "from": 2,
+        "to": 5,
+        "text": "PAF ! Le goûter tombe."
+      },
+      {
+        "from": 5,
+        "to": 7.5,
+        "text": "Baffer ne suffit pas : livre au dépôt !"
+      },
+      {
+        "from": 7.5,
+        "to": 10,
+        "text": "À ton tour de l’intercepter."
+      }
+    ],
+    "renderer": "snack-engine-demo",
+    "setup": "Une baffe fait tomber la caisse. Après, il faut la ramener.",
+    "demoStart": 3,
+    "demoSpeed": 1
+  },
+  {
+    "id": "04-revanche-cantine",
+    "day": 4,
+    "game": "snack",
+    "series": "Entre amis",
+    "hook": "« Une dernière. Promis. »",
+    "duration": 12,
+    "cta": "Défie ton pote. Joue sur SlapTax.",
+    "status": "demo",
+    "footage": null,
+    "voice": null,
+    "music": null,
+    "voiceText": "« Une dernière. Promis. » Le goûter est livré. L’ego, lui, est encore en cuisine.",
     "scenes": [
       {
         "from": 0,
         "to": 3,
-        "text": "Le pote qui demande toujours une revanche."
+        "text": "Le plan : récupérer le goûter."
       },
       {
         "from": 3,
-        "to": 17,
-        "text": "À toi de faire mieux."
+        "to": 6,
+        "text": "Le problème : ton pote a le même plan."
       },
       {
-        "from": 17,
-        "to": 20,
-        "text": "Défie ton pote. Lien en bio."
+        "from": 6,
+        "to": 9.5,
+        "text": "La solution : régler ça à la Cantine."
+      },
+      {
+        "from": 9.5,
+        "to": 12,
+        "text": "Envoie-lui le lien. Revanche ?"
       }
-    ]
+    ],
+    "renderer": "snack-engine-demo",
+    "setup": "Le goûter est livré. L’ego, lui, est encore en cuisine.",
+    "demoStart": 0,
+    "demoSpeed": 0.85
   },
   {
     "id": "05-chroma-couleur",
