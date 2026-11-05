@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
+import economy from '../../shared/token-economy.json' with {type:'json'};
 async function post(r:APIRequestContext,path:string,data:object) {
     const response=await r.post(path,{data}); expect(response.ok(),await response.text()).toBe(true); return response.json();
 }
@@ -13,7 +14,7 @@ async function identify(page:Page,user:Awaited<ReturnType<typeof player>>) {
         localStorage.setItem('slaptax_player_name',u.playerName);localStorage.setItem('slaptax_training_game','chroma');
     },user);
 }
-test('CHROMA solo uses the picker, expires automatically and leaves the wallet unchanged',async({page,request},info)=>{
+test('CHROMA solo uses the picker, expires automatically and credits only the configured practice reward',async({page,request},info)=>{
     test.setTimeout(90000);
     await identify(page,await player(request,'ColorSolo')); await page.goto('/');
     await page.getByRole('button',{name:'Play CHROMA',exact:true}).click();
@@ -33,7 +34,7 @@ test('CHROMA solo uses the picker, expires automatically and leaves the wallet u
         if(i===0) await page.screenshot({path:info.outputPath('chroma-reveal.png'),fullPage:true});
     }
     await expect(page.getByTestId('chroma')).toHaveCount(0);
-    await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
+    await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance',String(economy.welcome+economy.practiceReward));
 });
 test('two rivals finish CHROMA with server-owned scores and a result recap',async({browser,request},info)=>{
     test.setTimeout(90000);

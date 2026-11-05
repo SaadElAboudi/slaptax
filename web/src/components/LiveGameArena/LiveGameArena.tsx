@@ -1,5 +1,4 @@
 import {ARENA_STALE_MS} from '../../gameplay/arenaConnection';
-import {gameChapter} from '../../gameplay/world';
 import simplePlay from '../../../../shared/simple-play.json';
 import refinementRules from '../../../../shared/party-refinement.json';
 import {GameSession} from './GameSession/GameSession';
@@ -152,9 +151,9 @@ export function LiveGameArena({ mode, gameId, series, round, opponentName, isFr,
             {phase === 'briefing' && (
                 <div className={styles.briefing}>
                     <div className={styles.poster}><GamePoster gameId={gameId} /></div>
-                    <span>{mode === 'training' ? (isFr ? 'EXERCICE LIBRE' : 'FREE PRACTICE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
+                    <span>{mode === 'training' ? (isFr ? 'JOUE À TON RYTHME' : 'PLAY AT YOUR OWN PACE') : (isFr ? 'PROCHAINE EPREUVE' : 'NEXT EVENT')}</span>
                     <span className={styles.worldLabel}>{gameWorld(gameId,isFr)}</span><h3>{gameLabel(gameId, isFr)}</h3>
-                    {gameChapter(gameId,isFr)&&<p className={styles.chapterStory}>{gameChapter(gameId,isFr)?.story}</p>}
+
                     <div className={styles.ruleSteps}>{briefSteps(gameId,isFr,touchDevice).map((step,index)=><div className={styles.ruleStep} key={step}><b>{index+1}</b><span>{step}</span></div>)}</div>
                     <details className={styles.fullRules}><summary>{isFr?'Toutes les règles':'Full rules'}</summary><p>{gameRule(gameId, isFr)}</p><p className={styles.coachTip}><strong>{isFr?'ASTUCE DU RIVAL : ':'RIVAL TIP: '}</strong>{gameTip(gameId,isFr)}</p></details>
                     <div className={styles.briefStats}>

@@ -7,7 +7,7 @@ for(const game of selection)test(`${game.id}: live scene renders, fits and suspe
  await page.goto(`/?tab=training&game=${game.id}`);await page.getByRole('button',{name:'Entrer dans l arene'}).click();
  if(game.id==='bombpass')await expect(page.getByTestId('bomb-track')).toBeVisible();
  else{await expect(page.getByTestId('party-arena')).toBeVisible();await expect(page.getByTestId('party-arena')).not.toHaveAttribute('data-phase','ready');}
- if(!['bombpass','garde'].includes(game.id)){
+ if(!['bombpass','garde','chroma'].includes(game.id)){
   await expect.poll(()=>page.evaluate(()=>(window as any).__arenaDraws)).toBeGreaterThan(0);
   await page.evaluate(()=>{document.documentElement.dataset.appActive='false';window.dispatchEvent(new CustomEvent('slaptax:app-state',{detail:{isActive:false}}));});await page.waitForTimeout(100);
   const before=await page.evaluate(()=>(window as any).__arenaDraws);await page.waitForTimeout(200);expect(await page.evaluate(()=>(window as any).__arenaDraws)).toBe(before);

@@ -1,6 +1,7 @@
 const GAME_POOL = require('../../shared/game-selection.json').map(game=>game.id);
 
-const KNOWN_GAMES=[...GAME_POOL,'ricochet','falsestart','onesecond','bounce','symbolrush','cupshuffle','duelnumeric','chroma','contrepied','trace','mat'];
+// Retired IDs remain readable for existing rooms, never in automatic rotations.
+const KNOWN_GAMES=[...GAME_POOL,'chicken','pigeon','lift','pie','balloon','toilet','table','garde','bombpass','ricochet','falsestart','onesecond','bounce','symbolrush','cupshuffle','duelnumeric','chroma','contrepied','trace','mat'];
 function newVeto() { return { votes: {}, banned: [], complete: false }; }
 
 function tournamentVeto(votes, entrants, preferred) {

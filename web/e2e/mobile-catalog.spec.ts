@@ -7,9 +7,9 @@ test('every selected game enters its mobile scene without a crash or horizontal 
  let actions:string[]=[];page.on('websocket',ws=>ws.on('framesent',e=>{try{const a=JSON.parse(String(e.payload));if(a.type==='arena.action')actions.push(a.action);}catch{}}));
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  for(const game of selection){
-  actions=[];await page.goto(`/?tab=training&game=${game.id}`);await page.getByRole('button',{name:'Entrer dans l arene'}).click();
+  actions=[];await page.goto(`/?tab=training&game=${game.id}`);await expect(page.getByRole('button',{name:'Entrer dans l arene'})).toBeInViewport();await page.getByRole('button',{name:'Entrer dans l arene'}).click();
   const scene=page.locator(`[data-game-session="${game.id}"]`);await expect(scene,game.labelFr).toBeVisible();
-  if(!['garde','bombpass'].includes(game.id))await expect(scene.locator('canvas').first(),game.labelFr).toBeVisible();
+  if(!['garde','bombpass','chroma'].includes(game.id))await expect(scene.locator('canvas').first(),game.labelFr).toBeVisible();
   if(game.id!=='bombpass')await expect(scene.locator('[data-testid=party-arena]'),game.labelFr).not.toHaveAttribute('data-phase','ready');
   if(['snack','chicken','pie','pigeon'].includes(game.id))await expect(scene.getByRole('slider')).toHaveCount(0);
   if(['snack','chicken'].includes(game.id)){await expect(scene.getByTestId('snack-skill')).toHaveCount(0);await expect(scene.getByTestId('snack-super')).toHaveCount(0);}

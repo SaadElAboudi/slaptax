@@ -5,15 +5,15 @@ import { useGameStore, type Tab } from './hooks/useGameStore';
 import { TopBar } from './components/TopBar/TopBar';
 import { Tabs } from './components/Tabs/Tabs';
 import { ArenaHome } from './components/ArenaHome/ArenaHome';
-import { LeaderboardPanel } from './components/LeaderboardPanel/LeaderboardPanel';
-import { HistoryPanel } from './components/HistoryPanel/HistoryPanel';
-import { FriendDuelPanel } from './components/FriendDuelPanel/FriendDuelPanel';
-import { TournamentPanel } from './components/TournamentPanel/TournamentPanel';
-import { TrainingPanel } from './components/TrainingPanel/TrainingPanel';
+const LeaderboardPanel=lazy(()=>import('./components/LeaderboardPanel/LeaderboardPanel').then(m=>({default:m.LeaderboardPanel})));
+const HistoryPanel=lazy(()=>import('./components/HistoryPanel/HistoryPanel').then(m=>({default:m.HistoryPanel})));
+const FriendDuelPanel=lazy(()=>import('./components/FriendDuelPanel/FriendDuelPanel').then(m=>({default:m.FriendDuelPanel})));
+const TournamentPanel=lazy(()=>import('./components/TournamentPanel/TournamentPanel').then(m=>({default:m.TournamentPanel})));
+const TrainingPanel=lazy(()=>import('./components/TrainingPanel/TrainingPanel').then(m=>({default:m.TrainingPanel})));
 import { useRealtime } from './api/realtime';
 import { api } from './api/client';
-import { LinkChallenge } from './components/TrainingPanel/LinkChallenge';
-import { MyChallenges } from './components/MyChallenges/MyChallenges';
+const LinkChallenge=lazy(()=>import('./components/TrainingPanel/LinkChallenge').then(m=>({default:m.LinkChallenge})));
+const MyChallenges=lazy(()=>import('./components/MyChallenges/MyChallenges').then(m=>({default:m.MyChallenges})));
 
 const SnackTeams=lazy(()=>import('./components/SnackTeams/SnackTeams').then(m=>({default:m.SnackTeams})));
 
@@ -124,7 +124,7 @@ function App() {
         tournament: isFr ? 'Tournoi' : 'Tournament',
         leaderboard: isFr ? 'Classement' : 'Leaderboard',
         stats: isFr ? 'Historique' : 'History',
-        challenges: isFr ? 'Mes defis' : 'My challenges',
+        challenges: isFr ? 'Scores à battre' : 'Score challenges',
     };
     const activeGameName = sectionLabels[activeTab] || (isFr ? 'Entrainement' : 'Training');
     const modeStatus: Record<Tab, { label: string; tone: string }> = {
@@ -144,6 +144,7 @@ function App() {
             <TopBar onHome={leaveArena} />
             {!isNative()&&appInvitationUrl()&&<aside className="native-invitation"><a href={appInvitationUrl()!}>{isFr?'Ouvrir cette invitation dans l’app':'Open this invitation in the app'}</a><span>{isFr?'Si SlapTax est déjà installé sur ton téléphone.':'If SlapTax is already installed on your phone.'}</span></aside>}
 
+            <Suspense fallback={<p className={styles.loading} role="status">{isFr?'Chargement du jeu…':'Loading game…'}</p>}>
             <main className={`${styles.container} ${arenaOpen ? styles.arenaMode : styles.homeMode}`}>
                 {linkChallenge ? <LinkChallenge id={linkChallenge}/> : !arenaOpen ? (
                     <ArenaHome onEnter={enterArena} />
@@ -177,6 +178,7 @@ function App() {
 
                 {!linkChallenge && <Tabs home={!arenaOpen} onHome={leaveArena} onEnter={enterArena} />}
             </main>
+            </Suspense>
         </>
     );
 }

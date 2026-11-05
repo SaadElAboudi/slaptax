@@ -100,6 +100,14 @@
       "chapterEn": "The Steward’s parcel",
       "storyFr": "L’Intendant vous renvoie un cadeau. Passez-le avant qu’il explose !",
       "storyEn": "The Steward sends a gift back. Pass it on before it explodes!"
+    },
+    "chroma": {
+      "placeFr": "Le Laboratoire des couleurs",
+      "placeEn": "The Color Lab",
+      "chapterFr": "Une nuance de revanche",
+      "chapterEn": "A shade of revenge",
+      "storyFr": "La brigade a perdu la recette des couleurs. Trois nuances à retrouver de mémoire : qui a vraiment l’œil ?",
+      "storyEn": "The crew lost the color recipe. Recreate three shades from memory: who really has the eye?"
     }
   }
 }

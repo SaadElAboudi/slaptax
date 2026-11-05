@@ -11,3 +11,11 @@
 @media(prefers-reduced-motion:reduce) { .swatch,.observation,.observation>strong { animation:none; }.chroma button:active:not(:disabled) { transform:none; } }
 .totals { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-top:1px solid #44444e; font-size:11px; font-variant-numeric:tabular-nums; }.totals>span { font-size:9px; color:#b2b2c0; }.totals>b { color:#dce3ef; }
 .chroma{color:#f4f8ff}.phaseTitle h3{font-family:var(--font-display);font-weight:1000;color:#fff}.chroma header strong{color:#ffdf6f}.chroma button{background:#ffda4b;color:#18294e;border:2px solid #101a38;border-radius:10px;box-shadow:0 5px #101a38}.picker,.swatch,.preview{border:3px solid #101a38;border-radius:12px;overflow:hidden}.controls label{color:#d5e5ff}.observation>strong{color:#ffda4b}.totals{border-color:#718fbe}.results b,.totals>span{color:#c4d8ff}.results span{color:#fff}.results>div[data-self="true"] b{color:#ffe07c}
+
+/* The touch target is the whole slider row, including the hue track. */
+.controls input,.controls input.hue{height:44px;touch-action:pan-y;cursor:pointer}
+.controls input.hue{background-size:100% 12px;background-repeat:no-repeat;background-position:center}
+.controls input:focus-visible{outline:3px solid #fff0b1;outline-offset:2px}
+.picker{overflow:visible;cursor:crosshair}
+.chroma button:focus-visible{outline:3px solid #fff0b1;outline-offset:3px}
+@media(max-width:600px){.chroma{gap:6px}.controls label{grid-template-columns:76px minmax(0,1fr);font-size:11px}.picker{height:clamp(64px,15svh,120px)}.preview{height:26px;box-sizing:border-box}.preview span{height:20px;width:24px}.phaseTitle{min-height:42px}.phaseTitle h3{font-size:21px}.results{min-height:200px;padding:10px 0}.swatch{height:clamp(90px,23svh,180px)}.observation{min-height:clamp(150px,35svh,270px)}}

@@ -1,3 +1,4 @@
+import economy from '../../shared/token-economy.json' with {type:'json'};
 import {test,expect,type Page,type APIRequestContext} from '@playwright/test';
 async function post(r:APIRequestContext,path:string,data:object){const response=await r.post(path,{data});expect(response.ok(),await response.text()).toBe(true);return response.json();}
 async function player(r:APIRequestContext,name:string){const clientId=crypto.randomUUID();return {...await post(r,'/api/session/join',{clientId,playerName:name}),clientId,playerName:name};}
@@ -19,9 +20,9 @@ test('table solo uses a real drag, three declared bots, live physics and a repla
  const pixels=await canvas.evaluate((c:HTMLCanvasElement)=>new Set(c.getContext('2d')!.getImageData(0,0,c.width,c.height).data).size);expect(pixels).toBeGreaterThan(30);
  await page.screenshot({path:info.outputPath('table-playing.png'),fullPage:true});
  await expect(page.getByText('REPLAY · DERNIÈRES SECONDES',{exact:true})).toBeVisible({timeout:22000});
- await expect(page.getByTestId('solo-victory')).toBeVisible();await expect(page.getByRole('button',{name:'Rejouer',exact:true})).toBeVisible();
+ await expect(page.getByTestId('solo-victory')).toBeVisible();await expect(page.getByRole('button',{name:'Je prends ma revanche',exact:true})).toBeVisible();
  await page.screenshot({path:info.outputPath('table-result.png'),fullPage:true});
- await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');expect(errors).toEqual([]);
+ await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance',String(economy.welcome+economy.practiceReward));expect(errors).toEqual([]);
 });
 test('table duel runs two human players with a server-owned result and no disguised bots',async({browser,request},info)=>{
  test.setTimeout(60000);const a=await player(request,'TableA'),b=await player(request,'TableB');

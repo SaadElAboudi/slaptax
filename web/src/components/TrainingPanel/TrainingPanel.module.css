@@ -29,3 +29,6 @@
 @media(max-width:760px){.head,.config{margin-inline:0}.head h2{font-size:23px}.games{grid-template-columns:repeat(3,minmax(0,1fr))}.gamePreview{height:75px}}
 .result h2 small{font-size:20px;color:#bcd4ff;font-weight:700}.best span{font-size:9px;white-space:nowrap}
 .head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 3px 12px;margin:0}.head>p{font-size:12px;line-height:1.5;color:#cddfff;max-width:240px}.best{display:flex;align-items:center;gap:10px;padding:7px 10px;flex-shrink:0}.best strong{font-size:20px}.best span{font-size:8px}.linkChallengeButton{background:#38558f!important;color:#d7e7ff!important;border-color:#101a38!important;box-shadow:0 3px #101a38;font-size:12px;min-height:42px}
+
+.rematchGoal{display:grid;gap:8px;width:min(480px,100%);padding:16px;border:2px solid #ffe09a;border-radius:12px;background:#192f53;box-sizing:border-box}.rematchGoal strong{color:#ffe09a;font-size:19px}.rematchGoal span{color:#d9e5f7;font-size:13px;line-height:1.5}
+@media(max-width:760px){.resultActions{width:100%;max-width:480px}.resultActions button{width:100%;min-height:48px}.result{min-height:0}.games button{min-height:96px}.games button>span{font-size:11px}}

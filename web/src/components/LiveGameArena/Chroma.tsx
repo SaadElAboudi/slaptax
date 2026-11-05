@@ -61,7 +61,7 @@ export function Chroma({ party, identity, active, isFr, send }: {
             {Object.entries(party.feedback.colors||{}).map(([id,rgb])=><div key={id} data-self={id===identity}><div className={styles.swatch} style={{background:colorCss(rgb)}}/><b>{id===identity?(isFr?'TOI':'YOU'):'RIVAL'}</b><span>{((party.runs[id]?.errors?.[party.attempt-1]||0)/1000).toFixed(1)} {isFr?'d ecart':'away'}</span></div>)}
         </div><div className={styles.totals}><span>{isFr?'TOTAL RVB':'TOTAL RGB'}</span>{Object.entries(party.scores).map(([id,score])=><b key={id}>{id===identity?(isFr?'TOI':'YOU'):'RIVAL'} {(Math.abs(score)/1000).toFixed(1)}</b>)}</div></>:mixing?<>
             <div className={styles.preview} style={{background:colorCss(swatch)}} aria-label={isFr?'Ta couleur':'Your color'}><span>{locked?<Check size={18}/>:<Palette size={18}/>}</span></div>
-            <div className={styles.picker} data-testid="chroma-picker" data-locked={locked} style={{backgroundColor:colorCss(hsvRgb(hsv[0],1,1))}}
+            <div className={styles.picker} data-testid="chroma-picker" role="group" aria-label={isFr?'Ajuster saturation et luminosité':'Adjust saturation and brightness'} data-locked={locked} style={{backgroundColor:colorCss(hsvRgb(hsv[0],1,1))}}
                 onPointerDown={e=>{if(!enabled||e.button!==0)return;e.currentTarget.setPointerCapture(e.pointerId);move(e);}}
                 onPointerMove={move} onPointerUp={e=>{if(!enabled)return;move(e);change(value.current,true);if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);}}
                 onPointerCancel={()=>{if(enabled)change(value.current,true);}}>

@@ -181,3 +181,5 @@
 
 /* Keep tap targets stationary while a phone user enters a game. */
 @media(pointer:coarse){.panelArea{animation:none}}
+
+.loading{padding:40px 20px;text-align:center;font-size:16px;color:#e0ecf5}

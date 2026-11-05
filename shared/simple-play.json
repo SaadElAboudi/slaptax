@@ -97,5 +97,11 @@
     "goalEn": "Pass while the marker is in the green zone",
     "gestureFr": "Un bouton : PASSER au bon moment",
     "gestureEn": "One button: PASS at the right time"
+  },
+  "chroma": {
+    "goalFr": "Recrée trois couleurs de mémoire",
+    "goalEn": "Recreate three colors from memory",
+    "gestureFr": "Glisse pour ajuster · VERROUILLER pour valider",
+    "gestureEn": "Drag to adjust · LOCK to submit"
   }
 }

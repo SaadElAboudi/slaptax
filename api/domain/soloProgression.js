@@ -1,6 +1,7 @@
-const GAMES=require('../../shared/game-selection.json').map(game=>game.id).filter(id=>id!=='bombpass');
+const selection=require('../../shared/game-selection.json');
+const GAMES=selection.map(game=>game.id).filter(id=>id!=='bombpass');
 function dayKey(now=Date.now()){return new Date(now).toISOString().slice(0,10);}
-function routeFor(day){const n=Math.floor(Date.parse(day+'T00:00:00Z')/86400000);return [0,2,4].map(offset=>GAMES[(n+offset)%GAMES.length]);}
+function routeFor(day){const n=Math.floor(Date.parse(day+'T00:00:00Z')/86400000);return ['action','observation','nerve'].map(family=>{const pool=selection.filter(g=>g.family===family&&GAMES.includes(g.id));return pool[((n%pool.length)+pool.length)%pool.length].id;});}
 function ensureSolo(user,now=Date.now()){
  const day=dayKey(now);const s=user.progression.solo ||= {plays:0,best:{},badges:[],receipts:[],daily:{day,games:routeFor(day),completed:[],rewarded:false,xpPlays:0}};
  if(s.daily.day!==day)s.daily={day,games:routeFor(day),completed:[],rewarded:false,xpPlays:0};

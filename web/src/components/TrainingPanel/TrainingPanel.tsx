@@ -1,10 +1,10 @@
 import {factoryAftermath} from '../../gameplay/factoryComedy';
-import {CENTRAL_GAME,gameChapter} from '../../gameplay/world';
+import {gameChapter} from '../../gameplay/world';
 import {hasScoreChallenge,preferredGame,prepareGameMode} from '../../gameplay/gameExperience';
 import type {SoloReward} from '../../api/client';
 import {SoloVictory} from './SoloVictory';
 import { useMemo, useRef, useState } from 'react';
-import {recordPractice} from '../../gameplay/practiceHistory';
+import {readPracticeHistory,recordPractice} from '../../gameplay/practiceHistory';
 import { COMPETITIVE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
@@ -79,6 +79,9 @@ export function TrainingPanel() {
 
     if (result) {
         const isRecord = result.score > best;
+        const target = Math.min(1000, Math.max(best + 1, result.score < 400 ? 400 : result.score < 700 ? 700 : result.score < 900 ? 900 : result.score + 1));
+        const recent = readPracticeHistory(useGameStore.getState().userId || '').slice(0, 3).map(entry => entry.gameId);
+        const nextGame = COMPETITIVE_GAMES.find(game => !recent.includes(game.id) && game.id !== gameId) || COMPETITIVE_GAMES.find(game => game.id !== gameId)!;
         return (
             <section className={styles.result}>
                 <span>{gameChapter(gameId,isFr)?.place}</span><SoloVictory result={result} best={best} isFr={isFr}/>
@@ -86,17 +89,14 @@ export function TrainingPanel() {
                 <h2>{result.score}<small> / 1000</small></h2>
                 <p data-testid="factory-aftermath">{factoryAftermath(gameId,isFr)}</p>
                 <p>{gameLabel(gameId, isFr)} · {(result.metric / 1000).toFixed(1)}s</p>
+                <div className={styles.rematchGoal} data-testid="practice-next-goal"><strong>{result.score >= 1000 ? (isFr ? 'Score parfait. Qui peut faire aussi bien ?' : 'Perfect score. Who can match it?') : (isFr ? `Prochain défi : ${target} points` : `Next challenge: ${target} points`)}</strong><span>{result.score >= 1000 ? (isFr ? 'Défie un ami pour départager vos talents.' : 'Challenge a friend to test your skills.') : (isFr ? `Encore ${target-result.score} points. Tu connais le geste : à toi la revanche.` : `${target-result.score} more points. You know the move: run it back.`)}</span></div>
                 <div className={styles.resultActions}>
 
-                    {gameId!==CENTRAL_GAME&&<button type="button" onClick={()=>{setPlaying(false);selectGame(CENTRAL_GAME);}}>{isFr?'Retour à la Cantine':'Back to the Canteen'}</button>}
-                    <button type="button" onClick={replay}>{isFr ? 'Rejouer' : 'Replay'}</button>
-                    {hasScoreChallenge(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
-                    <button type="button" onClick={() => {
-                        try { localStorage.setItem('slaptax_duel_game', gameId); } catch { /* Optional preference. */ }
-                        setActiveTab('defy');
-                    }}>{isFr ? 'Defier un ami' : 'Challenge a friend'}</button>
-                    <button type="button" className={styles.secondary} onClick={() => { setPlaying(false); setResult(null); }}>
-                        {isFr ? 'Changer d exercice' : 'Change drill'}
+                    <button type="button" onClick={replay}>{isFr ? 'Je prends ma revanche' : 'Run it back'}</button>
+                    {hasScoreChallenge(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Défier un ami par lien':'Create a link challenge'}</button>}
+                    {!hasScoreChallenge(gameId)&&<button type="button" onClick={() => {prepareGameMode(gameId,'defy');setActiveTab('defy');}}>{isFr ? 'Défier un ami en direct' : 'Challenge a friend live'}</button>}
+                    <button type="button" className={styles.secondary} onClick={() => { setPlaying(false); selectGame(nextGame.id); }}>
+                        {isFr ? 'Essayer un autre jeu' : 'Try another game'}
                     </button>
                 </div>
             </section>
@@ -105,12 +105,18 @@ export function TrainingPanel() {
 
     return (
         <section className={styles.panel}>
-            {!playing && <>
-            <header className={styles.head}>
-                <p>{isFr?'Découvre le jeu et bats ton propre score.':'Learn the game and beat your own score.'}</p>
-                <div className={styles.best}><span>{isFr?'RECORD SOLO':'SOLO BEST'}</span><strong>{best || '--'}</strong></div>
-            </header>
-
+            <LiveGameArena
+                key={`${gameId}-${level}-${attempt}`}
+                mode="training"
+                gameId={gameId}
+                series={[gameId]}
+                round={effectiveLevel}
+                opponentName=""
+                isFr={isFr}
+                onComplete={complete}
+                onStart={() => setPlaying(true)}
+            />
+            {!playing&&<>
             <details className={styles.config}><summary>{isFr?'Changer de jeu':'Change game'}<span>{gameLabel(gameId,isFr)}</span></summary>
                 <div className={styles.games}>
                     {COMPETITIVE_GAMES.map((game) => (
@@ -138,20 +144,8 @@ export function TrainingPanel() {
                     ))}
                 </div>}
             </details>
-
             </>}
-            <LiveGameArena
-                key={`${gameId}-${level}-${attempt}`}
-                mode="training"
-                gameId={gameId}
-                series={[gameId]}
-                round={effectiveLevel}
-                opponentName=""
-                isFr={isFr}
-                onComplete={complete}
-                onStart={() => setPlaying(true)}
-            />
-            {!playing&&hasScoreChallenge(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Creer un defi par lien':'Create a link challenge'}</button>}
+            {!playing&&hasScoreChallenge(gameId)&&<button type="button" className={styles.linkChallengeButton} onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Défier un ami par lien':'Create a link challenge'}</button>}
         </section>
     );
 }

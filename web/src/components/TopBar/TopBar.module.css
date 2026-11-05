@@ -2,3 +2,5 @@
 @media(max-width:600px){.topbar{padding:10px 14px;min-height:62px;gap:8px}.brand{font-size:24px}.right{gap:8px}.liveDot{display:none}.walletChip{padding:6px 8px;font-size:12px;gap:5px}.walletChip small{font-size:8px}.avatarButton{min-width:37px;min-height:37px}.locker{top:68px}}
 
 .walletChip{min-height:44px;cursor:pointer;font-family:inherit}.walletChip:focus-visible{outline:3px solid white;outline-offset:3px}
+
+.avatarButton,.walletChip{min-height:44px;min-width:44px}

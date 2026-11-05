@@ -5,7 +5,7 @@ EN: Mobile social competition platform built around fast mini-games, 1v1 friend 
 
 Tagline: `Tape. Encaisse. Encaisse encore.`
 
-Nouvelle arène : **[Poule Position](docs/POULE_POSITION.md)** — un poulet royal à capturer, des lancers et des œufs géants. [Validation web/mobile](docs/qa/poule-position-validation.md).
+Catalogue actuel : **6 jeux** — Chef Couic, CHROMA, Tour de Trop, Braquage du Goûter, Bagarre de Table et Tarte ta Face. Les autres jeux sont retirés des menus et des rotations automatiques ; les moteurs historiques restent lisibles pour les anciennes parties. [Simplification et sélection](docs/SIMPLIFICATION_2026-11-05.md).
 
 [Qualité des douze jeux : commandes, rendu et retours de jeu](docs/QUALITE_JEUX.md).
 

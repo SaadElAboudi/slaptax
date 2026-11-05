@@ -42,7 +42,7 @@ for(const game of ['trace','decoupe'] as const) {
         await page.screenshot({path:info.outputPath(`${game}-board.png`),fullPage:true});
         await complete(page,game==='decoupe',info.project.name.includes('mobile'),()=>portion);
         await page.screenshot({path:info.outputPath(`${game}-reveal.png`),fullPage:true});
-        await expect(page.getByRole('button',{name:'Replay',exact:true})).toBeVisible();
+        await expect(page.getByRole('button',{name:'Run it back',exact:true})).toBeVisible();
         expect(errors).toEqual([]);
     });
     test(`${game} link challenge runs host and visitor on identical server targets and survives reload`,async({page,request,browser},info)=>{

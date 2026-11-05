@@ -1,10 +1,21 @@
 import {test,expect} from '@playwright/test';
-test('the main arena anchors the factory and every bonus guide returns to it',async({page},info)=>{
- if(info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});await page.addInitScript(()=>localStorage.setItem('slaptax_lang','fr'));await page.goto('/');await expect(page.getByRole('button',{name:'Défier un pote au Braquage',exact:true})).toBeVisible();await page.screenshot({path:info.outputPath('factory-home.png')});await expect(page.getByTestId('factory-episode')).toContainText('Opération casse-croûte');await expect(page.getByTestId('factory-story')).toContainText('La Cantine');await expect(page.getByRole('button',{name:'Créer une soirée à quatre',exact:true})).toBeVisible();await page.getByRole('tab',{name:'Tous · jeux bonus',exact:true}).click();await page.getByRole('button',{name:'Découvrir Chef Couic',exact:true}).click();const dialog=page.getByRole('dialog');await expect(dialog).toContainText('l’Intendant');await dialog.getByRole('button',{name:'Retour à la Cantine · arène centrale'}).click();await expect(page.getByRole('heading',{name:'Braquage du Goûter',exact:true})).toBeVisible();expect(new URL(page.url()).searchParams.get('game')).toBe('snack');
+
+test('factory identity never adds a story gate before the six games',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('slaptax_lang','fr'));
+ await page.goto('/');
+ await expect(page.locator('#games article')).toHaveCount(6);
+ await expect(page.getByTestId('factory-story')).toHaveCount(0);
+ await expect(page.getByTestId('factory-episode')).toHaveCount(0);
+ await page.getByRole('button',{name:'Jouer Braquage du Goûter',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Braquage du Goûter',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Entrer dans l arene'})).toBeEnabled();
 });
 
-test('a completed incident continues as a playable workshop episode',async({page})=>{
- await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');});
+test('a previous practice does not hide games or change the primary entry',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('slaptax_lang','fr'));
  await page.goto('/');await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
- await page.evaluate(()=>{const id=localStorage.getItem('slaptax_user_id')||'';localStorage.setItem(`slaptax_practice_history_${id}`,JSON.stringify([{id:'local-incident',gameId:'snack',score:500,completedAt:1}]));});await page.reload();const episode=page.getByTestId('factory-episode');await expect(episode).toContainText('La part du patron');await expect(episode).toContainText('compte les miettes');await episode.getByRole('button',{name:'Jouer cet épisode'}).click();await expect(page.getByRole('heading',{name:'Chef Couic',exact:true})).toBeVisible();expect(new URL(page.url()).searchParams.get('game')).toBe('decoupe');
+ await page.evaluate(()=>{const id=localStorage.getItem('slaptax_user_id')||'';localStorage.setItem(`slaptax_practice_history_${id}`,JSON.stringify([{id:'local-incident',gameId:'snack',score:500,completedAt:1}]));});
+ await page.reload();await expect(page.locator('#games article')).toHaveCount(6);
+ await page.getByRole('button',{name:'Jouer maintenant',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Chef Couic',exact:true})).toBeVisible();
 });

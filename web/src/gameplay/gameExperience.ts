@@ -1,9 +1,9 @@
 import {gameChapter} from './world';
 import {COMPETITIVE_GAMES,type CompetitiveGameId} from './catalog';
 import type {Tab} from '../hooks/useGameStore';
-export const SCORE_CHALLENGE_GAMES:CompetitiveGameId[]=['decoupe','onemore'];
+export const SCORE_CHALLENGE_GAMES:CompetitiveGameId[]=['decoupe','onemore','chroma'];
 export const hasScoreChallenge=(id:string)=>SCORE_CHALLENGE_GAMES.some(g=>g===id);
-export function preferredGame(mode:string,fallback:CompetitiveGameId='snack'):CompetitiveGameId{
+export function preferredGame(mode:string,fallback:CompetitiveGameId='decoupe'):CompetitiveGameId{
  const query=new URLSearchParams(location.search).get('game');let stored:string|null=null;try{stored=localStorage.getItem(`slaptax_${mode}_game`);}catch{/* URL choice works without storage. */}
  const id=query||stored;return COMPETITIVE_GAMES.some(g=>g.id===id)?id as CompetitiveGameId:fallback;
 }
@@ -12,6 +12,7 @@ export function prepareGameMode(id:CompetitiveGameId,mode:Tab){
  const url=new URL(location.href);url.searchParams.set('game',id);url.searchParams.delete('room');url.searchParams.delete('invite');url.searchParams.delete('link');history.replaceState({},'',url);
 }
 const tips:Record<string,[string,string,string,string]>={
+ chroma:['Le laboratoire des couleurs','Règle d’abord la teinte, puis la saturation et la luminosité. La vitesse ne donne aucun bonus.','The color lab','Set hue first, then saturation and brightness. Speed gives no bonus.'],
  chicken:['L’usine à poulets royaux','Lance le poulet avant sa rébellion. Une zone d’œuf annoncée ne te suit pas : change de route !','The royal poultry factory','Throw before the chicken rebels. An egg warning stays put: change your route!'],
  snack:['La cantine des braqueurs','Une baffe fait lâcher le goûter. LANCE vise automatiquement ton dépôt.','The snack thieves’ canteen','A slap drops the snack. THROW automatically aims at your depot.'],
  toilet:['Le grand bain des canards','Le turbo sert aussi à fuir la chasse : garde une sortie.','The great duck escape','Turbo also escapes the flush: keep an exit.'],
