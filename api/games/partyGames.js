@@ -1,3 +1,4 @@
+const {beginSurvival,actSurvival,tickSurvival,publicSurvival,pauseSurvival}=require('./survivalGames');
 const SIMPLE_PLAY=require('../../shared/simple-play.json');
 const TOWER=require('../../shared/party-refinement.json').tower;
 const {beginSnack,actSnack,tickSnack,publicSnack,pauseSnack}=require('./snack');
@@ -12,11 +13,11 @@ const {prepareDrawing,actDrawing,tickDrawing,publicDrawing} = require('./drawing
 const {beginGarde,prepareGarde,actGarde,tickGarde,publicGarde} = require('./garde');
 const {prepareMat,actMat,tickMat,publicMat} = require('./mat');
 
-const PARTY_IDS = ['chicken','snack','pigeon','lift','pie','balloon','toilet','table','falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'];
+const PARTY_IDS = ['stopgo','fragile','chicken','snack','pigeon','lift','pie','balloon','toilet','table','falsestart', 'onesecond', 'onemore', 'chroma', 'ricochet', 'contrepied', 'trace', 'decoupe', 'garde', 'mat'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
 function createParty(id, players, random = (min, max) => randomInt(min, max)) {
-    if (new Set(players).size!==players.length || id==='snack'&&players.length===3 || !PARTY_IDS.includes(id) || players.length < 1 || players.length > (id==='snack'?4:2)) throw new Error('Invalid party');
+    if (new Set(players).size!==players.length || id==='snack'&&players.length===3 || !PARTY_IDS.includes(id) || players.length < 1 || players.length > (['snack','table','stopgo','fragile'].includes(id)?4:2)) throw new Error('Invalid party');
     return { id, players, random, phase: 'ready', turn: 0, attempt: 0, deadline: 0,
         scores: Object.fromEntries(players.map((p) => [p, 0])), runs: {}, feints: {}, traps: {},
         ready: [], replay: [], lastFrame: 0, winnerId: null, summary: '', started: 0 };
@@ -43,7 +44,8 @@ function nextAttempt(g, now) {
     g.responses = {};
     g.traps = {};
     g.feedback = {};
-    if(['snack','chicken'].includes(g.id)){beginSnack(g,now);
+    if(['stopgo','fragile'].includes(g.id)){beginSurvival(g,now);
+    }else if(['snack','chicken'].includes(g.id)){beginSnack(g,now);
     }else if(['pigeon','lift'].includes(g.id)){beginAbsurd(g,now);
     }else if(['pie','balloon'].includes(g.id)){beginCarnival(g,now);
     } else if(g.id==='toilet'){beginToilet(g,now);
@@ -144,6 +146,7 @@ function actParty(g, id, action, now) {
     }
     if (['done', 'ready', 'reveal', 'prepare'].includes(g.phase)) return false;
     if (now >= g.deadline) { tickParty(g, now); return false; }
+    if(['stopgo','fragile'].includes(g.id))return actSurvival(g,id,action,now);
     if(['snack','chicken'].includes(g.id))return actSnack(g,id,action,now);
     if(['pigeon','lift'].includes(g.id))return actAbsurd(g,id,action,now);
     if(['pie','balloon'].includes(g.id))return actCarnival(g,id,action,now);
@@ -230,6 +233,7 @@ function settleSecond(g, now) {
 
 function tickParty(g, now) {
     if (['done', 'draw', 'ready'].includes(g.phase)) return;
+    if(['stopgo','fragile'].includes(g.id)){tickSurvival(g,now);return;}
     if(['pigeon','lift'].includes(g.id)){tickAbsurd(g,now,conclude);return;}
     if(['pie','balloon'].includes(g.id)){tickCarnival(g,now,conclude);return;}
     if(g.id==='toilet'){tickToilet(g,now);return;}
@@ -281,6 +285,7 @@ function publicParty(g, viewer, now) {
         answered: Object.keys(g.responses || {}),
         runs: {}, winnerId: g.winnerId, summary: g.summary,
     };
+    if(['stopgo','fragile'].includes(g.id))state.survival=publicSurvival(g);
     if (g.id === 'chroma') {
         state.color = g.phase === 'observe' ? [...g.color] : undefined;
         state.draft = g.drafts?.[viewer] ? [...g.drafts[viewer]] : undefined;
@@ -315,6 +320,7 @@ function recordParty(g, now, force = false) {
 }
 
 function pauseParty(g, delta, now = Date.now()) {
+    if(['stopgo','fragile'].includes(g.id))pauseSurvival(g,delta);
     if(['pigeon','lift'].includes(g.id))pauseAbsurd(g,delta);
     if(['pie','balloon'].includes(g.id))pauseCarnival(g,delta);
     if(g.id==='toilet')pauseToilet(g,delta);

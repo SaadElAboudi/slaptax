@@ -1,17 +1,19 @@
 import {gameChapter} from './world';
-import {COMPETITIVE_GAMES,type CompetitiveGameId} from './catalog';
+import {COMPETITIVE_GAMES,PRACTICE_GAMES,type CompetitiveGameId} from './catalog';
 import type {Tab} from '../hooks/useGameStore';
 export const SCORE_CHALLENGE_GAMES:CompetitiveGameId[]=['decoupe','onemore','chroma'];
 export const hasScoreChallenge=(id:string)=>SCORE_CHALLENGE_GAMES.some(g=>g===id);
 export function preferredGame(mode:string,fallback:CompetitiveGameId='decoupe'):CompetitiveGameId{
  const query=new URLSearchParams(location.search).get('game');let stored:string|null=null;try{stored=localStorage.getItem(`slaptax_${mode}_game`);}catch{/* URL choice works without storage. */}
- const id=query||stored;return COMPETITIVE_GAMES.some(g=>g.id===id)?id as CompetitiveGameId:fallback;
+ const id=query||stored;return (mode==='training'?PRACTICE_GAMES:COMPETITIVE_GAMES).some(g=>g.id===id)?id as CompetitiveGameId:fallback;
 }
 export function prepareGameMode(id:CompetitiveGameId,mode:Tab){
  try{localStorage.setItem(`slaptax_${mode==='defy'?'duel':mode==='challenges'?'challenge':mode}_game`,id);}catch{/* Navigation also carries the choice in the URL. */}
  const url=new URL(location.href);url.searchParams.set('game',id);url.searchParams.delete('room');url.searchParams.delete('invite');url.searchParams.delete('link');history.replaceState({},'',url);
 }
 const tips:Record<string,[string,string,string,string]>={
+ stopgo:['La piste du sang-froid','Lâche dès le signal jaune. Trois fautes éliminent. En compétition, seuls les arrivés peuvent se qualifier.','The composure track','Release on the yellow signal. Three faults eliminate you. Only finishers can qualify.'],
+ fragile:['L’atelier des mains qui tremblent','Commence au point blanc. Suis les flèches sans couper ; lever le doigt est autorisé. Trois sorties cassent la forme.','The shaky hands workshop','Start at the white dot. Follow the arrows without cutting across; lifting is allowed. Three slips break the shape.'],
  chroma:['Le laboratoire des couleurs','Règle d’abord la teinte, puis la saturation et la luminosité. La vitesse ne donne aucun bonus.','The color lab','Set hue first, then saturation and brightness. Speed gives no bonus.'],
  chicken:['L’usine à poulets royaux','Lance le poulet avant sa rébellion. Une zone d’œuf annoncée ne te suit pas : change de route !','The royal poultry factory','Throw before the chicken rebels. An egg warning stays put: change your route!'],
  snack:['La cantine des braqueurs','Une baffe fait lâcher le goûter. LANCE vise automatiquement ton dépôt.','The snack thieves’ canteen','A slap drops the snack. THROW automatically aims at your depot.'],

@@ -1,6 +1,8 @@
+import survivalPlaylist from '../../../shared/survival-games.json';
 import simplePlay from '../../../shared/simple-play.json';
 import selection from '../../../shared/game-selection.json' with {type:'json'};
 export type CompetitiveGameId =
+    | 'stopgo' | 'fragile'
     | 'snack'
     | 'chicken'
     | 'pigeon'
@@ -36,6 +38,7 @@ export interface CompetitiveGame {
 }
 
 export const ALL_GAMES: CompetitiveGame[] = [
+ ...survivalPlaylist.filter(g=>g.id!=='table').map(g=>({id:g.id as CompetitiveGameId,labelFr:g.labelFr,labelEn:g.labelEn,skillFr:'Sang-froid + précision',skillEn:'Composure + precision',ruleFr:g.ruleFr,ruleEn:g.ruleEn})),
  {id:'chicken',labelFr:'Poule Position',labelEn:'Poultry Panic',skillFr:'Un stick · un bouton · 3 poules',skillEn:'One stick · one button · 3 chickens',ruleFr:'Bouge au stick ou avec les flèches / ZQSD. Attrape automatiquement la poule en passant dessus. Un seul bouton : BAFFE vise le rival, LANCE vise ton poulailler jaune et peut marquer directement. Tu peux aussi y ramener la poule à pied. Premier à 3 livraisons ; après 60 secondes, le plus de livraisons gagne. Égalité : revanche commune. Pas de pouvoir, de super, d’esquive ni de munitions à gérer. La poule se débat après 8 secondes ; les cercles annoncent les œufs à éviter en marchant. Même combattant pour tous, entraînement contre un bot annoncé ; défis, challenges et tournois avec les mêmes règles. Sur ordinateur : Espace ou clic pour baffer / lancer.',ruleEn:'Move with the stick or arrows / WASD. Walk over the chicken to pick it up automatically. One button: SLAP aims at the rival, THROW aims at your yellow coop and can score directly. You can also carry it home. First to 3 deliveries; after 60 seconds, most deliveries wins. Ties require mutual replay. No abilities, super, dodge or ammunition to manage. The chicken escapes after 8 seconds; walk out of egg warning circles. Same fighter for everyone. Practice against a declared bot; duels, challenges and tournaments use the same rules. Desktop: Space or click to slap / throw.'},
 
  {id:'snack',labelFr:'Braquage du Goûter',labelEn:'Snack Heist',skillFr:'Arène · visée · esquive',skillEn:'Arena · aim · evade',ruleFr:"Un stick et un bouton BAFFE / LANCE. Ramassage automatique. Une baffe fait lâcher le goûter. Le lancer vise le dépôt jaune et marque en y arrivant. Premier à trois livraisons ; après 90 secondes, seules les livraisons départagent. Égalité : revanche commune. Pas de pouvoirs, esquive ou munitions à gérer. Même combattant pour tous. Entraînement, duel et salon 2v2 avec les mêmes commandes.",ruleEn:"One stick and one SLAP / THROW button. Automatic pickup. A slap drops the snack. Throws aim at the yellow depot and score on arrival. First to three deliveries; after 90 seconds only deliveries decide. Ties require mutual replay. No abilities, dodge or ammo to manage. Same fighter for everyone. Practice, duel and 2v2 rooms use the same controls."},
@@ -165,7 +168,8 @@ export const GAME_CATEGORIES=[
  {id:'precision',fr:'Battre un score',en:'Beat a score',games:['decoupe','chroma','onemore']},
  {id:'chaos',fr:'Jouer en direct',en:'Play live',games:['snack','table','pie']},
 ] as const;
-export const isPartyGame=(id:string)=>['chicken','snack','pigeon','lift','pie','balloon','toilet','table','mat','garde','trace','decoupe','chroma','ricochet','contrepied','falsestart','onesecond','onemore'].includes(id);
+export const PRACTICE_GAMES=[...COMPETITIVE_GAMES,...ALL_GAMES.filter(g=>['stopgo','fragile'].includes(g.id))];
+export const isPartyGame=(id:string)=>['stopgo','fragile','chicken','snack','pigeon','lift','pie','balloon','toilet','table','mat','garde','trace','decoupe','chroma','ricochet','contrepied','falsestart','onesecond','onemore'].includes(id);
 
 export function gameLabel(id: string, isFr: boolean): string {
     const game = getCompetitiveGame(id);

@@ -1,3 +1,4 @@
+const SurvivalRoom=lazy(()=>import('./components/Survival/SurvivalRoom').then(m=>({default:m.SurvivalRoom})));
 import {isNative,appInvitationUrl} from './platform/environment';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import styles from './App.module.css';
@@ -41,7 +42,7 @@ function App() {
     useEffect(() => {
         bootstrap();
         const requestedTab = new URLSearchParams(window.location.search).get('tab');
-        if (requestedTab && ['team','training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats', 'challenges'].includes(requestedTab)) {
+        if (requestedTab && ['survival','team','training', 'bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric', 'defy', 'tournament', 'leaderboard', 'stats', 'challenges'].includes(requestedTab)) {
             const migratedTab = ['bounce', 'symbolrush', 'bomb', 'cups', 'duelnumeric'].includes(requestedTab) ? 'training' : requestedTab;
             setActiveTab(migratedTab as Tab);
             setArenaOpen(true);
@@ -79,7 +80,7 @@ function App() {
             const params = new URLSearchParams(window.location.search);
             const tab = params.get('tab');
             setLinkChallenge(params.get('link'));
-            const valid = Boolean(tab && ['team','training','defy','tournament','leaderboard','stats','challenges'].includes(tab));
+            const valid = Boolean(tab && ['survival','team','training','defy','tournament','leaderboard','stats','challenges'].includes(tab));
             if (valid) setActiveTab(tab as Tab);
             setArenaOpen(valid);
         };
@@ -90,7 +91,7 @@ function App() {
     function enterArena(tab: Tab) {
         const params = new URLSearchParams(window.location.search);
         params.delete('link');
-        if(tab!=='team')params.delete('room');
+        if(tab!=='team'&&tab!=='survival')params.delete('room');
         params.set('tab', tab);
         const next = `${window.location.pathname}?${params.toString()}`;
         if (`${window.location.pathname}${window.location.search}` !== next) window.history.pushState({}, '', next);
@@ -118,6 +119,7 @@ function App() {
     }
 
     const sectionLabels: Partial<Record<Tab, string>> = {
+        survival:isFr?'La compétition':'The competition',
         team:isFr?'Braquage entre amis':'Heist with friends',
         training: isFr ? 'Jouer en solo' : 'Solo play',
         defy: isFr ? 'Avec un ami' : 'Friend Duel',
@@ -128,6 +130,7 @@ function App() {
     };
     const activeGameName = sectionLabels[activeTab] || (isFr ? 'Entrainement' : 'Training');
     const modeStatus: Record<Tab, { label: string; tone: string }> = {
+        survival:{label:'4 JOUEURS',tone:styles.statusLive},
         team:{label:'2V2',tone:styles.statusLive},
         training: { label: 'SOLO', tone: styles.statusSolo },
         defy: { label: '1V1', tone: styles.statusLive },
@@ -165,6 +168,7 @@ function App() {
 
 
                         <div key={activeTab} className={styles.panelArea}>
+                            {activeTab === 'survival' && <Suspense fallback={<p role="status">{isFr?'Ouverture de la compétition…':'Opening the competition…'}</p>}><SurvivalRoom/></Suspense>}
                             {activeTab === 'team' && <Suspense fallback={<p role="status">{isFr?'Ouverture de la cantine…':'Opening the canteen…'}</p>}><SnackTeams /></Suspense>}
                             {activeTab === 'training' && <TrainingPanel />}
                             {activeTab === 'defy' && <FriendDuelPanel />}

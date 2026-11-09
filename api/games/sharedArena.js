@@ -1,3 +1,4 @@
+const {createSurvivalRooms}=require('./survivalRooms');
 const {recordBombPass}=require('./bombPrecision');
 const {createSnackTeams}=require('./snackTeams');
 const {normalizePractice} = require('../domain/soloProgression');
@@ -39,6 +40,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     const snackTeams=createSnackTeams(store,send);
+    const survival=createSurvivalRooms(store,send);
 
     function updatePresence(userId, online) {
         if (!userId) return;
@@ -719,6 +721,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
             client.actionCount = 0;
         }
         if (++client.actionCount > 90) return;
+        if(typeof payload.type==='string'&&payload.type.startsWith('survival.')){survival.handle(client,payload);return;}
         if(typeof payload.type==='string'&&payload.type.startsWith('snack.team.')){snackTeams.handle(client,payload);return;}
         if (payload.type === 'party.practice') practice(client, payload);
         if (payload.type === "arena.join" || payload.type === "bounce.join") join(client, payload);
@@ -729,13 +732,13 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
     }
 
     function attach(client) {
-        snackTeams.attach(client);
+        snackTeams.attach(client);survival.attach(client);
         if (!clients.has(client.userId)) clients.set(client.userId, new Set());
         clients.get(client.userId).add(client);
         updatePresence(client.userId, true);
         client.on("message", (raw) => handleMessage(client, raw));
         client.on("close", () => {
-            snackTeams.detach(client);
+            snackTeams.detach(client);survival.detach(client);
             clients.get(client.userId)?.delete(client);
             if ((clients.get(client.userId)?.size || 0) === 0) updatePresence(client.userId, false);
             const session = sessions.get(client.arenaSessionKey);
@@ -752,7 +755,7 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     const interval = setInterval(() => {
         const now = Date.now();
-        snackTeams.tick(now);
+        snackTeams.tick(now);survival.tick(now);
         for (const [key, session] of sessions) {
             if(session.persisting){if(session.retryPersistenceAt&&now>=session.retryPersistenceAt){try{store.write(store.read());persistCompletion(session,session.persistenceScope);}catch(error){session.retryPersistenceAt=now+3000;}}continue;}
             if (["done","cancelled"].includes(session.phase) && now - session.updatedAt > 60_000) {
@@ -770,19 +773,19 @@ function createSharedArenaManager(store, service, emitGlobal = () => {}) {
 
     function close() {
         clearInterval(interval);
-        snackTeams.close();
+        snackTeams.close();survival.close();
         sessions.clear();
         clients.clear();
     }
 
     function forgetUser(userId){
-        for(const client of clients.get(userId)||[])snackTeams.handle(client,{type:'snack.team.leave'});
+        for(const client of clients.get(userId)||[]){snackTeams.handle(client,{type:'snack.team.leave'});survival.handle(client,{type:'survival.leave'});}
         clients.delete(userId);
         for(const [key,session]of sessions)if(session.challengerId===userId||session.opponentId===userId){
             session.phase='done';for(const client of sessionClients(session))send(client,{type:'arena.error',error:'Partie annulée : un profil a été supprimé.'});sessions.delete(key);
         }
     }
-    return { attach, close, sessions, matPool, snackTeams,forgetUser };
+    return { attach, close, sessions, matPool, snackTeams,survival,forgetUser };
 }
 
 module.exports = { createSharedArenaManager };

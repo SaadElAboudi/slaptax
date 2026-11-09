@@ -103,5 +103,17 @@
     "goalEn": "Recreate three colors from memory",
     "gestureFr": "Glisse pour ajuster · VERROUILLER pour valider",
     "gestureEn": "Drag to adjust · LOCK to submit"
+  },
+  "stopgo": {
+    "goalFr": "Atteins la ligne sans bouger à STOP",
+    "goalEn": "Reach the line without moving on STOP",
+    "gestureFr": "Maintiens pour avancer · relâche au signal LÂCHE",
+    "gestureEn": "Hold to move · release on LET GO"
+  },
+  "fragile": {
+    "goalFr": "Termine le contour sans casser la forme",
+    "goalEn": "Finish the outline without breaking the shape",
+    "gestureFr": "Suis le contour depuis le point blanc",
+    "gestureEn": "Trace the outline from the white dot"
   }
 }

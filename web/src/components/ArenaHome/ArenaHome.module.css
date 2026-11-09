@@ -9,3 +9,5 @@
 @media(max-width:760px){.home{padding:18px 14px 24px}.intro{margin-bottom:20px}.intro p{font-size:14px}.hero{grid-template-columns:1fr}.heroCopy{padding:20px}.heroArt{display:none}.hero h2{margin:10px 0}.hero p{font-size:14px;max-width:none}.hero small{font-size:12px}.library{padding-top:28px}.libraryGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.art{height:125px}.caption{padding:12px}.caption h3{font-size:21px}.caption p{font-size:13px}.actions button,.actions a{padding:10px 6px;font-size:12px;gap:5px}.actions svg{flex-shrink:0;width:15px}.tag{font-size:9px}.friendsHub{padding:0 14px}}
 @media(max-width:380px){.libraryGrid{grid-template-columns:1fr}.art{height:145px}.actions{grid-template-columns:1fr 1fr}.caption h3{font-size:24px}.caption p{font-size:14px}.tag{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.home *{scroll-behavior:auto}}
+
+.soloButton{min-height:48px;margin-top:12px;width:100%;padding:10px;border:1px solid #c4afd8;border-radius:12px;background:transparent;color:#fff;font-size:14px;font-weight:750;cursor:pointer}

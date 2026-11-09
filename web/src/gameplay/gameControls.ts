@@ -1,6 +1,8 @@
 import simplePlay from '../../../shared/simple-play.json';
 /** Input instructions follow the existing authoritative actions, across every mode. */
 const controls:Record<string,[string,string,string,string]>={
+ stopgo:['Maintiens Espace pour avancer · relâche au signal LÂCHE','','Hold Space to move · release on LET GO',''],
+ fragile:['Clique et suis le contour depuis le point blanc','','Click and follow the outline from the white dot',''],
  snack:["Flèches / ZQSD : bouger · Espace / clic : baffe ou lancer",'',"Arrows / WASD: move · Space / click: slap or throw",''],
  chicken:['Flèches / ZQSD : bouger · Espace / clic : baffe ou lancer','Un stick pour bouger · un bouton BAFFE / LANCE · 3 poules au poulailler','Arrows / WASD: move · Space / click: slap or throw','One stick to move · one SLAP / THROW button · bring home 3 chickens'],
  pigeon:["← → : voler · Espace : larguer",'',"← →: fly · Space: drop",''],

@@ -5,7 +5,7 @@ import type {SoloReward} from '../../api/client';
 import {SoloVictory} from './SoloVictory';
 import { useMemo, useRef, useState } from 'react';
 import {readPracticeHistory,recordPractice} from '../../gameplay/practiceHistory';
-import { COMPETITIVE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
+import { COMPETITIVE_GAMES, PRACTICE_GAMES, gameLabel, isPartyGame, type CompetitiveGameId } from '../../gameplay/catalog';
 import { useGameStore } from '../../hooks/useGameStore';
 import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TrainingPanel.module.css';
@@ -94,7 +94,8 @@ export function TrainingPanel() {
 
                     <button type="button" onClick={replay}>{isFr ? 'Je prends ma revanche' : 'Run it back'}</button>
                     {hasScoreChallenge(gameId)&&<button type="button" onClick={()=>{location.href=`/?tab=training&link=new&game=${gameId}`;}}><Share2 size={18}/>{isFr?'Défier un ami par lien':'Create a link challenge'}</button>}
-                    {!hasScoreChallenge(gameId)&&<button type="button" onClick={() => {prepareGameMode(gameId,'defy');setActiveTab('defy');}}>{isFr ? 'Défier un ami en direct' : 'Challenge a friend live'}</button>}
+                    {['stopgo','fragile'].includes(gameId)&&<button type="button" onClick={()=>setActiveTab('survival')}>{isFr?'Jouer à quatre':'Play with four'}</button>}
+                    {!['stopgo','fragile'].includes(gameId)&&!hasScoreChallenge(gameId)&&<button type="button" onClick={() => {prepareGameMode(gameId,'defy');setActiveTab('defy');}}>{isFr ? 'Défier un ami en direct' : 'Challenge a friend live'}</button>}
                     <button type="button" className={styles.secondary} onClick={() => { setPlaying(false); selectGame(nextGame.id); }}>
                         {isFr ? 'Essayer un autre jeu' : 'Try another game'}
                     </button>
@@ -119,7 +120,7 @@ export function TrainingPanel() {
             {!playing&&<>
             <details className={styles.config}><summary>{isFr?'Changer de jeu':'Change game'}<span>{gameLabel(gameId,isFr)}</span></summary>
                 <div className={styles.games}>
-                    {COMPETITIVE_GAMES.map((game) => (
+                    {PRACTICE_GAMES.map((game) => (
                         <button type="button" key={game.id} aria-pressed={game.id === gameId} className={game.id === gameId ? styles.selected : ''} onClick={() => selectGame(game.id)}>
                             <div className={styles.gamePreview} aria-hidden="true"><GamePoster gameId={game.id}/></div>
                             <strong>{isFr ? game.labelFr : game.labelEn}</strong>

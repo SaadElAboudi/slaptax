@@ -11,13 +11,13 @@ test('home offers six distinct games and an immediate first play',async({page},i
  const games=page.locator('#games');
  await expect(games.locator('article')).toHaveCount(6);
  await expect(games.getByRole('heading',{level:3})).toHaveText(selection.map(g=>g.labelFr));
- const start=page.getByRole('button',{name:'Jouer maintenant',exact:true});await expect(start).toBeInViewport();
+ const start=page.getByRole('button',{name:'Jouer à quatre',exact:true});await expect(start).toBeInViewport();
  for(const id of ['toilet','pigeon','lift','balloon','garde','bombpass'])await expect(games.locator(`[data-game="${id}"]`)).toHaveCount(0);
  for(const button of await games.locator('button,a').all()){const box=(await button.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);}
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:info.outputPath('home-six-games.png'),fullPage:true});
- await start.click();await expect(page.getByRole('heading',{name:'Chef Couic',exact:true})).toBeVisible();
- await page.getByRole('button',{name:'Entrer dans l arene',exact:true}).click();await expect(page.getByTestId('drawing')).toBeVisible();
+ await start.click();await expect(page.getByRole('heading',{name:'La compétition des potes.',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Créer une compétition',exact:true})).toBeEnabled();
 });
 
 test('score challenge begins from its game card without a mode picker',async({page})=>{
@@ -28,7 +28,7 @@ test('score challenge begins from its game card without a mode picker',async({pa
 });
 
 test('joining from home validates a room code and recovers from a missing room',async({page})=>{
- await page.getByText('Vous jouez à quatre ?', {exact:true}).click();
+ await page.getByText('Ou jouer en équipes : Braquage 2v2', {exact:true}).click();
  const form=page.getByRole('textbox',{name:'Rejoindre avec un code'});
  const join=page.getByRole('button',{name:'Rejoindre',exact:true});
  await expect(join).toBeDisabled();await form.fill('ab!12');await expect(form).toHaveValue('AB12');await expect(join).toBeDisabled();

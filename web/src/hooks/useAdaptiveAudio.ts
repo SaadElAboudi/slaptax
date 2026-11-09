@@ -46,6 +46,7 @@ function note(ctx: AudioContext, destination: AudioNode, frequency: number, dura
 }
 
 const PATTERNS: Record<CompetitiveGameId, number[]> = {
+    stopgo:[0],fragile:[0],
     chicken:[0],
     snack:[0],
     pigeon:[0],lift:[0],pie:[0],balloon:[0],toilet:[0],

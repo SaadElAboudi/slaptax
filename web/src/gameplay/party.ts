@@ -20,9 +20,10 @@ export function interpolateTower(run: PartyRun | undefined, elapsedMs: number): 
 }
 
 export interface PartyState {
+    survival?:{signal:'go'|'release'|'stop';path?:number[][];players:Record<string,{seq:number;progress:number;faults:number;out:boolean;finished:boolean}>};
     snack?: SnackState;
     id: string;
-    phase: 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve' | 'brawl';
+    phase: 'survival' | 'ready' | 'wait' | 'go' | 'prepare' | 'timing' | 'stack' | 'reveal' | 'done' | 'draw' | 'observe' | 'mix' | 'aim' | 'flight' | 'choose' | 'drawpath' | 'solve' | 'brawl';
     absurd?:AbsurdState;
     carnival?:CarnivalState;
     toilet?:ToiletState;

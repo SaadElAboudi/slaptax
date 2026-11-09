@@ -10,7 +10,7 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
  const latest=useRef({party,aim,isFr}),history=useRef<TableState[]>([]),replay=useRef<{frames:TableState[];start:number}|null>(null);latest.current={party,aim,isFr};
  const received=useRef({state:party.table,at:performance.now()});
  if(received.current.state!==party.table)received.current={state:party.table,at:performance.now()};
- const own=party.table?.bodies.find(p=>p.id===identity),enabled=active&&party.phase==='brawl'&&!own?.out;
+ const own=party.table?.bodies.find(p=>p.id===identity),enabled=active&&party.phase==='brawl'&&!!own&&!own.out;
  useEffect(()=>{if(!party.table)return;
   if(party.phase==='done'&&!replay.current)replay.current={frames:[...history.current,structuredClone(party.table)],start:performance.now()};
   else if(party.phase==='brawl'){history.current.push(structuredClone(party.table));history.current=history.current.slice(-30);}
@@ -41,7 +41,7 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
    {party.phase==='done'&&<span className={styles.replay}>{isFr?'REPLAY · DERNIÈRES SECONDES':'REPLAY · LAST SECONDS'}</span>}
   </div>
   <p className={styles.hint}><MoveUpRight size={18}/>{isFr?'Touche la destination. Relâche. BOUM !':'Touch your destination. Release. BOOM!'}</p>
-  <div className={styles.footer}><span>{party.table?.bodies.some(p=>p.bot)?(isFr?'SOLO CONTRE 3 BOTS':'SOLO VS 3 BOTS'):(isFr?'DUEL · 2 JOUEURS HUMAINS':'DUEL · 2 HUMAN PLAYERS')}</span><button type="button" disabled={!enabled||(own?.cooldown||0)>0} onClick={()=>fire(aim||{dx:0,dy:-1,power:.8})}><ArrowUp size={18}/>{(own?.cooldown||0)>0?(isFr?'Recharge…':'Recharging…'):(isFr?'Se propulser':'Dash')}</button></div>
+  <div className={styles.footer}><span>{party.table?.bodies.some(p=>p.bot)?(isFr?'SOLO CONTRE 3 BOTS':'SOLO VS 3 BOTS'):`${party.table?.bodies.length||0} ${isFr?'JOUEURS HUMAINS':'HUMAN PLAYERS'}`}</span><button type="button" disabled={!enabled||(own?.cooldown||0)>0} onClick={()=>fire(aim||{dx:0,dy:-1,power:.8})}><ArrowUp size={18}/>{(own?.cooldown||0)>0?(isFr?'Recharge…':'Recharging…'):(isFr?'Se propulser':'Dash')}</button></div>
   {party.table?.cloth?.phase!=='calm'&&party.table?.cloth&&<p className={styles.warning} data-testid="table-cloth">{party.table.cloth.direction>0?'→':'←'} {party.table.cloth.phase==='warning'?(isFr?'ATTENTION AU COUP DE NAPPE !':'TABLECLOTH PULL INCOMING!'):(isFr?'QUI A TIRÉ LA NAPPE ?!':'WHO PULLED THE TABLECLOTH?!')}</p>}
   {(party.table?.elapsed||0)>10000&&party.phase==='brawl'&&<p className={styles.warning}>{isFr?'La table rétrécit. Rapproche-toi du centre !':'The table is shrinking. Get closer to the center!'}</p>}
  </section>;

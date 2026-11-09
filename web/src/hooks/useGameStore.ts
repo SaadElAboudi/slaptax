@@ -5,7 +5,7 @@ import { api, type HistoryEntry, type LeaderboardEntry, type PlayerProgression }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'team' | 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
+export type Tab = 'survival' | 'team' | 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
 export type DifficultyMode = 'casual' | 'standard' | 'hardcore';
