@@ -61,3 +61,39 @@ déconnexions, multionglets, finale sans bots et revanche commune.
 320 × 650, par les commandes de l'interface, jusqu'à la finale et la revanche.
 Il vérifie également un vrai tracé d'entraînement. Aucun endpoint de test n'accélère
 les chronomètres ni ne force les résultats du navigateur.
+
+## Entraînement contre trois robots
+
+Le bouton **M’entraîner contre 3 robots** crée immédiatement un parcours privé
+avec Rivet, Boulon et Zinc. Aucun compte artificiel n'est créé : les robots sont
+marqués `bot` dans l'état serveur et identifiés ROBOT dans le jeu. Les amis ne
+peuvent pas rejoindre un entraînement privé ; les salons entre quatre amis
+continuent d'exiger quatre vraies connexions et quatre consentements.
+
+Trois niveaux sont définis dans `shared/survival-practice.json` : Découverte,
+Challenge et Expert. Ils modifient le délai de réaction, les hésitations et la
+vitesse de tracé. Les robots reçoivent le signal courant, sans accès à son futur
+horaire. Ils envoient les mêmes commandes validées que les joueurs. En finale,
+les robots encore qualifiés utilisent l'IA physique du moteur Table commun.
+Les scores ne sont jamais injectés pour simuler une victoire.
+
+Une seule confirmation humaine suffit pour passer à l'épreuve suivante ou
+recommencer. Après élimination, on peut regarder les robots finir le parcours.
+La déconnexion du joueur suspend également cette observation. Quitter détruit
+l'entraînement privé. Ce parcours n'engage aucun jeton et ne crée pas de résultats
+de duels classés contre de faux humains.
+
+## Décors et lisibilité
+
+La piste représente un atelier de compétition avec portique de surveillance,
+couloirs et personnages. Le biscuit repose sur son plateau ; l'aiguille, la
+trace et les fissures suivent uniquement la progression validée par le serveur.
+Le cadre de jeu commun apporte l'éclairage, la typographie et les panneaux de
+commandes aux autres jeux. Les décors sont des SVG locaux, sans ressource distante.
+Les animations de course respectent la réduction des mouvements ; les retours
+haptiques respectent les préférences existantes. Les surfaces de saisie gardent
+les mêmes coordonnées que le moteur et les boutons restent utilisables au pouce.
+
+Validation supplémentaire : `api/tests/survivalBots.test.js` et
+`web/e2e/robot-practice.spec.ts` couvrent les vrais déplacements et tracés des
+robots, le choix du niveau, la finale, la revanche et l'absence de faux comptes.

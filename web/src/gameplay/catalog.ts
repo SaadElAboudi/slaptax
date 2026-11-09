@@ -1,5 +1,5 @@
-import survivalPlaylist from '../../../shared/survival-games.json';
-import simplePlay from '../../../shared/simple-play.json';
+import survivalPlaylist from '../../../shared/survival-games.json' with {type:'json'};
+import simplePlay from '../../../shared/simple-play.json' with {type:'json'};
 import selection from '../../../shared/game-selection.json' with {type:'json'};
 export type CompetitiveGameId =
     | 'stopgo' | 'fragile'

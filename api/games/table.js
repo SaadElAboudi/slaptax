@@ -2,11 +2,12 @@
 const STEP=1000/60,RADIUS=30,DURATION=20000,COOLDOWN=950;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function beginTable(g,now){
+ const explicitBots=(g.botIds||[]).filter(id=>g.players.includes(id));
  const bots=g.players.length===1?['table-bot-1','table-bot-2','table-bot-3']:[];
  const ids=[...g.players,...bots],starts=ids.length===2?[[300,410],[300,190]]:[[300,420],[300,180],[180,300],[420,300]];
  g.phase='brawl';g.deadline=now+DURATION;
  g.table={startedAt:now,tickAt:now,bound:40,winnerId:null,hits:0,lastHit:null,pulls:0,
-  bodies:ids.map((id,i)=>({id,bot:bots.includes(id),x:starts[i][0],y:starts[i][1],vx:0,vy:0,radius:RADIUS,out:false,outAt:null,readyAt:now+(i?800+i*200:0),kos:0,lastTouchedBy:null,lastTouchAt:0}))};
+  bodies:ids.map((id,i)=>({id,bot:bots.includes(id)||explicitBots.includes(id),x:starts[i][0],y:starts[i][1],vx:0,vy:0,radius:RADIUS,out:false,outAt:null,readyAt:now+(i?800+i*200:0),kos:0,lastTouchedBy:null,lastTouchAt:0}))};
 }
 function launch(t,p,dx,dy,power,now){
  const d=Math.hypot(dx,dy);if(!d||p.out||now<p.readyAt)return false;
@@ -44,7 +45,8 @@ function tickTable(g,now){
    const q=targets[0];if(q){const edge=Math.min(p.x-t.bound,p.y-t.bound,600-t.bound-p.x,600-t.bound-p.y);
     const dx=edge<50?300-p.x:q.x-p.x,dy=edge<50?300-p.y:q.y-p.y;
     const wobble=Math.sin(time/790+i)*.18,angle=Math.atan2(dy,dx)+wobble;
-    launch(t,p,Math.cos(angle),Math.sin(angle),.58,time);p.readyAt=time+1550+i*170;
+    const settings={easy:[.38,2100],normal:[.55,1600],hard:[.68,1200]}[g.botDifficulty]||[.58,1550];
+    launch(t,p,Math.cos(angle),Math.sin(angle),settings[0],time);p.readyAt=time+settings[1]+i*170;
    }
   }
   if(at!==undefined&&elapsed+.001>=at){const direction=t.pulls%2===0?1:-1;for(const p of alive)p.vx+=direction*6;t.pulls++;}

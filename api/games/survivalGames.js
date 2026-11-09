@@ -20,5 +20,5 @@ function actSurvival(g,id,a,now){tickSurvival(g,now);if(g.phase!=='survival')ret
  }tickSurvival(g,now);return true;
 }
 function publicSurvival(g){if(!g.survival)return undefined;return{signal:g.survival.signal,path:g.id==='fragile'?path:undefined,players:Object.fromEntries(Object.entries(g.survival.players).map(([id,p])=>[id,{seq:p.seq,progress:p.progress,faults:p.faults,out:p.out,finished:!!p.finishedAt}]))};}
-function pauseSurvival(g,delta){const s=g.survival;s.at+=delta;s.signalAt+=delta;if(s.redAt)s.redAt+=delta;for(const p of Object.values(s.players)){p.holding=false;p.until=0;p.budgetAt+=delta;if(p.finishedAt)p.finishedAt+=delta;}}
+function pauseSurvival(g,delta){const s=g.survival;for(const brain of Object.values(g.botBrains||{})){brain.lastAt+=delta;brain.reactAt+=delta;}s.at+=delta;s.signalAt+=delta;if(s.redAt)s.redAt+=delta;for(const p of Object.values(s.players)){p.holding=false;p.until=0;p.budgetAt+=delta;if(p.finishedAt)p.finishedAt+=delta;}}
 module.exports={beginSurvival,actSurvival,tickSurvival,publicSurvival,pauseSurvival,pointAt,total};

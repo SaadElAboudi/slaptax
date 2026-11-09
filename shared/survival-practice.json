@@ -1,0 +1,5 @@
+{
+ "easy":{"labelFr":"Découverte","labelEn":"Rookie","reaction":260,"spread":75,"speed":0.13,"mistake":15},
+ "normal":{"labelFr":"Challenge","labelEn":"Challenge","reaction":180,"spread":50,"speed":0.24,"mistake":7},
+ "hard":{"labelFr":"Expert","labelEn":"Expert","reaction":100,"spread":25,"speed":0.43,"mistake":2}
+}

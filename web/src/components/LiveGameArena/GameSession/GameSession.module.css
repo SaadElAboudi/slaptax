@@ -18,3 +18,8 @@
 /* Thumb-sized shared controls, including small and landscape phones. */
 .session .header button{min-width:44px;min-height:44px}
 .session[data-touch=true] .playfield button{min-width:44px;min-height:44px;touch-action:manipulation}
+
+/* Shared stage lighting frames every game without changing its controls. */
+.session{background:radial-gradient(ellipse at 50% 0,#446e70,#112b3b 76%)}
+.session:before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#f4e6b207 22%,transparent 38%),linear-gradient(245deg,transparent 20%,#f4e6b207 22%,transparent 38%);border:1px solid #a9bd9d20;box-shadow:inset 0 0 80px #05152333}
+.session .header{border-bottom:1px solid #c9dbbf30;padding-bottom:8px;margin-bottom:4px}.session .header h2{color:#fff0ca;letter-spacing:.2px}.session .header small{text-transform:uppercase;letter-spacing:1.5px;font-size:9px;color:#bcd0c2}.session .header button{background:#193442bb;border:1px solid #8aa39480;border-radius:8px;color:#e9dfbe}.session .hint{color:#bacdc4;letter-spacing:.15px}.session[data-game-session=fragile]{background:radial-gradient(ellipse at 50% 0,#6b6952,#263f44 75%)}.session[data-game-session=table]{background:radial-gradient(ellipse at 50% 0,#7d6652,#29343f 78%)}

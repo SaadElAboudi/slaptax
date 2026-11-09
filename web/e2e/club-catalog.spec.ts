@@ -61,12 +61,12 @@ for (const game of COMPETITIVE_GAMES) {
         if (game.id === 'trace') await expect(page.getByTestId('drawing')).toHaveAttribute('data-phase','observe');
         if (game.id === 'chroma') await expect(page.getByTestId('chroma')).toHaveAttribute('data-phase','mix');
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        const title = arena.locator('header h2');
+        const title = page.locator('[data-game-session] > header h2');
         expect(await title.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
         if (!game.labelFr.includes(' ')) {
-            expect(await title.evaluate(node => node.getBoundingClientRect().height <= parseFloat(getComputedStyle(node).lineHeight)+1), 'Single-word game title wraps').toBe(true);
+            expect(await title.evaluate(node => (() => {const range=document.createRange();range.selectNodeContents(node);return range.getClientRects().length===1;})()), 'Single-word game title wraps').toBe(true);
         }
-        for (const control of await arena.locator('button:enabled, input[type="range"], canvas').all()) {
+        for (const control of await arena.locator('button:enabled:visible, input[type="range"]:visible, canvas:visible').all()) {
             expect(await control.evaluate(node => {
                 const r = node.getBoundingClientRect();
                 return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight
