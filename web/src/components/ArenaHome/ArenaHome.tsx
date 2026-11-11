@@ -44,6 +44,12 @@ export function ArenaHome({onEnter}:{onEnter:(tab:Tab)=>void}) {
             <div className={styles.heroCopy}><span className={styles.sticker}>{fr?'4 JOUEURS · 3 ÉPREUVES':'4 PLAYERS · 3 TRIALS'}</span><h2>{fr?'Entre dans l’arène.':'Enter the arena.'}</h2><p>{fr?'Survis aux épreuves. Affronte tes amis ou entraîne-toi contre trois robots.':'Survive the trials. Face your friends or train against three robots.'}</p><button className={styles.heroButton} type="button" onClick={()=>{const url=new URL(location.href);url.searchParams.delete('room');history.replaceState({},'',url);onEnter('survival');}}><Play size={21} fill="currentColor"/>{fr?'Jouer à quatre':'Play with four'}<ArrowRight size={20}/></button><button className={styles.soloButton} type="button" onClick={()=>onEnter('survival')}>{fr?'M’entraîner contre des robots':'Practice against robots'}</button><small>{fr?'Les éliminés restent spectateurs. Revanche avec le même groupe.':'Eliminated players spectate. Rematch with the same group.'}</small></div>
             <div className={styles.heroArt} aria-hidden="true"><GamePoster gameId="stopgo"/></div>
         </section>
+        <section className={styles.trials} aria-labelledby="trials-heading" data-testid="home-3d-trials">
+            <header><span className={styles.eyebrow}>{fr?'LES ÉPREUVES DE L’ARÈNE':'ARENA TRIALS'}</span><h2 id="trials-heading">{fr?'Essaie les scènes 3D.':'Try the 3D arenas.'}</h2><p>{fr?'Choisis une épreuve pour t’entraîner.':'Choose a trial to practice.'}</p></header>
+            <div className={styles.trialGrid}>{(['stopgo','table'] as const).map(id=><article key={id}>
+                <GamePoster gameId={id}/><div><span className={styles.trialBadge}>3D</span><h3>{id==='stopgo'?(fr?'Avance… STOP !':'Move… STOP!'):(fr?'Dernier sur la table':'Last on the table')}</h3><p>{id==='stopgo'?(fr?'Avance au vert. Lâche avant le rouge.':'Move on green. Release before red.'):(fr?'Vise, propulse-toi, éjecte les robots.':'Aim, dash, knock the robots off.')}</p><button type="button" onClick={()=>play(id)} aria-label={id==='stopgo'?(fr?'Jouer à la course 3D':'Play the 3D race'):(fr?'Jouer à la table 3D':'Play the 3D table')}>{fr?'Jouer à cette épreuve':'Play this trial'}<ArrowRight size={18}/></button></div>
+            </article>)}</div>
+        </section>
         <section className={styles.library} id="games" aria-labelledby="games-heading">
             <header><h2 id="games-heading">{fr?'Six jeux. À toi de choisir.':'Six games. Take your pick.'}</h2></header>
             <div className={styles.libraryGrid}>

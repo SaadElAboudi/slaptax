@@ -5,14 +5,15 @@ import type {PartyState} from '../party';
 const palette=[0xffc84b,0xff667e,0x55d7c2,0xae86ff];
 type Avatar={group:T.Group;left:T.Mesh;right:T.Mesh;armL:T.Mesh;armR:T.Mesh;ring:T.Mesh;wasOut:boolean};
 export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identity:string,initial:PartyState,initialBots:string[]){
- const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,matchMedia('(pointer:coarse)').matches?1.25:1.5));
+ const coarse=matchMedia('(pointer:coarse)').matches;
+ const renderer=new T.WebGLRenderer({canvas,antialias:!coarse,alpha:false,powerPreference:'high-performance'});
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,coarse?1.25:1.5));
  renderer.shadowMap.enabled=!matchMedia('(pointer:coarse)').matches;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.shadowMap.type=T.PCFShadowMap;
  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
  const scene=new T.Scene();scene.background=new T.Color(0x19202f);scene.fog=new T.Fog(0x19202f,24,58);
  const camera=new T.PerspectiveCamera(40,1,.1,100);
  const target=kind==='race'?new T.Vector3(0,.7,-1):new T.Vector3(0,0,0);
- camera.position.set(0,kind==='race'?14:15,kind==='race'?23:13);camera.lookAt(target);
+ camera.position.set(kind==='race'?0:6,kind==='race'?10.5:10,kind==='race'?22:16);camera.lookAt(target);
  scene.add(new T.HemisphereLight(0xc7e5ff,0x554054,1.9));
  const key=new T.DirectionalLight(0xffe6c9,3.4);key.position.set(-8,16,9);key.castShadow=true;
  key.shadow.mapSize.set(512,512);Object.assign(key.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:45});key.shadow.bias=-.0015;scene.add(key);
@@ -103,7 +104,7 @@ export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identit
   if(kind==='race'&&guardian&&eyes){const signal=party.survival?.signal||'stop',color=signal==='go'?0x83ffd4:signal==='release'?0xffc74b:0xff4268;
    if(signal!==lastSignal){eyes.color.set(color);eyes.emissive.set(color);lastSignal=signal;}
    guardian.rotation.y=T.MathUtils.lerp(guardian.rotation.y,signal==='go'?-.5:0,Math.min(1,dt*7));
-   if(!reduced){const ease=Math.max(0,1-(now-started)/1600);camera.position.set(ease*1.5,14+ease,23+ease*2);camera.lookAt(target);}
+   if(!reduced){const ease=Math.max(0,1-(now-started)/1600);camera.position.set(ease*1.5,10.5+ease,22+ease*2);camera.lookAt(target);}
   }
   if(kind==='table'&&table&&edge&&party.table){const size=(600-party.table.bound*2)/50;table.scale.x=size;table.scale.z=size;edge.scale.x=size+.08;edge.scale.z=size+.08;
    table.material=party.table.cloth?.phase==='warning'?gold:coral;
@@ -113,5 +114,5 @@ export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identit
   if(now-lastShadow>200){renderer.shadowMap.needsUpdate=true;lastShadow=now;}
   const before=performance.now();renderer.render(scene,camera);canvas.dataset.renderMs=(performance.now()-before).toFixed(1);
  }
- return{ready,render,project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
+ return{ready,render,reduceQuality(level:number){renderer.setPixelRatio(Math.min(devicePixelRatio||1,level===1?.8:.6));renderer.shadowMap.enabled=false;resize();},project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
 }

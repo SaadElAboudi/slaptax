@@ -37,3 +37,12 @@ test('joining from home validates a room code and recovers from a missing room',
  await expect(page.getByText('Ce salon n’existe plus. Vérifie le code ou crée un salon.',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Créer un salon 2v2',exact:true})).toBeEnabled();
 });
+
+test('home exposes the actual 3D trials separately from the six-game catalogue',async({page})=>{
+ test.setTimeout(60000);
+ const trials=page.getByTestId('home-3d-trials');await expect(trials.locator('article')).toHaveCount(2);
+ await trials.getByRole('button',{name:'Jouer à la course 3D',exact:true}).click();
+ await page.getByRole('button',{name:'Entrer dans l arene',exact:true}).click();
+ const scene=page.getByTestId('race-scene-3d');await expect(scene).toHaveAttribute('data-renderer','webgl');await expect.poll(async()=>Number(await scene.getAttribute('data-frames'))).toBeGreaterThan(16);await expect(scene).toBeVisible();
+ await expect(page.getByTestId('scene-render-status')).toContainText('3D');
+});
