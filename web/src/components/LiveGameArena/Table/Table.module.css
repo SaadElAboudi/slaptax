@@ -4,3 +4,5 @@
 .game{max-width:min(560px,max(220px,calc(100svh - 335px)));gap:8px}.board{border-color:#152b37;box-shadow:0 5px #152b37}.game header>span{background:#253e46;border-color:#152b37}.hint{margin:3px 0}.warning{margin:3px 0}.footer button{background:#ffdb88;border-color:#152b37}
 :global([data-game-session]) .game{max-width:min(720px,max(210px,calc(100svh - 255px)))}
 @media(max-width:600px){:global([data-game-session]) .game{max-width:min(100%,max(210px,calc(100svh - 255px)))}}
+.game{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}.game header{font-size:12px;color:#e3e3e8}.game header>span{font-size:16px;background:#ffffff0a;border:1px solid #ffffff18;border-radius:7px;padding:6px 9px}.board{border:1px solid #ffffff20;border-radius:17px;box-shadow:0 16px 30px #05091666}.footer button{border:0;border-radius:10px;background:#f2cb71;color:#252535;box-shadow:0 3px #8a642e}.hint{color:#b0b6c6}.footer>span{color:#9fa8bb}
+.replay{z-index:2;pointer-events:none}

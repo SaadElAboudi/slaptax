@@ -1,11 +1,14 @@
+import type {StageProjection} from '../../Survival/CinematicStage';
+const CinematicStage=lazy(()=>import('../../Survival/CinematicStage').then(m=>({default:m.CinematicStage})));
 import {startGameLoop} from '../../../gameplay/gameLoop';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,lazy,Suspense} from 'react';
 import {ArrowUp,MoveUpRight} from 'lucide-react';
 import type {PartyState,TableState} from '../../../gameplay/party';
 import {paintTable} from './paintTable';
 import styles from './Table.module.css';
 type Aim={dx:number;dy:number;power:number};
 export function Table({party,identity,active,isFr,send}:{party:PartyState;identity:string;active:boolean;isFr:boolean;send:(action:string,data:{dx:number;dy:number;power:number})=>void}){
+ const projection=useRef<StageProjection>(null);
  const canvas=useRef<HTMLCanvasElement>(null),pointer=useRef<number|null>(null),[aim,setAim]=useState<Aim|null>(null);
  const latest=useRef({party,aim,isFr}),history=useRef<TableState[]>([]),replay=useRef<{frames:TableState[];start:number}|null>(null);latest.current={party,aim,isFr};
  const received=useRef({state:party.table,at:performance.now()});
@@ -20,14 +23,14 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
   const resize=()=>{c.width=Math.max(1,Math.round(c.clientWidth*Math.min(2,devicePixelRatio||1)));c.height=c.width;};resize();
   const observer=new ResizeObserver(resize);observer.observe(c);
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
-  function draw(now:number){const ctx=c!.getContext('2d'),s=latest.current;if(ctx&&s.party.table){let state=s.party.table;
+  function draw(now:number){if(projection.current)return;const ctx=c!.getContext('2d'),s=latest.current;if(ctx&&s.party.table){let state=s.party.table;
    if(s.party.phase==='done'&&replay.current?.frames.length){const r=replay.current;const frame=Math.max(0,Math.min(r.frames.length-1,Math.floor((now-r.start)/40)));state=r.frames[frame];if(frame===r.frames.length-1){const age=Math.max(0,now-r.start-frame*40);state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}}
    else{const age=Math.min(150,Math.max(0,now-received.current.at));state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}
    ctx.save();ctx.scale(c!.width/600,c!.height/600);paintTable(ctx,state,identity,s.party.phase==='brawl'?s.aim:null,now,s.isFr,motion.matches);ctx.restore();
   }}
   const stopLoop=startGameLoop(draw);return()=>{observer.disconnect();stopLoop();};
  },[identity]);
- function position(e:React.PointerEvent<HTMLCanvasElement>){const r=e.currentTarget.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*600};}
+ function position(e:React.PointerEvent<HTMLCanvasElement>){const r=e.currentTarget.getBoundingClientRect();const projected=projection.current?.((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);if(projected)return projected;return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*600};}
  function update(e:React.PointerEvent<HTMLCanvasElement>){if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);setAim({dx:dx/(d||1),dy:dy/(d||1),power:Math.min(1,d/130)});}
  function fire(next:Aim){if(enabled&&(own?.cooldown||0)<=0)send('dash',next);setAim(null);}
  const opponents=party.table?.bodies.filter(p=>p.id!==identity&&!p.out).length||0;
@@ -38,6 +41,7 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
    onPointerMove={update} onPointerUp={e=>{if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);pointer.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);if(d>12)fire({dx:dx/d,dy:dy/d,power:Math.min(1,d/130)});else setAim(null);}}
    onPointerCancel={()=>{pointer.current=null;setAim(null);}} onLostPointerCapture={()=>{pointer.current=null;setAim(null);}} onBlur={()=>{pointer.current=null;setAim(null);}}
    onKeyDown={e=>{if(!enabled)return;const a:Record<string,Aim>={ArrowUp:{dx:0,dy:-1,power:.8},ArrowDown:{dx:0,dy:1,power:.8},ArrowLeft:{dx:-1,dy:0,power:.8},ArrowRight:{dx:1,dy:0,power:.8}};if(a[e.key]){e.preventDefault();setAim(a[e.key]);}else if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();fire(aim||{dx:0,dy:-1,power:.8});}}}/>
+   <Suspense fallback={null}><CinematicStage kind="table" party={party} identity={identity} projection={projection} aim={aim} snapshot={()=>{const s=latest.current.party,r=replay.current;if(s.phase==='done'&&r?.frames.length){const i=Math.min(r.frames.length-1,Math.floor((performance.now()-r.start)/40));return{...s,table:r.frames[Math.max(0,i)]};}return s;}}/></Suspense>
    {party.phase==='done'&&<span className={styles.replay}>{isFr?'REPLAY · DERNIÈRES SECONDES':'REPLAY · LAST SECONDS'}</span>}
   </div>
   <p className={styles.hint}><MoveUpRight size={18}/>{isFr?'Touche la destination. Relâche. BOUM !':'Touch your destination. Release. BOOM!'}</p>

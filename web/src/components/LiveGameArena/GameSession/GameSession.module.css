@@ -23,3 +23,11 @@
 .session{background:radial-gradient(ellipse at 50% 0,#446e70,#112b3b 76%)}
 .session:before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,#f4e6b207 22%,transparent 38%),linear-gradient(245deg,transparent 20%,#f4e6b207 22%,transparent 38%);border:1px solid #a9bd9d20;box-shadow:inset 0 0 80px #05152333}
 .session .header{border-bottom:1px solid #c9dbbf30;padding-bottom:8px;margin-bottom:4px}.session .header h2{color:#fff0ca;letter-spacing:.2px}.session .header small{text-transform:uppercase;letter-spacing:1.5px;font-size:9px;color:#bcd0c2}.session .header button{background:#193442bb;border:1px solid #8aa39480;border-radius:8px;color:#e9dfbe}.session .hint{color:#bacdc4;letter-spacing:.15px}.session[data-game-session=fragile]{background:radial-gradient(ellipse at 50% 0,#6b6952,#263f44 75%)}.session[data-game-session=table]{background:radial-gradient(ellipse at 50% 0,#7d6652,#29343f 78%)}
+
+/* The camera and the action carry the visual weight; the HUD stays quiet. */
+.session[data-game-session=stopgo],.session[data-game-session=fragile],.session[data-game-session=table]{background:#101522}
+.session[data-game-session=fragile]{background:radial-gradient(ellipse at 50% 38%,#3f3024,#101522 80%)}
+.session:before{border:0;box-shadow:none;background:radial-gradient(ellipse at 50% 0,#c6a4ff08,transparent 65%)}
+.session .header{min-height:38px;padding-bottom:5px;margin-bottom:2px;border-bottom:0;gap:6px}.session .header h2{font-size:15px;font-weight:850;letter-spacing:-.2px;color:#eee8dc}.session .header small{font-size:8px;letter-spacing:1px;color:#8c98ae}.session .header button{border-color:#ffffff20;border-radius:7px;background:#ffffff05;color:#cbd0dd;font-size:10px;font-weight:700;padding:6px 8px;min-height:36px}.session .hint{font-size:9px;min-height:13px;color:#8f9aaf;padding:4px 0}.session .playfield{justify-content:safe center}.session[data-game-session=stopgo] .hint,.session[data-game-session=fragile] .hint{display:none}
+@media(max-width:600px){.session{padding-left:9px;padding-right:9px}.session .header{min-height:38px}.session .header button{min-height:40px;min-width:40px}.session .header h2{font-size:13px}.session .playfield{justify-content:flex-start;padding-top:3px}}
+.session .header button{min-width:44px;min-height:44px}

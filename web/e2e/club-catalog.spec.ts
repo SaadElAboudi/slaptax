@@ -66,14 +66,15 @@ for (const game of COMPETITIVE_GAMES) {
         if (!game.labelFr.includes(' ')) {
             expect(await title.evaluate(node => (() => {const range=document.createRange();range.selectNodeContents(node);return range.getClientRects().length===1;})()), 'Single-word game title wraps').toBe(true);
         }
-        for (const control of await arena.locator('button:enabled:visible, input[type="range"]:visible, canvas:visible').all()) {
+        for (const control of await arena.locator('button:enabled:visible, input[type="range"]:visible, canvas[tabindex]:visible').all()) {
             expect(await control.evaluate(node => {
                 const r = node.getBoundingClientRect();
                 return r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight
                     && node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
             }), `${game.id}: control outside viewport or obstructed`).toBe(true);
         }
-        for (const canvas of await arena.locator('canvas').all()) {
+        for (const canvas of await arena.locator('canvas[tabindex]').all()) {
+            if(game.id==='table'&&await page.getByTestId('table-scene-3d').count()){await expect(page.getByTestId('table-scene-3d')).toHaveAttribute('data-renderer','webgl');continue;}
             await expect.poll(() => canvas.evaluate((node:HTMLCanvasElement) => {
                 const ctx = node.getContext('2d');
                 if (!ctx || !node.width || !node.height) return 0;

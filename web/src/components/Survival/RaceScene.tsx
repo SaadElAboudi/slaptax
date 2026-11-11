@@ -5,7 +5,7 @@ export function RaceScene({party,identity,names,fr,botIds}:{party:PartyState;ide
  const uid=useId().replace(/:/g,''),state=party.survival!;
  const colors=['#ffe17d','#ff9b9b','#8edcca','#b4a3ff'];
  const signal=state.signal;
- return <div className={styles.raceSet} data-testid="race-scene">
+ return <div className={styles.raceSet} data-testid="race-scene-fallback">
  <svg viewBox="0 0 600 340" role="img" aria-label={fr?'La piste des challengers : quatre couloirs, le portique surveille vos mouvements.':'The challengers’ track: four lanes under the watchful gate.'}>
  <defs><linearGradient id={`${uid}floor`} x2="0" y2="1"><stop stopColor="#233c48"/><stop offset="1" stopColor="#122734"/></linearGradient><pattern id={`${uid}tiles`} width="45" height="45" patternUnits="userSpaceOnUse"><path d="M45 0H0V45" fill="none" stroke="#b7c9ae" strokeOpacity=".07"/></pattern></defs>
  <rect width="600" height="340" rx="20" fill={`url(#${uid}floor)`}/><rect width="600" height="340" rx="20" fill={`url(#${uid}tiles)`}/>
