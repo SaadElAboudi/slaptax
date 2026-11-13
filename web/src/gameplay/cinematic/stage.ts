@@ -4,11 +4,14 @@ import type {PartyState} from '../party';
 
 const palette=[0xffc84b,0xff667e,0x55d7c2,0xae86ff];
 type Avatar={group:T.Group;left:T.Mesh;right:T.Mesh;armL:T.Mesh;armR:T.Mesh;ring:T.Mesh;wasOut:boolean};
-export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identity:string,initial:PartyState,initialBots:string[]){
- const coarse=matchMedia('(pointer:coarse)').matches;
+export type StageViewport={width:number;height:number;dpr:number;coarse:boolean};
+export function createStage(canvas:HTMLCanvasElement|OffscreenCanvas,kind:'race'|'table',identity:string,initial:PartyState,initialBots:string[],initialViewport?:StageViewport){
+ let viewport=initialViewport;
+ const coarse=viewport?.coarse??matchMedia('(pointer:coarse)').matches;
+ const dpr=viewport?.dpr??devicePixelRatio??1;
  const renderer=new T.WebGLRenderer({canvas,antialias:!coarse,alpha:false,powerPreference:'high-performance'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,coarse?1.25:1.5));
- renderer.shadowMap.enabled=!matchMedia('(pointer:coarse)').matches;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.shadowMap.type=T.PCFShadowMap;
+ renderer.setPixelRatio(Math.min(dpr,coarse?1.25:1.5));
+ renderer.shadowMap.enabled=!coarse;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=true;renderer.shadowMap.type=T.PCFShadowMap;
  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
  const scene=new T.Scene();scene.background=new T.Color(0x19202f);scene.fog=new T.Fog(0x19202f,24,58);
  const camera=new T.PerspectiveCamera(40,1,.1,100);
@@ -75,9 +78,9 @@ export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identit
   for(const x of [-3.9,3.9])for(const z of [-3.9,3.9])box(gold,scene,x,-1.6,z,.45,2.8,.45);
   const markerGeo=new T.RingGeometry(.9,1,48);geometries.add(markerGeo);const marker=new T.Mesh(markerGeo,gold);marker.rotation.x=-Math.PI/2;marker.position.y=.015;scene.add(marker);
  }
- const observer=new ResizeObserver(()=>resize());
- function resize(){const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}
- observer.observe(canvas);resize();
+ const observer=viewport?null:new ResizeObserver(()=>resize());
+ function resize(next?:StageViewport){if(next)viewport=next;const r=viewport||(canvas as HTMLCanvasElement).getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}
+ observer?.observe(canvas as HTMLCanvasElement);resize();
  const ray=new T.Raycaster(),plane=new T.Plane(new T.Vector3(0,1,0),0),hit=new T.Vector3();
  const aimArrow=new T.ArrowHelper(new T.Vector3(0,0,-1),new T.Vector3(),2,0xfff0b7,.45,.25);aimArrow.visible=false;scene.add(aimArrow);
  const initialIds=kind==='race'?Object.keys(initial.survival?.players||initial.scores):initial.table?.bodies.map(p=>p.id)||Object.keys(initial.scores);
@@ -112,7 +115,7 @@ export function createStage(canvas:HTMLCanvasElement,kind:'race'|'table',identit
   const own=party.table?.bodies.find(p=>p.id===identity);aimArrow.visible=kind==='table'&&!!aim&&!!own&&!own.out;
   if(aimArrow.visible&&aim&&own){aimArrow.position.set((own.x-300)/50,.2,(own.y-300)/50);aimArrow.setDirection(new T.Vector3(aim.dx,0,aim.dy).normalize());aimArrow.setLength(1+aim.power*2,.4,.22);}
   if(now-lastShadow>200){renderer.shadowMap.needsUpdate=true;lastShadow=now;}
-  const before=performance.now();renderer.render(scene,camera);canvas.dataset.renderMs=(performance.now()-before).toFixed(1);
+  const before=performance.now();renderer.render(scene,camera);const cost=performance.now()-before;if('dataset' in canvas)(canvas as HTMLCanvasElement).dataset.renderMs=cost.toFixed(1);return cost;
  }
- return{ready,render,reduceQuality(level:number){renderer.setPixelRatio(Math.min(devicePixelRatio||1,level===1?.8:.6));renderer.shadowMap.enabled=false;resize();},project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
+ return{ready,render,resize,reduceQuality(level:number){renderer.setPixelRatio(Math.min(dpr,level===1?.8:.6));renderer.shadowMap.enabled=false;resize();},project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer?.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
 }

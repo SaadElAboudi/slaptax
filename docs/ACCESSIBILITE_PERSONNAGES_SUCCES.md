@@ -60,19 +60,13 @@ pas de récompense fictive. Les commandes présentées suivent le mode tactile/c
 - Build commun web/Android/iOS ; compilation Android et contrôle des fichiers embarqués.
   La compilation iOS nécessite Xcode complet.
 
-## Limite du contrôle multi-écran sur ce Mac
+## Contrôle multi-écran
 
-Le test de compétition combinant un client WebGL et trois clients légers ne
-qualifie pas le premier joueur sur cet environnement. Le même échec a été
-reproduit sur la révision précédente `17c5565`, dans un worktree isolé. La cause
-n’est pas attribuée à cette phase sur la seule base de ce test.
-
-Le scénario reste actif par défaut. Pour vérifier séparément le parcours à quatre,
-`SLAPTAX_COMPATIBILITY_E2E=1` utilise quatre clients légers, avec les mêmes règles,
-les gestes réels, la revanche et l’attribution du succès au véritable gagnant.
-Les scènes WebGL, la visée tactile en perspective et une victoire réelle en duel
-sont contrôlées par des scénarios distincts. Cela ne constitue pas un playtest
-sur quatre téléphones physiques.
+La limitation observée à cette étape (un client WebGL et trois clients légers)
+a été corrigée ensuite en déplaçant le rendu de la course dans un Worker.
+Le scénario complet à quatre, puis la revanche, passent avec la 3D active
+sur le premier client. Voir [STABILITE_GAMEPLAY.md](STABILITE_GAMEPLAY.md).
+Cela ne constitue pas un playtest sur quatre téléphones physiques.
 
 ## Bilan de cette intégration
 
@@ -82,4 +76,4 @@ sur quatre téléphones physiques.
 - Suite mobile incluant les nouveautés, l’entraînement robots, la 3D et la
   compétition en mode léger : 21 scénarios réussis avec
   `SLAPTAX_COMPATIBILITY_E2E=1`.
-- Le scénario mixte à quatre avec WebGL reste soumis à la limite décrite ci-dessus.
+- Le scénario mixte à quatre avec WebGL a été corrigé dans la passe suivante, décrite ci-dessus.

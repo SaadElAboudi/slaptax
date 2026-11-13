@@ -1,14 +1,16 @@
+import {traceSegment,queueTrace,type TracePoint} from '../../gameplay/traceInput';
 import {useSfx} from '../../hooks/useSfx';
 const CinematicStage=lazy(()=>import('./CinematicStage').then(m=>({default:m.CinematicStage})));
 import {hapticPulse} from '../../hooks/useFeedbackPreferences';
 import {RaceScene} from './RaceScene';
-import {useEffect,useRef,lazy,Suspense} from 'react';
+import {useEffect,useRef,useState,lazy,Suspense} from 'react';
 import type {PartyState} from '../../gameplay/party';
 import styles from './Survival.module.css';
 type Props={party:PartyState;identity:string;active:boolean;isFr:boolean;send:(action:string,data:{seq:number;holding:boolean}|{seq:number;points:number[][]})=>void;names?:Record<string,string>;botIds?:string[]};
 export function SurvivalGame({party,identity,active,isFr:fr,send,names={},botIds=[]}:Props){
  const {playReady,playDraw,playLoss}=useSfx(),lastSignal=useRef('');
- const seq=useRef(0),held=useRef(false),pointer=useRef<number|null>(null),svg=useRef<SVGSVGElement>(null),lastPoint=useRef<number[]|null>(null),buffer=useRef<number[][]>([]);
+ const seq=useRef(0),held=useRef(false),pointer=useRef<number|null>(null),svg=useRef<SVGSVGElement>(null),needle=useRef<SVGGElement>(null),lastPoint=useRef<TracePoint|null>(null),buffer=useRef<TracePoint[]>([]);
+ const [traceBusy,setTraceBusy]=useState(false);
  const latest=useRef({send,active});latest.current={send,active};
  const state=party.survival,own=state?.players[identity],enabled=active&&party.phase==='survival'&&!!own&&!own.out&&!own.finished;
  seq.current=Math.max(seq.current,own?.seq??-1);
@@ -19,7 +21,12 @@ export function SurvivalGame({party,identity,active,isFr:fr,send,names={},botIds
  function release(){held.current=false;pointer.current=null;lastPoint.current=null;if(party.id==='stopgo')latest.current.send('hold',{holding:false,seq:++seq.current});}
  useEffect(()=>{const flush=()=>{if(!latest.current.active||!enabledRef.current){held.current=false;buffer.current=[];return;}if(party.id==='stopgo'&&held.current)latest.current.send('hold',{holding:true,seq:++seq.current});if(party.id==='fragile'&&buffer.current.length)latest.current.send('trace',{points:buffer.current.splice(0,12),seq:++seq.current});};const timer=setInterval(flush,100);const blur=()=>{held.current=false;pointer.current=null;buffer.current=[];if(party.id==='stopgo')latest.current.send('hold',{holding:false,seq:++seq.current});};window.addEventListener('blur',blur);document.addEventListener('visibilitychange',blur);return()=>{clearInterval(timer);blur();window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',blur);};},[party.id]);
  useEffect(()=>{if(!enabled){held.current=false;pointer.current=null;buffer.current=[];}},[enabled]);
- function sample(e:React.PointerEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect(),p=[Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))];const old=lastPoint.current;if(old){const d=Math.hypot(p[0]-old[0],p[1]-old[1]),n=Math.max(1,Math.ceil(d/.018));if(n>12){buffer.current.push(p);}else for(let i=1;i<=n;i++)buffer.current.push(old.map((v,k)=>v+(p[k]-v)*i/n));}else buffer.current.push(p);lastPoint.current=p;if(buffer.current.length>24)buffer.current=buffer.current.slice(-24);}
+ function sample(e:React.PointerEvent<SVGSVGElement>){
+  const r=e.currentTarget.getBoundingClientRect(),p:TracePoint=[Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))];
+  if(queueTrace(buffer.current,traceSegment(lastPoint.current,p))){lastPoint.current=p;needle.current?.setAttribute('transform',`translate(${p[0]*100} ${p[1]*100}) rotate(-30)`);if(traceBusy)setTraceBusy(false);}
+  else{pointer.current=null;lastPoint.current=null;setTraceBusy(true);}
+ }
+
  if(!state)return null;
  const signal=state.signal==='go'?(fr?'AVANCE':'GO'):state.signal==='release'?(fr?'LÂCHE !':'LET GO!'):'STOP !';
  const viewed=own||Object.values(state.players).filter(p=>!p.out).sort((a,b)=>b.progress-a.progress)[0];
@@ -35,8 +42,10 @@ export function SurvivalGame({party,identity,active,isFr:fr,send,names={},botIds
  {(viewed?.faults||0)>0&&<path d="m22 23-9-5 3-6m6 11-8 8-6 1" fill="none" stroke="#7e442d" strokeWidth="1.2"/>}{(viewed?.faults||0)>1&&<path d="m74 29 12 8 5-2m-5 2-4 10 7 8" fill="none" stroke="#7e442d" strokeWidth="1.2"/>}{viewed?.out&&<path d="m32 91 12-24-4-10 8-6 1-18L61 9" fill="none" stroke="#6c3b26" strokeWidth="1.8"/>}
  <text x="48" y="16" fontSize="6" fill="#6d472c">→</text><text x="73" y="53" fontSize="6" fill="#6d472c">↙</text><text x="22" y="53" fontSize="6" fill="#6d472c">↖</text>
  <circle cx={point[0]*100} cy={point[1]*100} r="2.8" fill="#fff9db" stroke="#594334" strokeWidth=".8"/>
- {!viewed?.finished&&!viewed?.out&&<g transform={`translate(${point[0]*100} ${point[1]*100}) rotate(-30)`} pointerEvents="none"><path d="M0 0 0-17" stroke="#fff6df" strokeWidth=".8"/><rect x="-1.5" y="-23" width="3" height="9" rx="1" fill="#203843" stroke="#a3b6ac" strokeWidth=".6"/></g>}{viewed?.finished&&<text x="50" y="53" textAnchor="middle" fontSize="12" fill="#fff4c7">★</text>}
+ {!viewed?.finished&&!viewed?.out&&<g ref={needle} data-testid="fragile-needle" transform={`translate(${(pointer.current!==null&&lastPoint.current?lastPoint.current:point)[0]*100} ${(pointer.current!==null&&lastPoint.current?lastPoint.current:point)[1]*100}) rotate(-30)`} pointerEvents="none"><path d="M0 0 0-17" stroke="#fff6df" strokeWidth=".8"/><rect x="-1.5" y="-23" width="3" height="9" rx="1" fill="#203843" stroke="#a3b6ac" strokeWidth=".6"/></g>}{viewed?.finished&&<text x="50" y="53" textAnchor="middle" fontSize="12" fill="#fff4c7">★</text>}
  </svg><p>{!own?(fr?'Tu suis le tracé du joueur en tête.':'You are watching the leading player’s trace.'):own?.finished?(fr?'Forme terminée ! Attends les autres.':'Shape complete! Wait for the others.'):fr?'Pars du point blanc, suis les flèches. Tu peux lever le doigt.':'Start at the white dot, follow the arrows. You can lift your finger.'}</p><progress value={viewed?.progress||0} max={1} aria-label={fr?'Contour terminé':'Outline completed'}/>{Object.keys(state.players).length>1&&<div className={styles.tracers}>{Object.entries(state.players).map(([id,p],i)=><span key={id}>{names[id]||`${fr?'Joueur':'Player'} ${i+1}`} · {p.out?(fr?'cassé':'broken'):p.finished?'✓':`${Math.round(p.progress*100)} %`}</span>)}</div>}</>}
+ {party.id==='fragile'&&!own?.finished&&!own?.out&&pointer.current===null&&buffer.current.length>12&&!traceBusy&&<p role="status">{fr?'Le tracé se valide…':'Validating your trace…'}</p>}
+ {party.id==='fragile'&&traceBusy&&<p role="status">{fr?'Ralentis un peu, puis reprends au point blanc.':'Slow down, then resume at the white dot.'}</p>}
  {own&&<p className={styles.faults} role="status"><span className={styles.lives} aria-hidden="true">{[0,1,2].map(i=><i key={i} data-lost={i<(own?.faults||0)}/>)}</span>{own.out?(fr?'Éliminé · reste pour voir le vainqueur':'Eliminated · stay to see the winner'):`${fr?'Fautes':'Faults'} : ${own.faults}/3`}</p>}
  </section>;
 }

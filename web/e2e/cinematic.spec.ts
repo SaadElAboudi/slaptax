@@ -29,7 +29,7 @@ test('slow frames adapt quality without replacing the 3D scene',async({page})=>{
 });
 
 test('unavailable 3D is explicitly labelled and offers a retry',async({page})=>{
- await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type:string,...args:any[]){if(type.startsWith('webgl')||type==='experimental-webgl')return null;return get.apply(this,[type,...args] as any);} as typeof get;});
+ await page.addInitScript(()=>{localStorage.setItem('slaptax_lang','fr');Object.defineProperty(HTMLCanvasElement.prototype,'transferControlToOffscreen',{value:undefined,configurable:true});const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type:string,...args:any[]){if(type.startsWith('webgl')||type==='experimental-webgl')return null;return get.apply(this,[type,...args] as any);} as typeof get;});
  await page.goto('/?tab=training&game=stopgo');await page.getByRole('button',{name:'Entrer dans l arene',exact:true}).click();
  await expect(page.getByTestId('race-scene-3d')).toHaveAttribute('data-renderer','fallback');await expect(page.getByTestId('scene-render-status')).toContainText('Vue légère · 3D indisponible');
  await page.getByRole('button',{name:'Réessayer la 3D',exact:true}).click();await expect(page.getByTestId('race-scene-3d')).toHaveAttribute('data-renderer','fallback');await expect(page.getByTestId('stopgo-control')).toBeEnabled();

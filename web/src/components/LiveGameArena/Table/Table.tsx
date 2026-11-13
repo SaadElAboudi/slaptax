@@ -9,6 +9,7 @@ import styles from './Table.module.css';
 type Aim={dx:number;dy:number;power:number};
 export function Table({party,identity,active,isFr,send}:{party:PartyState;identity:string;active:boolean;isFr:boolean;send:(action:string,data:{dx:number;dy:number;power:number})=>void}){
  const projection=useRef<StageProjection>(null);
+ const gestureProjection=useRef<StageProjection>(null);
  const canvas=useRef<HTMLCanvasElement>(null),pointer=useRef<number|null>(null),[aim,setAim]=useState<Aim|null>(null);
  const latest=useRef({party,aim,isFr}),history=useRef<TableState[]>([]),replay=useRef<{frames:TableState[];start:number}|null>(null);latest.current={party,aim,isFr};
  const received=useRef({state:party.table,at:performance.now()});
@@ -30,18 +31,21 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
   }}
   const stopLoop=startGameLoop(draw);return()=>{observer.disconnect();stopLoop();};
  },[identity]);
- function position(e:React.PointerEvent<HTMLCanvasElement>){const r=e.currentTarget.getBoundingClientRect();const projected=projection.current?.((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);if(projected)return projected;return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*600};}
+ function position(e:React.PointerEvent<HTMLCanvasElement>){const r=e.currentTarget.getBoundingClientRect();const project=pointer.current!==null?gestureProjection.current:projection.current;const projected=project?.((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);if(projected)return projected;return {x:(e.clientX-r.left)/r.width*600,y:(e.clientY-r.top)/r.height*600};}
  function update(e:React.PointerEvent<HTMLCanvasElement>){if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);setAim({dx:dx/(d||1),dy:dy/(d||1),power:Math.min(1,d/130)});}
  function fire(next:Aim){if(enabled&&(own?.cooldown||0)<=0)send('dash',next);setAim(null);}
+ function cancelGesture(){pointer.current=null;setAim(null);}
+ useEffect(()=>{if(!enabled)cancelGesture();},[enabled]);
+ useEffect(()=>{const cancel=()=>cancelGesture(),visibility=()=>{if(document.hidden||document.documentElement.dataset.appActive==='false')cancel();};window.addEventListener('blur',cancel);window.addEventListener('resize',cancel);document.addEventListener('visibilitychange',visibility);window.addEventListener('slaptax:app-state',visibility);return()=>{window.removeEventListener('blur',cancel);window.removeEventListener('resize',cancel);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('slaptax:app-state',visibility);};},[]);
  const opponents=party.table?.bodies.filter(p=>p.id!==identity&&!p.out).length||0;
  return <section className={styles.game} data-testid="table-game" data-phase={party.phase}>
   <header><strong>{party.phase==='done'?(isFr?'LE DERNIER CHOC':'THE FINAL BUMP'):own?.out?(isFr?'PLOUF !':'SPLASH!'):`${opponents} ${isFr?'adversaire(s) sur la table':'rival(s) on the table'}`}</strong><span>{Math.ceil(party.remaining/1000)} s</span></header>
   <div className={styles.board}><canvas ref={canvas} data-testid="table-canvas" data-player-x={own?.x} data-player-y={own?.y} data-opponents={opponents} tabIndex={0} aria-label={isFr?'Table de jeu. Sur téléphone, touche la destination puis relâche pour te propulser. Flèches et espace sur clavier.':'Game table. Drag from your character. Arrow keys aim, space dashes.'}
-   onPointerDown={e=>{if(!enabled||!own||e.button!==0)return;e.preventDefault();pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);setAim({dx:0,dy:-1,power:0});}}
+   onPointerDown={e=>{if(!enabled||!own||(own.cooldown||0)>0||e.button!==0)return;e.preventDefault();gestureProjection.current=projection.current;pointer.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);update(e);}}
    onPointerMove={update} onPointerUp={e=>{if(pointer.current!==e.pointerId||!own)return;const p=position(e),dx=p.x-own.x,dy=p.y-own.y,d=Math.hypot(dx,dy);pointer.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);if(d>12)fire({dx:dx/d,dy:dy/d,power:Math.min(1,d/130)});else setAim(null);}}
    onPointerCancel={()=>{pointer.current=null;setAim(null);}} onLostPointerCapture={()=>{pointer.current=null;setAim(null);}} onBlur={()=>{pointer.current=null;setAim(null);}}
    onKeyDown={e=>{if(!enabled)return;const a:Record<string,Aim>={ArrowUp:{dx:0,dy:-1,power:.8},ArrowDown:{dx:0,dy:1,power:.8},ArrowLeft:{dx:-1,dy:0,power:.8},ArrowRight:{dx:1,dy:0,power:.8}};if(a[e.key]){e.preventDefault();setAim(a[e.key]);}else if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();fire(aim||{dx:0,dy:-1,power:.8});}}}/>
-   <Suspense fallback={null}><CinematicStage isFr={isFr} kind="table" party={party} identity={identity} projection={projection} aim={aim} snapshot={()=>{const s=latest.current.party,r=replay.current;if(s.phase==='done'&&r?.frames.length){const i=Math.min(r.frames.length-1,Math.floor((performance.now()-r.start)/40));return{...s,table:r.frames[Math.max(0,i)]};}return s;}}/></Suspense>
+   <Suspense fallback={null}><CinematicStage onReady={()=>{if(pointer.current!==null)cancelGesture();}} isFr={isFr} kind="table" party={party} identity={identity} projection={projection} aim={aim} snapshot={()=>{const s=latest.current.party,r=replay.current;if(s.phase==='done'&&r?.frames.length){const i=Math.min(r.frames.length-1,Math.floor((performance.now()-r.start)/40));return{...s,table:r.frames[Math.max(0,i)]};}return s;}}/></Suspense>
    {party.phase==='done'&&<span className={styles.replay}>{isFr?'REPLAY · DERNIÈRES SECONDES':'REPLAY · LAST SECONDS'}</span>}
   </div>
   <p className={styles.hint}><MoveUpRight size={18}/>{isFr?'Touche la destination. Relâche. BOUM !':'Touch your destination. Release. BOOM!'}</p>
