@@ -28,6 +28,14 @@ Terrain de cantine original, Flanflan en tablier, préparation des frappes visib
 
 Un résumé des livraisons et des KO, la vraie scène finale et l’export PNG du moment décisif s’intègrent aux résultats existants. L’échec d’initialisation audio n’empêche pas d’entrer en jeu ; aucune nouvelle musique automatique.
 
+## Lisibilité et confort
+
+- Équipes identifiées par la forme, pas seulement par la couleur : un disque sous les amis, un triangle sous les rivaux, en plus des libellés TOI / POTE / RIVAL / BOT.
+- Bouton « Confort visuel » (préférence locale, `slaptax.snack.comfort`) : libellés et mots d’action plus grands, animations réduites (pas de déformation, de traînée ou de balancement), sans secousse de caméra. Il suit aussi la réduction des animations du système.
+- Secousse de caméra brève après un coup porté ou reçu, uniquement en mouvement normal. Elle n’altère ni la simulation, ni les dégâts, ni les collisions.
+
+Ces réglages sont purement visuels : aucune règle serveur n’a changé, et le déploiement backend n’est pas requis pour cette tranche.
+
 ## Intégrité
 
 La simulation avance à pas fixe de 1/60 s côté serveur. Les clients transmettent des directions et des intentions, jamais des positions, des dégâts ou des points. Le serveur valide participants, tour, vecteurs et recharges. La pause réseau décale les échéances, préparations de frappe, réapparitions et événements ; elle efface les directions.

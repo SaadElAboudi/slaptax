@@ -17,7 +17,7 @@ export function Absurd({party,identity,active,isFr,send}:{party:PartyState;ident
  },[s]);
  useEffect(()=>{
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  const draw=(now:number)=>{const state=latest.current,c=gameCanvasContext(canvas.current,600,440);if(c&&state.s){const animate=state.enabled&&!motion.matches;paintAbsurd(c,animate?visualAbsurd(state.s,now-sampledAt.current,lanes.current,now):state.s,identity,state.fr,motion.matches);}};
+  const draw=(now:number)=>{const state=latest.current,c=gameCanvasContext(canvas.current,600,440);if(c&&state.s){const animate=state.enabled&&!(motion.matches||document.documentElement.dataset.reduceMotion==='true');paintAbsurd(c,animate?visualAbsurd(state.s,now-sampledAt.current,lanes.current,now):state.s,identity,state.fr,(motion.matches||document.documentElement.dataset.reduceMotion==='true'));}};
   return startGameLoop(draw);
  },[identity]);
  useEffect(()=>{if(p)setFlight((p.x-50)/500);},[p?.slot]);

@@ -1,3 +1,4 @@
+const {publicAvatar}=require('../domain/publicAvatar');
 const tokens=require('../domain/tokens');
 const {createPlayerSafety,blockedPair}=require('./playerSafety');
 const {createAccountDeletion}=require('./accountDeletion');
@@ -395,9 +396,10 @@ function normalizeDuelRoomState(duel) {
     }
 }
 
-function duelRoomSnapshot(duel) {
+function duelRoomSnapshot(duel,db) {
     normalizeDuelRoomState(duel);
     return {
+        avatars:Object.fromEntries([duel.challengerId,duel.opponentId].map(id=>[id,publicAvatar(db?.users?.find(u=>u.id===id))])),
         duelId: duel.id,
         seriesId: duel.seriesId || duel.id,
         status: duel.status,
@@ -2035,7 +2037,7 @@ function createService(store,options={}) {
             if (duel.status !== 'pending' || duel.tournamentId) return { error: 'Draft is closed', code: 409 };
             if (!DRAFT_GAMES.some(game=>game.id===gameId)) return { error: 'Unknown game', code: 400 };
             duel.veto ||= newVeto();
-            if (duel.veto.votes[userId] === gameId) return { ok: true, room: duelRoomSnapshot(duel) };
+            if (duel.veto.votes[userId] === gameId) return { ok: true, room: duelRoomSnapshot(duel,db) };
             duel.veto.votes[userId] = gameId;
             duel.veto.banned = [...new Set(Object.values(duel.veto.votes))];
             duel.veto.complete = [duel.challengerId, duel.opponentId].every((id) => duel.veto.votes[id]);
@@ -2046,7 +2048,7 @@ function createService(store,options={}) {
                 opponent: { ...duel.draft?.opponent, ban: duel.veto.votes[duel.opponentId] },
             }) : [];
             store.write(db);
-            return { ok: true, room: duelRoomSnapshot(duel) };
+            return { ok: true, room: duelRoomSnapshot(duel,db) };
         },
 
         banTournamentGame(tournamentId, userId, gameId) {
@@ -2080,7 +2082,7 @@ function createService(store,options={}) {
             }
 
             normalizeDuelRoomState(duel);
-            return { ok: true, room: duelRoomSnapshot(duel), serverClock: new Date().toISOString() };
+            return { ok: true, room: duelRoomSnapshot(duel,db), serverClock: new Date().toISOString() };
         },
 
         setDuelReady(duelId, userId, ready) {
@@ -2112,7 +2114,7 @@ function createService(store,options={}) {
             store.write(db);
             return {
                 ok: true,
-                room: duelRoomSnapshot(duel),
+                room: duelRoomSnapshot(duel,db),
                 bothReady: challengerReady && opponentReady,
                 serverClock: new Date().toISOString(),
             };

@@ -11,6 +11,9 @@ import { LiveGameArena } from '../LiveGameArena/LiveGameArena';
 import styles from './TrainingPanel.module.css';
 import { Share2 } from 'lucide-react';
 import { GamePoster } from '../LiveGameArena/GamePoster';
+import {TrainingTutorial} from './TrainingTutorial';
+import {useBooleanPreference} from '../../hooks/useFeedbackPreferences';
+import {useAchievements} from '../../hooks/useAchievements';
 
 interface TrainingResult {
     score: number;
@@ -33,7 +36,12 @@ export function TrainingPanel() {
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
     const [playing, setPlaying] = useState(false);
-    const recorded=useRef('');
+    const recorded=useRef(''),sessionId=useRef(crypto.randomUUID());
+    const userId=useGameStore(s=>s.userId),recordAchievement=useAchievements(s=>s.record);
+    const [guideSeen,setGuideSeen]=useBooleanPreference(`slaptax.tutorial.training.${userId||'guest'}.${gameId}`,false);
+    const [replayGuide,setReplayGuide]=useState(false);
+    const guideOpen=replayGuide||(!!userId&&!guideSeen);
+    function closeGuide(){setGuideSeen(true);setReplayGuide(false);requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('[data-testid=training-guide-replay]')?.focus());}
     const effectiveLevel = isPartyGame(gameId) ? 1 : level;
     const bestKey = `slaptax_training_${gameId === 'onesecond' ? 'v3' : 'v2'}_best_${gameId}_${effectiveLevel}`;
 
@@ -47,7 +55,7 @@ export function TrainingPanel() {
 
     function selectGame(next: CompetitiveGameId) {
         prepareGameMode(next,'training');
-        setGameId(next);
+        setGameId(next);setReplayGuide(false);
         setResult(null);
         setAttempt((value) => value + 1);
         try {
@@ -59,7 +67,7 @@ export function TrainingPanel() {
 
     function complete(next: TrainingResult) {
         const key=`${gameId}:${level}:${attempt}`;
-        if(recorded.current!==key){recordPractice(useGameStore.getState().userId||'',gameId,next.score);recorded.current=key;}
+        if(recorded.current!==key){recordPractice(useGameStore.getState().userId||'',gameId,next.score);recordAchievement(userId,{id:`training:${sessionId.current}:${key}`,type:'training',score:next.score});recorded.current=key;}
         setResult(next);
         void useGameStore.getState().refreshLiveState();
         if (next.score > best) {
@@ -106,6 +114,8 @@ export function TrainingPanel() {
 
     return (
         <section className={styles.panel}>
+            {!playing&&guideOpen&&<TrainingTutorial key={gameId} gameId={gameId} isFr={isFr} isParty={isPartyGame(gameId)} onClose={closeGuide}/> }
+            {!playing&&!guideOpen&&<button type="button" className={styles.linkChallengeButton} data-testid="training-guide-replay" onClick={()=>setReplayGuide(true)}>{isFr?'Revoir le guide':'Replay guide'}</button>}
             <LiveGameArena
                 key={`${gameId}-${level}-${attempt}`}
                 mode="training"
@@ -115,7 +125,7 @@ export function TrainingPanel() {
                 opponentName=""
                 isFr={isFr}
                 onComplete={complete}
-                onStart={() => setPlaying(true)}
+                onStart={() => {setPlaying(true);setGuideSeen(true);setReplayGuide(false);}}
             />
             {!playing&&<>
             <details className={styles.config}><summary>{isFr?'Changer de jeu':'Change game'}<span>{gameLabel(gameId,isFr)}</span></summary>

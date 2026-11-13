@@ -13,12 +13,15 @@ const TournamentPanel=lazy(()=>import('./components/TournamentPanel/TournamentPa
 const TrainingPanel=lazy(()=>import('./components/TrainingPanel/TrainingPanel').then(m=>({default:m.TrainingPanel})));
 import { useRealtime } from './api/realtime';
 import { api } from './api/client';
+import {useAccessibilityPreferences} from './hooks/useAccessibilityPreferences';
+import {AchievementToast} from './components/AchievementsDisplay/AchievementsDisplay';
 const LinkChallenge=lazy(()=>import('./components/TrainingPanel/LinkChallenge').then(m=>({default:m.LinkChallenge})));
 const MyChallenges=lazy(()=>import('./components/MyChallenges/MyChallenges').then(m=>({default:m.MyChallenges})));
 
 const SnackTeams=lazy(()=>import('./components/SnackTeams/SnackTeams').then(m=>({default:m.SnackTeams})));
 
 function App() {
+    useAccessibilityPreferences();
     const { bootstrap, refreshLiveState, activeTab, setActiveTab, language, userId, progression } = useGameStore();
     const isFr = language === 'fr';
     const [linkChallenge, setLinkChallenge] = useState(() => new URLSearchParams(window.location.search).get('link'));
@@ -145,6 +148,7 @@ function App() {
             <div className={styles.tapeBg} aria-hidden />
 
             <TopBar onHome={leaveArena} />
+            <AchievementToast/>
             {!isNative()&&appInvitationUrl()&&<aside className="native-invitation"><a href={appInvitationUrl()!}>{isFr?'Ouvrir cette invitation dans l’app':'Open this invitation in the app'}</a><span>{isFr?'Si SlapTax est déjà installé sur ton téléphone.':'If SlapTax is already installed on your phone.'}</span></aside>}
 
             <Suspense fallback={<p className={styles.loading} role="status">{isFr?'Chargement du jeu…':'Loading game…'}</p>}>

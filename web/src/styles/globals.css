@@ -298,3 +298,17 @@ button:disabled {
         scroll-behavior: auto !important;
     }
 }
+
+/* Device preferences complement the system setting, without changing game rules. */
+:root[data-reduce-motion=true] *, :root[data-reduce-motion=true] *::before, :root[data-reduce-motion=true] *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+:root[data-high-contrast=true]{--text:#fff;--muted:#e5eaff;--line:#d5e0f5;--line-strong:#fff;--panel:#0b1422;--bg:#050a12}
+:root[data-high-contrast=true] body{background:#050a12;color:#fff}
+:root[data-high-contrast=true] :is(section,article,[role=dialog]){background-color:#0b1422!important;border-color:#d5e0f5!important}
+:root[data-high-contrast=true] :is(h1,h2,h3,p,small,label,strong){color:#fff!important}
+:root[data-high-contrast=true] :is(button,input,select){background:#0b1422!important;color:#fff!important;border:2px solid #d5e0f5!important}
+:root[data-high-contrast=true] button[aria-pressed=true]{background:#f5ce82!important;color:#0b1422!important}
+:root[data-high-contrast=true] :focus-visible{outline:3px solid #fff!important;outline-offset:3px}
+:root[data-large-text=true] :is(p,label,small,input,select){font-size:18px!important;line-height:1.6!important}
+:root[data-large-text=true] button:not([aria-label*="Slap Tax"]){font-size:16px!important;white-space:normal;overflow-wrap:anywhere}
+
+:root[data-high-contrast=true] button[aria-pressed=true] :is(small,strong,b,span){color:#0b1422!important}

@@ -19,7 +19,7 @@ export function CinematicStage({party,identity,botIds=[],kind='race',projection,
     const interval=level===2?66:level===1?50:coarse.matches?32:0;
     if(now-last<interval)return;
     const gap=last?now-last:0;last=now;
-    try{stage!.render(latest.current.snapshot?.()||latest.current.party,latest.current.botIds,now,reduced.matches,latest.current.aim);}catch{fallback();return;}
+    try{stage!.render(latest.current.snapshot?.()||latest.current.party,latest.current.botIds,now,(reduced.matches||document.documentElement.dataset.reduceMotion==='true'),latest.current.aim);}catch{fallback();return;}
     canvas.dataset.frames=String(++frames);
     // Shader startup and a single delayed frame must never replace the scene with 2D.
     // Sustained pressure reduces resolution and cadence while keeping the same 3D scene.

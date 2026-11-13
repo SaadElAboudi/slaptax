@@ -16,7 +16,7 @@ export function Carnival({party,identity,active,isFr,send}:Props){
  useEffect(()=>{sampledAt.current=performance.now();},[s]);
  useEffect(()=>{
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  const draw=(now:number)=>{const state=latest.current,c=gameCanvasContext(canvas.current,600,420);if(c&&state.s){const age=state.enabled&&!motion.matches?Math.max(0,Math.min(100,now-sampledAt.current)):0;paintCarnival(c,visualCarnival(state.s,age),identity,state.isFr,pie?state.aim:undefined,motion.matches);}};
+  const draw=(now:number)=>{const state=latest.current,c=gameCanvasContext(canvas.current,600,420);if(c&&state.s){const age=state.enabled&&!(motion.matches||document.documentElement.dataset.reduceMotion==='true')?Math.max(0,Math.min(100,now-sampledAt.current)):0;paintCarnival(c,visualCarnival(state.s,age),identity,state.isFr,pie?state.aim:undefined,(motion.matches||document.documentElement.dataset.reduceMotion==='true'));}};
   return startGameLoop(draw);
  },[identity,pie]);
  function stop(){const previous=hold.current;if(!previous)return;hold.current=null;latest.current.send('bank',{serial:previous.serial});}

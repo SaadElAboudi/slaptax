@@ -1,17 +1,24 @@
+import characters from '../../../../shared/characters.json' with {type:'json'};
+import {ClubAvatar} from '../ClubAvatar/ClubAvatar';
+import {useAccessibilityPreferences} from '../../hooks/useAccessibilityPreferences';
 import {TokenWallet} from '../TokenWallet/TokenWallet';
 import {AccountControls} from '../AccountControls/AccountControls';
 import styles from './TopBar.module.css';
 import { useGameStore } from '../../hooks/useGameStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useMusicPreference } from '../../hooks/useAdaptiveAudio';
 import { Music2, Volume2, Vibrate, X, Settings2 } from 'lucide-react';
 import { useFeedbackPreferences } from '../../hooks/useFeedbackPreferences';
 
 export function TopBar({onHome}: {onHome: () => void}) {
     const { wallet, apiOnline, language, toggleLanguage, playerName, setProfile, progression, setCosmetics } = useGameStore();
+    const accessibility=useAccessibilityPreferences();
     const safeWallet = Number(wallet ?? 0);
     const isFr = language === 'fr';
     const [draftName, setDraftName] = useState(playerName);
+    const profileButton=useRef<HTMLButtonElement>(null);
+    const [cosmeticError,setCosmeticError]=useState('');
+    function chooseCosmetic(choice:{avatar?:string;arena?:string;trail?:string}){setCosmeticError('');void setCosmetics(choice).catch(()=>setCosmeticError(isFr?'Choix non enregistré. Réessaie en ligne.':'Choice not saved. Try again online.'));}
     const [lockerOpen, setLockerOpen] = useState(false);
     const [tokensOpen,setTokensOpen]=useState(false);
     const { musicOn, toggleMusic } = useMusicPreference();
@@ -22,7 +29,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
     }, [playerName]);
 
     useEffect(() => {
-        const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setLockerOpen(false); };
+        const close = (event: KeyboardEvent) => { if (event.key === 'Escape') {setLockerOpen(false);profileButton.current?.focus();} };
         if (lockerOpen) window.addEventListener('keydown', close);
         return () => window.removeEventListener('keydown', close);
     }, [lockerOpen]);
@@ -50,6 +57,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
                     <span aria-hidden="true">✦</span> {safeWallet.toLocaleString(isFr?'fr-FR':'en-US',{maximumFractionDigits:2})} <small title={isFr?'Jetons gratuits, sans valeur monétaire':'Free tokens with no monetary value'}>{isFr?'jetons':'tokens'}</small>
                 </button>
                 <button
+                    ref={profileButton}
                     className={styles.avatarButton}
                     type="button"
                     onClick={() => setLockerOpen((value) => !value)}
@@ -67,7 +75,7 @@ export function TopBar({onHome}: {onHome: () => void}) {
                             <span>{isFr ? 'TON PROFIL' : 'YOUR PROFILE'}</span>
                             <strong>{playerName} {progression ? `· LVL ${progression.level}` : ''}</strong>
                         </div>
-                        <button type="button" onClick={() => setLockerOpen(false)} aria-label={isFr ? 'Fermer' : 'Close'}><X size={17}/></button>
+                        <button type="button" onClick={() => {setLockerOpen(false);profileButton.current?.focus();}} aria-label={isFr ? 'Fermer' : 'Close'}><X size={17}/></button>
                     </header>
                     <label className={styles.nameLabel}>{isFr?'Ton pseudo':'Your nickname'}                <input
                     className={styles.playerNameInput}
@@ -92,27 +100,27 @@ export function TopBar({onHome}: {onHome: () => void}) {
                         <label><Volume2 size={17}/>{isFr?'Effets sonores':'Sound effects'}<input type="checkbox" checked={soundOn} onChange={toggleSound}/></label>
                         <label><Vibrate size={17}/>{isFr?'Vibrations':'Haptics'}<input type="checkbox" checked={hapticsOn} onChange={toggleHaptics}/></label>
                     </div>
-                    {progression && <><CosmeticRow
-                        label={isFr ? 'Avatar' : 'Avatar'}
-                        values={['spark', 'visor', 'crown', 'phantom']}
-                        unlocked={progression.cosmetics.unlocked.avatars}
-                        selected={progression.cosmetics.avatar}
-                        onSelect={(avatar) => void setCosmetics({ avatar })}
-                    />
+                    <section className={styles.accessibility} aria-label={isFr?'Accessibilité':'Accessibility'}><strong>{isFr?'Confort et lisibilité':'Comfort and readability'}</strong>{[
+                        [isFr?'Contraste renforcé':'High contrast',accessibility.highContrast,accessibility.setHighContrast],
+                        [isFr?'Réduire les animations':'Reduce motion',accessibility.reduceMotion,accessibility.setReduceMotion],
+                        [isFr?'Textes agrandis':'Larger text',accessibility.largeText,accessibility.setLargeText],
+                    ].map(([label,value,set])=><label key={String(label)}>{String(label)}<input type="checkbox" checked={Boolean(value)} onChange={e=>(set as (next:boolean)=>void)(e.target.checked)}/></label>)}</section>
+                    {progression && <><section className={styles.fighters} aria-label={isFr?'Ton personnage':'Your character'}><strong>{isFr?'Ton personnage':'Your character'}</strong><small>{isFr?'Apparence uniquement. Mêmes règles pour tous.':'Appearance only. The same rules for everyone.'}</small><div>{characters.map(({id,labelFr,labelEn})=>{const unlocked=progression.cosmetics.unlocked.avatars.includes(id),name=isFr?labelFr:labelEn;return <button key={id} type="button" disabled={!unlocked} aria-label={`${name} · ${unlocked?(isFr?'disponible':'available'):(isFr?'verrouillé':'locked')}`} aria-pressed={progression.cosmetics.avatar===id} onClick={()=>chooseCosmetic({avatar:id})}><ClubAvatar variant={id}/><b>{name}</b><small>{!unlocked?(isFr?'À débloquer':'Locked'):progression.cosmetics.avatar===id?(isFr?'Sélectionné':'Selected'):(isFr?'Choisir':'Choose')}</small></button>;})}</div></section>
                     <CosmeticRow
                         label={isFr ? 'Arène' : 'Arena'}
                         values={['foundry', 'neon', 'storm']}
                         unlocked={progression.cosmetics.unlocked.arenas}
                         selected={progression.cosmetics.arena}
-                        onSelect={(arena) => void setCosmetics({ arena })}
+                        onSelect={(arena) => chooseCosmetic({ arena })}
                     />
                     <CosmeticRow
                         label={isFr ? 'Traînée' : 'Trail'}
                         values={['pulse', 'ember', 'glitch']}
                         unlocked={progression.cosmetics.unlocked.trails}
                         selected={progression.cosmetics.trail}
-                        onSelect={(trail) => void setCosmetics({ trail })}
+                        onSelect={(trail) => chooseCosmetic({ trail })}
                     /></>}
+                    {cosmeticError&&<p role="alert">{cosmeticError}</p>}
                     <AccountControls/>
                 </div>
             )}

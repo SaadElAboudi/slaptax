@@ -17,7 +17,7 @@ export function useFeedbackPreferences(){
     return {soundOn,hapticsOn,toggleSound,toggleHaptics};
 }
 export function hapticPulse(pattern:number|number[]=12){
-    if(!preference(HAPTIC_KEY,false)||document.hidden||document.documentElement.dataset.appActive==='false'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    if(!preference(HAPTIC_KEY,false)||document.documentElement.dataset.reduceMotion==='true'||document.hidden||document.documentElement.dataset.appActive==='false'||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     if(isNative()){void Haptics.impact({style:Array.isArray(pattern)?ImpactStyle.Medium:ImpactStyle.Light}).catch(()=>undefined);return;}
     navigator.vibrate?.(pattern);
 }

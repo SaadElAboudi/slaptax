@@ -1,3 +1,4 @@
+import {useAchievements} from '../../hooks/useAchievements';
 import {factoryAftermath} from '../../gameplay/factoryComedy';
 import {StakeQuote} from '../TokenWallet/StakeQuote';
 import {publicUrl} from '../../platform/environment';
@@ -148,6 +149,8 @@ export function FriendDuelPanel() {
     const [linkInvite, setLinkInvite] = useState<OpenInvite | null>(null);
     const [room, setRoom] = useState<DuelRoomState | null>(null);
     const [match, setMatch] = useState<LiveDuelMatch | null>(null);
+    const recordAchievement=useAchievements(s=>s.record);
+    useEffect(()=>{if(userId&&match?.status==='done'&&match.winnerId&&[match.challengerId,match.opponentId].includes(userId))recordAchievement(userId,{id:`duel:${match.duelId}`,type:'duel',won:match.winnerId===userId});},[userId,match?.status,match?.duelId,match?.winnerId,recordAchievement]);
     const [rivalry, setRivalry] = useState<RivalryResponse | null>(null);
     const [rematchStake, setRematchStake] = useState(2);
     const [rematchGame, setRematchGame] = useState<CompetitiveGameId | ''>('');
@@ -823,7 +826,7 @@ export function FriendDuelPanel() {
                     <div className={styles.players}>
                         <div className={ready ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar variant={avatar}/></span><strong>{playerName}</strong><span>{ready ? (isFr?'PRÊT':'READY') : (isFr?'EN ATTENTE':'WAITING')}</span></div>
                         <b>VS</b>
-                        <div className={rivalReady ? styles.isReady : ''}><span className={club.roomAvatar}><ClubAvatar rival/></span><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? (isFr?'PRÊT':'READY') : (isFr?'EN ATTENTE':'WAITING')}</span></div>
+                        <div className={rivalReady ? styles.isReady : ''}><span className={club.roomAvatar} data-testid="duel-rival-character" data-avatar={room?.avatars?.[room.challengerId===userId?room.opponentId:room.challengerId]||'spark'}><ClubAvatar rival variant={room?.avatars?.[room.challengerId===userId?room.opponentId:room.challengerId]}/></span><strong>{opponents.find((entry) => entry.id === rivalId)?.playerName || 'RIVAL'}</strong><span>{rivalReady ? (isFr?'PRÊT':'READY') : (isFr?'EN ATTENTE':'WAITING')}</span></div>
                     </div>
                     {room?.veto && userId && <GameVeto veto={room.veto} userId={userId} isFr={isFr} busy={busy} games={room.games} onBan={(gameId) => {
                         setBusy(true); setError('');

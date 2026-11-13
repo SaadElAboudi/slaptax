@@ -6,6 +6,7 @@ import {api,type HistoryResponse} from '../../api/client';
 import {gameLabel} from '../../gameplay/catalog';
 import {readPracticeHistory,type PracticeEntry} from '../../gameplay/practiceHistory';
 import {linkScore} from '../MyChallenges/MyChallenges';
+import {AchievementsDisplay} from '../AchievementsDisplay/AchievementsDisplay';
 
 export function HistoryPanel() {
     const {userId,clientId,language}=useGameStore(),isFr=language==='fr';
@@ -37,6 +38,7 @@ export function HistoryPanel() {
     const labels:Record<string,string>={win:isFr?'VICTOIRE':'WIN',loss:isFr?'DEFAITE':'LOSS',draw:isFr?'EGALITE':'DRAW',created:isFr?'DEFI CREE':'CHALLENGE CREATED',practice:isFr?'SOLO · CET APPAREIL':'SOLO · THIS DEVICE',credit:isFr?'CREDIT':'CREDIT',finished:isFr?'TERMINE':'FINISHED'};
     return <section className={styles.panel} data-testid="history-panel">
         <div className={styles.head}><h2 className={styles.title}>{isFr?'Historique':'History'}</h2><button type="button" className={styles.refresh} onClick={()=>setRevision(v=>v+1)} aria-label={isFr?'Actualiser l historique':'Refresh history'} title={isFr?'Actualiser l historique':'Refresh history'}><RefreshCw size={18}/></button></div>
+        <AchievementsDisplay/>
         <div className={styles.filters} role="tablist" aria-label={isFr?'Filtrer l historique':'Filter history'}>{[['all','Tout','All'],['matches','Matchs','Matches'],['links','Defis par lien','Link challenges'],['solo','Solo','Solo']].map(([id,fr,en])=><button type="button" role="tab" aria-selected={filter===id} key={id} onClick={()=>setFilter(id)}>{isFr?fr:en}</button>)}</div>
         {error&&<p role="alert">{error}</p>}
         {loading?<p role="status">{isFr?'Chargement...':'Loading...'}</p>:rows.length===0&&!error?<p className={styles.empty}>{isFr?'Aucun resultat pour le moment.':'No results yet.'}</p>:null}

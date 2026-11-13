@@ -1,11 +1,13 @@
 import {paintRoyalChicken,paintChickenFloor,paintEggWarnings} from './paintChicken';
 import type {SnackState} from '../../../gameplay/party';
+import {snackTeamMarker} from '../../../gameplay/snackComfort';
 export interface SnackCamera {x:number;y:number;zoom:number}
 const ink='#1a303b';
 const team=(p:SnackState['bodies'][number])=>p.team??p.slot;
 
 function rect(c:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,color:string,r=8){c.fillStyle=color;c.strokeStyle=ink;c.lineWidth=3;c.beginPath();c.roundRect(x,y,w,h,r);c.fill();c.stroke();}
-export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam:SnackCamera,fr:boolean,now:number,reduced:boolean,viewportHeight=600){
+// comfort: larger labels for readability; reduced motion is passed separately by the caller.
+export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam:SnackCamera,fr:boolean,now:number,reduced:boolean,viewportHeight=600,comfort=false){
  const me=s.bodies.find(p=>p.id===id)||s.bodies[0],friendly=(p:SnackState['bodies'][number])=>team(p)===team(me);
  c.clearRect(0,0,900,viewportHeight);c.fillStyle='#263f45';c.fillRect(0,0,900,viewportHeight);c.save();c.translate(450,viewportHeight/2);c.scale(cam.zoom,cam.zoom);c.translate(-cam.x,-cam.y);
  rect(c,0,0,900,600,'#a4bbae',15);
@@ -58,7 +60,9 @@ export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam
   c.save();c.translate(p.ax*28,p.ay*28);c.rotate(Math.atan2(p.ay,p.ax));rect(c,-8,-9,21,18,'#fff1c5',7);c.restore();
   if(p.guardRemaining){c.save();c.rotate(Math.atan2(p.guardY||0,p.guardX||1));c.strokeStyle='#fff0ad';c.lineWidth=6;c.beginPath();c.arc(0,0,41,-1.3,1.3);c.stroke();rect(c,31,-24,15,48,'#f6dd92',7);c.restore();}
   c.restore();
-  c.textAlign='center';c.font='900 12px sans-serif';c.lineWidth=3;c.strokeStyle=ink;const name=p.id===id?(fr?'TOI':'YOU'):own?(fr?'POTE':'MATE'):p.bot?'BOT':'RIVAL';c.strokeText(name,p.x,p.y-48);c.fillStyle='#fff9df';c.fillText(name,p.x,p.y-48);
+  c.textAlign='center';c.font=`900 ${comfort?16:12}px sans-serif`;c.lineWidth=3;c.strokeStyle=ink;const name=p.id===id?(fr?'TOI':'YOU'):own?(fr?'POTE':'MATE'):p.bot?'BOT':'RIVAL';c.strokeText(name,p.x,p.y-48);c.fillStyle='#fff9df';c.fillText(name,p.x,p.y-48);
+  // Team is also carried by shape under the feet: friends are discs, rivals triangles (never colour alone).
+  const k=comfort?8:6,by=p.y+44;c.fillStyle=own?'#fff9df':'#ffb3a8';c.strokeStyle=ink;c.lineWidth=2;c.beginPath();if(snackTeamMarker(own)==='disc')c.arc(p.x,by,k,0,Math.PI*2);else{c.moveTo(p.x,by-k);c.lineTo(p.x+k,by+k*.8);c.lineTo(p.x-k,by+k*.8);c.closePath();}c.fill();c.stroke();
   for(let i=0;i<(p.maxHp||4);i++)rect(c,p.x-(p.maxHp||4)*6.5+i*13,p.y-41,10,5,i<p.hp?(own?'#d1e991':'#efaca0'):'#506c6b',2);
  }
  if(me.carrying){
@@ -77,7 +81,7 @@ export function paintSnack(c:CanvasRenderingContext2D,s:SnackState,id:string,cam
   if(e.kind==='super-wave'){c.save();c.strokeStyle='#ffde78';c.lineWidth=10;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(e.x,e.y,reduced?175:50+e.age*.2,0,Math.PI*2);c.stroke();c.restore();}
   if(e.kind==='boing'){c.save();c.strokeStyle='#fff0a4';c.lineWidth=8;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(e.x,e.y,reduced?135:135+e.age*.08,0,Math.PI*2);c.stroke();c.restore();}
   if(e.kind==='swing'){c.save();c.translate(e.x,e.y);c.rotate(Math.atan2(e.ay||0,e.ax||1));c.strokeStyle='#fff2bc';c.lineWidth=8;c.globalAlpha=1-e.age/650;c.beginPath();c.arc(0,0,70,-.8,.8);c.stroke();c.restore();continue;}
-  const word=e.kind==='heal'?(fr?'+1 PV':'+1 HP'):e.kind==='ward-block'?(fr?'PROTÉGÉ !':'PROTECTED!'):e.kind==='ward'?(fr?'BRUNCH SOLIDAIRE !':'TEAM BRUNCH!'):e.kind==='super-wave'?'CATAPULTE !':e.kind==='super-brine'?(fr?'BOCAL GÉANT !':'GIANT JAR!'):e.kind==='chicken-escape'?(fr?'COT COT ! LIBERTÉ !':'CLUCK! FREEDOM!'):e.kind==='egg-splat'?'SPLAAATCH !':e.kind==='throw'?(fr?'ÇA PART !':'CATCH!'):e.kind==='pass'?(fr?'BIEN REÇU !':'NICE PASS!'):e.kind==='intercept'?(fr?'C’EST POUR MOI !':'MINE NOW!'):e.kind==='ricochet'?'BONK !':e.kind==='boing'?'BOOOING !':e.kind==='blocked'?'CRAC !':e.kind==='guard'?(fr?'CROÛTE PRÊTE !':'CRUST READY!'):e.kind==='hit'?'PAF !':e.kind==='ko'?'KO !':e.kind==='capture'?(fr?'LIVRÉ !':'DELIVERED!'):(fr?'AU DÉPÔT !':'BRING IT HOME!');c.font='900 20px sans-serif';c.textAlign='center';c.lineWidth=5;c.strokeStyle=ink;c.fillStyle='#fff2bb';const y=e.y-66-(reduced?0:e.age/40);const textX=Math.max(95,Math.min(805,e.x));c.strokeText(word,textX,y);c.fillText(word,textX,y);
+  const word=e.kind==='heal'?(fr?'+1 PV':'+1 HP'):e.kind==='ward-block'?(fr?'PROTÉGÉ !':'PROTECTED!'):e.kind==='ward'?(fr?'BRUNCH SOLIDAIRE !':'TEAM BRUNCH!'):e.kind==='super-wave'?'CATAPULTE !':e.kind==='super-brine'?(fr?'BOCAL GÉANT !':'GIANT JAR!'):e.kind==='chicken-escape'?(fr?'COT COT ! LIBERTÉ !':'CLUCK! FREEDOM!'):e.kind==='egg-splat'?'SPLAAATCH !':e.kind==='throw'?(fr?'ÇA PART !':'CATCH!'):e.kind==='pass'?(fr?'BIEN REÇU !':'NICE PASS!'):e.kind==='intercept'?(fr?'C’EST POUR MOI !':'MINE NOW!'):e.kind==='ricochet'?'BONK !':e.kind==='boing'?'BOOOING !':e.kind==='blocked'?'CRAC !':e.kind==='guard'?(fr?'CROÛTE PRÊTE !':'CRUST READY!'):e.kind==='hit'?'PAF !':e.kind==='ko'?'KO !':e.kind==='capture'?(fr?'LIVRÉ !':'DELIVERED!'):(fr?'AU DÉPÔT !':'BRING IT HOME!');c.font=`900 ${comfort?28:20}px sans-serif`;c.textAlign='center';c.lineWidth=5;c.strokeStyle=ink;c.fillStyle='#fff2bb';const y=e.y-66-(reduced?0:e.age/40);const textX=Math.max(95,Math.min(805,e.x));c.strokeText(word,textX,y);c.fillText(word,textX,y);
  }
  c.restore();
  // Always-visible objective pointers survive the mobile follow camera.

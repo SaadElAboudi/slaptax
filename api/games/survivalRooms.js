@@ -1,3 +1,4 @@
+const {publicAvatar}=require('../domain/publicAvatar');
 const {tickSurvivalBots}=require('./survivalBots');
 const {randomBytes}=require('node:crypto');
 const {blockedPair}=require('../application/playerSafety');
@@ -5,9 +6,9 @@ const playlist=require('../../shared/survival-games.json');
 const {createParty,beginParty,actParty,tickParty,publicParty,pauseParty}=require('./partyGames');
 function createSurvivalRooms(store,send){
  const rooms=new Map(),sockets=new Map();
- function members(r){return r.players.map(p=>({...p,online:p.bot||[...(sockets.get(p.id)||[])].some(c=>c.readyState===1&&c.survivalRoom===r.code)}));}
+ function members(r){return r.players.map(p=>({...p,avatar:p.bot?'visor':p.avatar||'spark',online:p.bot||[...(sockets.get(p.id)||[])].some(c=>c.readyState===1&&c.survivalRoom===r.code)}));}
  function state(r,id){return{type:'survival.state',code:r.code,practice:!!r.practice,difficulty:r.difficulty||'normal',host:r.players[0]?.id,players:members(r),phase:r.phase,stage:r.stage,round:r.round,activeIds:r.activeIds,votes:r.votes,results:r.results,winnerId:r.winnerId,reason:r.reason,startAt:r.startAt,disconnectUntil:r.disconnectUntil,party:r.game?publicParty(r.game,id,Date.now()):null};}
- function broadcast(r){for(const list of sockets.values())for(const c of list)if(c.survivalRoom===r.code)send(c,state(r,c.userId));}
+ function broadcast(r){const users=new Map((store.read().users||[]).map(user=>[user.id,user]));for(const player of r.players)player.avatar=player.bot?'visor':publicAvatar(users.get(player.id));for(const list of sockets.values())for(const c of list)if(c.survivalRoom===r.code)send(c,state(r,c.userId));}
  function error(c,reason){send(c,{type:'survival.error',reason});}
  function reset(r){r.stage=0;r.results=[];r.activeIds=r.players.map(p=>p.id);r.winnerId=null;r.reason='';r.game=null;r.votes=[];}
  function countdown(r){r.round++;r.phase='countdown';r.startAt=Date.now()+2200;r.votes=[];r.game=null;r.resuming=false;r.pausedAt=0;r.updatedAt=Date.now();broadcast(r);}

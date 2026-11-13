@@ -32,3 +32,5 @@
 
 .rematchGoal{display:grid;gap:8px;width:min(480px,100%);padding:16px;border:2px solid #ffe09a;border-radius:12px;background:#192f53;box-sizing:border-box}.rematchGoal strong{color:#ffe09a;font-size:19px}.rematchGoal span{color:#d9e5f7;font-size:13px;line-height:1.5}
 @media(max-width:760px){.resultActions{width:100%;max-width:480px}.resultActions button{width:100%;min-height:48px}.result{min-height:0}.games button{min-height:96px}.games button>span{font-size:11px}}
+
+.linkChallengeButton[data-testid=training-guide-replay]{min-height:44px}

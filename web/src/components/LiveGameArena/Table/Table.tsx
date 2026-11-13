@@ -26,7 +26,7 @@ export function Table({party,identity,active,isFr,send}:{party:PartyState;identi
   function draw(now:number){if(projection.current)return;const ctx=c!.getContext('2d'),s=latest.current;if(ctx&&s.party.table){let state=s.party.table;
    if(s.party.phase==='done'&&replay.current?.frames.length){const r=replay.current;const frame=Math.max(0,Math.min(r.frames.length-1,Math.floor((now-r.start)/40)));state=r.frames[frame];if(frame===r.frames.length-1){const age=Math.max(0,now-r.start-frame*40);state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}}
    else{const age=Math.min(150,Math.max(0,now-received.current.at));state={...state,bodies:state.bodies.map(p=>p.out?{...p,fallAge:p.fallAge+age}:p),lastHit:state.lastHit?{...state.lastHit,age:state.lastHit.age+age}:null};}
-   ctx.save();ctx.scale(c!.width/600,c!.height/600);paintTable(ctx,state,identity,s.party.phase==='brawl'?s.aim:null,now,s.isFr,motion.matches);ctx.restore();
+   ctx.save();ctx.scale(c!.width/600,c!.height/600);paintTable(ctx,state,identity,s.party.phase==='brawl'?s.aim:null,now,s.isFr,(motion.matches||document.documentElement.dataset.reduceMotion==='true'));ctx.restore();
   }}
   const stopLoop=startGameLoop(draw);return()=>{observer.disconnect();stopLoop();};
  },[identity]);

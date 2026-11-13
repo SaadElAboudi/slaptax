@@ -261,6 +261,7 @@ export interface GameVeto {
 }
 
 export interface DuelRoomState {
+    avatars?: Record<string,string>;
     veto?: GameVeto | null;
     duelId: string;
     seriesId: string;

@@ -95,3 +95,6 @@
 }
 
 .board[data-hit=true]{animation:confirmed-impact .13s ease-out}@keyframes confirmed-impact{0%,100%{transform:translateX(0)}30%{transform:translateX(-2px)}65%{transform:translateX(2px)}}@media(prefers-reduced-motion:reduce){.board[data-hit=true]{animation:none}}
+@media(max-width:900px),(pointer:coarse){.viewControls{display:flex;justify-content:flex-end;margin:0 0 5px;gap:6px}.viewControls>strong,.viewControls>button:not([data-testid=snack-comfort]){display:none}.viewControls button[data-testid=snack-comfort]{display:block!important;min-height:44px;padding:7px 10px;font-size:11px}}
+
+.viewControls button[data-testid=snack-comfort]{min-height:44px;min-width:44px}
