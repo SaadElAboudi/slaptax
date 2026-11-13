@@ -50,3 +50,6 @@ web/dist-mobile/
 social-videos/src/snack-demo.json
 social-videos/src/tower-demo.json
 social-videos/src/bomb-demo.json
+
+# Generated production-engine snapshots for the six-game promotion
+social-videos/src/campaign-demo.json

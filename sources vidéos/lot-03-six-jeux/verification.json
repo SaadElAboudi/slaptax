@@ -1,0 +1,105 @@
+{
+  "verifiedAt": "2026-11-05T11:18:47.029Z",
+  "published": false,
+  "editorialStatus": "local demos for human review",
+  "scenario": "production engine inputs, not human footage",
+  "results": [
+    {
+      "id": "01-decoupe-37",
+      "game": "decoupe",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=decoupe",
+      "filename": "01-decoupe-37.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "3a5a512ee4395cc1518b4877777ca345ad7d16d6ff2493ea272b8558d1ea6a5e"
+    },
+    {
+      "id": "05-chroma-couleur",
+      "game": "chroma",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=chroma",
+      "filename": "05-chroma-couleur.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "d7c188a8ea9cd76a8e9e0018b81f5277d2e09bd4bab158205c7985674318e909"
+    },
+    {
+      "id": "07-encore-un",
+      "game": "onemore",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=onemore",
+      "filename": "07-encore-un.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "35fcb99963d1cd91e72050cb86c43b6483b0b11ef5558ab55e0fe4f0fc483042"
+    },
+    {
+      "id": "02-braquage-butins",
+      "game": "snack",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=snack",
+      "filename": "02-braquage-butins.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "78b3158cb7ceb4e38cc6b15897211832f262891541a28ebb86d71a4c729fa606"
+    },
+    {
+      "id": "22-table-dehors",
+      "game": "table",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=table",
+      "filename": "22-table-dehors.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "e622cf25c960e3818890fec3ad6b2ce784442c558ad8335442b8bf69a4bdb0aa"
+    },
+    {
+      "id": "23-tarte-riposte",
+      "game": "pie",
+      "playUrl": "https://slaptax-r9na.onrender.com/?tab=training&game=pie",
+      "filename": "23-tarte-riposte.mp4",
+      "width": 1080,
+      "height": 1920,
+      "seconds": 15,
+      "fps": 30,
+      "frames": 450,
+      "audioTracks": 0,
+      "decoded": true,
+      "sha256": "6c8ac884c2ae3f060c39d8a696849e161355f9f8e43fcba4387522b131c67a8e"
+    }
+  ],
+  "gallery": {
+    "videosLoaded": 6,
+    "desktop": {
+      "width": 1280,
+      "height": 900
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    },
+    "horizontalOverflow": false,
+    "runtimeErrors": []
+  }
+}

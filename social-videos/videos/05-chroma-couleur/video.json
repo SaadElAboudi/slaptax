@@ -2,30 +2,39 @@
   "id": "05-chroma-couleur",
   "day": 5,
   "game": "chroma",
-  "series": "Défi solo",
-  "hook": "Vous voyez vraiment la même couleur ?",
+  "title": "CHROMA",
+  "series": "Six jeux. Six défis.",
+  "hook": "Tu t’en souviens vraiment ?",
   "duration": 15,
-  "cta": "Défie ton pote. Lien en bio.",
-  "status": "storyboard",
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
+  "status": "demo",
   "footage": null,
   "voice": null,
-  "music": "audio/slaptax-pulse.wav",
-  "voiceText": "Même couleur au départ. Deux réponses très différentes. Vous faites mieux ?",
+  "music": null,
+  "effects": false,
+  "voiceText": "Tu t’en souviens vraiment ? Deux secondes pour observer. Retrouve la nuance de mémoire. Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Une couleur montrée sur trois.",
   "scenes": [
     {
       "from": 0,
       "to": 3,
-      "text": "Vous voyez vraiment la même couleur ?"
+      "text": "Deux secondes pour observer."
     },
     {
       "from": 3,
+      "to": 7,
+      "text": "Retrouve la nuance de mémoire."
+    },
+    {
+      "from": 7,
       "to": 12,
-      "text": "À toi de faire mieux."
+      "text": "Proche… mais pas pareil."
     },
     {
       "from": 12,
       "to": 15,
-      "text": "Défie ton pote. Lien en bio."
+      "text": "Tu peux faire mieux ?"
     }
   ]
 }

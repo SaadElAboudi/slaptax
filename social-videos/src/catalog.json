@@ -3,90 +3,81 @@
     "id": "01-decoupe-37",
     "day": 1,
     "game": "decoupe",
-    "series": "Défi solo",
-    "hook": "Découpe exactement 37 %.",
+    "title": "Chef Couic",
+    "series": "Six jeux. Six défis.",
+    "hook": "37 %. Tu couperais où ?",
     "duration": 15,
-    "cta": "Défie ton pote. Lien en bio.",
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
     "status": "demo",
     "footage": null,
     "voice": null,
     "music": null,
-    "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Touche le morceau à servir. Tu fais mieux ?",
+    "effects": false,
+    "voiceText": "37 %. Tu couperais où ? Trace une ligne. Touche la part à servir. Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Une portion montrée sur trois.",
     "scenes": [
       {
         "from": 0,
-        "to": 2.7,
-        "text": "Découpe 37 %. À vue d’œil."
-      },
-      {
-        "from": 2.7,
-        "to": 4.5,
+        "to": 3,
         "text": "Trace une ligne."
       },
       {
-        "from": 4.5,
-        "to": 6.5,
-        "text": "Choisis le côté à garder."
+        "from": 3,
+        "to": 7,
+        "text": "Touche la part à servir."
       },
       {
-        "from": 6.5,
-        "to": 7.033333333333333,
-        "text": "Le morceau est servi."
-      },
-      {
-        "from": 7.033333333333333,
+        "from": 7,
         "to": 12,
-        "text": "43,3 % gardés. 6,3 points d’écart."
+        "text": "Le jeu mesure ton écart."
       },
       {
         "from": 12,
         "to": 15,
-        "text": "Tu fais mieux ? À toi de jouer."
+        "text": "Tu peux faire mieux ?"
       }
-    ],
-    "renderer": "decoupe-engine-demo",
-    "effects": false
+    ]
   },
   {
     "id": "02-braquage-butins",
     "day": 2,
     "game": "snack",
-    "series": "Défi solo",
-    "hook": "Rends. Le. Goûter.",
-    "duration": 12,
-    "cta": "Défie ton pote. Joue sur SlapTax.",
+    "title": "Braquage du Goûter",
+    "series": "Six jeux. Six défis.",
+    "hook": "Ton goûter. Son problème.",
+    "duration": 15,
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
     "status": "demo",
     "footage": null,
     "voice": null,
     "music": null,
-    "voiceText": "L’Intendant a taxé ton goûter. Reprends les caisses. Son stagiaire n’a rien demandé.",
+    "effects": false,
+    "voiceText": "Ton goûter. Son problème. Attrape le goûter. Une baffe peut tout faire tomber. Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Extrait de duel scénarisé.",
     "scenes": [
       {
         "from": 0,
         "to": 3,
-        "text": "Son plan : garder ton goûter."
+        "text": "Attrape le goûter."
       },
       {
         "from": 3,
-        "to": 6,
-        "text": "Le rival arrive. PAF : le goûter tombe !"
+        "to": 7,
+        "text": "Une baffe peut tout faire tomber."
       },
       {
-        "from": 6,
-        "to": 9.5,
-        "text": "Ton plan : tout ramener au dépôt."
-      },
-      {
-        "from": 9.5,
+        "from": 7,
         "to": 12,
-        "text": "Défie ton pote au Braquage."
+        "text": "Ramène trois caisses au dépôt."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Tu peux faire mieux ?"
       }
-    ],
-    "renderer": "snack-engine-demo",
-    "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
-    "demoStart": 0,
-    "demoSpeed": 1,
-    "closeup": true
+    ]
   },
   {
     "id": "03-baffe-et-butins",
@@ -172,30 +163,39 @@
     "id": "05-chroma-couleur",
     "day": 5,
     "game": "chroma",
-    "series": "Défi solo",
-    "hook": "Vous voyez vraiment la même couleur ?",
+    "title": "CHROMA",
+    "series": "Six jeux. Six défis.",
+    "hook": "Tu t’en souviens vraiment ?",
     "duration": 15,
-    "cta": "Défie ton pote. Lien en bio.",
-    "status": "storyboard",
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
+    "status": "demo",
     "footage": null,
     "voice": null,
-    "music": "audio/slaptax-pulse.wav",
-    "voiceText": "Même couleur au départ. Deux réponses très différentes. Vous faites mieux ?",
+    "music": null,
+    "effects": false,
+    "voiceText": "Tu t’en souviens vraiment ? Deux secondes pour observer. Retrouve la nuance de mémoire. Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Une couleur montrée sur trois.",
     "scenes": [
       {
         "from": 0,
         "to": 3,
-        "text": "Vous voyez vraiment la même couleur ?"
+        "text": "Deux secondes pour observer."
       },
       {
         "from": 3,
+        "to": 7,
+        "text": "Retrouve la nuance de mémoire."
+      },
+      {
+        "from": 7,
         "to": 12,
-        "text": "À toi de faire mieux."
+        "text": "Proche… mais pas pareil."
       },
       {
         "from": 12,
         "to": 15,
-        "text": "Défie ton pote. Lien en bio."
+        "text": "Tu peux faire mieux ?"
       }
     ]
   },
@@ -234,24 +234,41 @@
     "id": "07-encore-un",
     "day": 7,
     "game": "onemore",
-    "series": "Moment décisif",
-    "hook": "« Encore un. »",
-    "duration": 12,
-    "cta": "Défie ton pote. Lien en bio.",
+    "title": "Tour de Trop",
+    "series": "Six jeux. Six défis.",
+    "hook": "Encore un. Mauvaise idée ?",
+    "duration": 15,
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
     "status": "demo",
     "footage": null,
     "voice": null,
     "music": null,
-    "voiceText": "« Encore un. » Défie ton pote sur SlapTax.",
+    "effects": false,
+    "voiceText": "Encore un. Mauvaise idée ? Aligne. Pose. Empile. Six blocs. Tu sécurises ? Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Pause éditoriale au moment du choix.",
     "scenes": [
       {
         "from": 0,
+        "to": 3,
+        "text": "Aligne. Pose. Empile."
+      },
+      {
+        "from": 3,
+        "to": 7,
+        "text": "Six blocs. Tu sécurises ?"
+      },
+      {
+        "from": 7,
         "to": 12,
-        "text": "« Encore un. »"
+        "text": "Un bloc de trop. Tout est perdu."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Tu peux faire mieux ?"
       }
-    ],
-    "renderer": "tower-engine-demo",
-    "effects": false
+    ]
   },
   {
     "id": "08-decoupe-duel",
@@ -676,6 +693,86 @@
         "from": 21,
         "to": 24,
         "text": "Défie ton pote. Lien en bio."
+      }
+    ]
+  },
+  {
+    "id": "22-table-dehors",
+    "day": 22,
+    "game": "table",
+    "title": "Bagarre de Table",
+    "series": "Six jeux. Six défis.",
+    "hook": "Un bon angle. Il est dehors.",
+    "duration": 15,
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
+    "status": "demo",
+    "footage": null,
+    "voice": null,
+    "music": null,
+    "effects": false,
+    "voiceText": "Un bon angle. Il est dehors. Vise le rival. Relâche pour le propulser. Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Extrait et ralenti du même choc.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Vise le rival."
+      },
+      {
+        "from": 3,
+        "to": 7,
+        "text": "Relâche pour le propulser."
+      },
+      {
+        "from": 7,
+        "to": 12,
+        "text": "REPLAY · le choc décisif."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Tu peux faire mieux ?"
+      }
+    ]
+  },
+  {
+    "id": "23-tarte-riposte",
+    "day": 23,
+    "game": "pie",
+    "title": "Tarte ta Face",
+    "series": "Six jeux. Six défis.",
+    "hook": "Il vise. Tu te baisses.",
+    "duration": 15,
+    "cta": "Joue. Défie un ami. Prends ta revanche.",
+    "status": "demo",
+    "footage": null,
+    "voice": null,
+    "music": null,
+    "effects": false,
+    "voiceText": "Il vise. Tu te baisses. Touche le rival pour lancer. Esquive sa réponse. Tu peux faire mieux ? Joue sur Slap Tax.",
+    "renderer": "campaign-engine-demo",
+    "disclosure": "Extrait de duel scénarisé.",
+    "scenes": [
+      {
+        "from": 0,
+        "to": 3,
+        "text": "Touche le rival pour lancer."
+      },
+      {
+        "from": 3,
+        "to": 7,
+        "text": "Esquive sa réponse."
+      },
+      {
+        "from": 7,
+        "to": 12,
+        "text": "À toi de lui rendre la tarte."
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "text": "Tu peux faire mieux ?"
       }
     ]
   }

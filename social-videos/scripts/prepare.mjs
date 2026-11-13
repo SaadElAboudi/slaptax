@@ -2,11 +2,13 @@ import {readdir, readFile, writeFile, mkdir, access} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {prepareDistinct} from './distinct-demos.mjs';
+import {prepareCampaign} from './campaign-demos.mjs';
 import {prepareSnack} from './snack-demo.mjs';
 import {prepareDecoupe} from './decoupe-demo.mjs';
 export const root = fileURLToPath(new URL('../', import.meta.url));
 export async function loadVideos() {
-  const names = (await readdir(path.join(root, 'videos'))).sort();
+  const names = (await readdir(path.join(root, 'videos'), {withFileTypes: true}))
+    .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
   const videos = await Promise.all(names.map(async name => {
     const v = JSON.parse(await readFile(path.join(root, 'videos', name, 'video.json'), 'utf8'));
     if(v.id !== name || !/^[0-9]{2}-[a-z0-9-]+$/.test(v.id)) throw Error(`Invalid id: ${name}`);
@@ -24,7 +26,11 @@ export async function loadVideos() {
     }
     return v;
   }));
-  if(videos.length!==21 || new Set(videos.map(v=>v.day)).size!==21) throw Error('Expected 21 unique days');
+  if(new Set(videos.map(v=>v.day)).size!==videos.length) throw Error('Video days must be unique');
+  const campaign=JSON.parse(await readFile(path.join(root,'campaign.json'),'utf8'));
+  const selection=JSON.parse(await readFile(path.join(root,'../shared/game-selection.json'),'utf8'));
+  const active=campaign.featured.map(id=>{const video=videos.find(v=>v.id===id);if(!video)throw Error(`Missing campaign video: ${id}`);return video.game;});
+  if(active.length!==selection.length||new Set(active).size!==active.length||selection.some(g=>!active.includes(g.id)))throw Error('Campaign must cover each active game exactly once');
   return videos;
 }
 export async function prepare() {
@@ -32,6 +38,7 @@ export async function prepare() {
   await prepareDecoupe(root);
   await prepareSnack(root);
   await prepareDistinct(root);
+  await prepareCampaign(root);
   await writeFile(path.join(root,'src/catalog.json'),JSON.stringify(videos,null,2)+'\n');
   // Original 120 BPM pulse, synthesized without samples. Quiet backing for voice.
   const rate=44100, seconds=32, count=rate*seconds, pcm=Buffer.alloc(count*2);

@@ -1,0 +1,31 @@
+import {createRequire} from 'node:module';
+import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import path from 'node:path';
+import {root,loadVideos} from './prepare.mjs';
+const require=createRequire(import.meta.url),probe=require('@ffprobe-installer/ffprobe').path,ffmpeg=require('@ffmpeg-installer/ffmpeg').path;
+const campaign=JSON.parse(await readFile(path.join(root,'campaign.json'),'utf8')),videos=await loadVideos();
+const batch=JSON.parse(await readFile(path.join(root,'exports/batch.json'),'utf8'));
+if(batch.status!=='complete'||JSON.stringify(batch.completed.map(item=>item.id))!==JSON.stringify(campaign.featured))throw Error('Complete the current six-game batch before verification');
+const destination=path.resolve(root,'../sources vidéos/lot-03-six-jeux');await mkdir(destination,{recursive:true});
+const results=[];
+for(const id of campaign.featured){
+ const config=videos.find(v=>v.id===id),file=path.join(root,'exports',id,'draft.mp4');
+ const metadata=JSON.parse(execFileSync(probe,['-v','error','-show_streams','-show_format','-of','json',file],{encoding:'utf8'}));
+ const video=metadata.streams.find(s=>s.codec_type==='video'),audio=metadata.streams.filter(s=>s.codec_type==='audio');
+ if(!video||video.width!==1080||video.height!==1920||video.codec_name!=='h264'||video.pix_fmt!=='yuv420p'||video.r_frame_rate!=='30/1'||Number(video.nb_frames)!==450||Math.abs(Number(metadata.format.duration)-15)>.05||audio.length)throw Error(`Invalid video: ${id}`);
+ execFileSync(ffmpeg,['-v','error','-i',file,'-f','null','-'],{stdio:['ignore','ignore','pipe']});
+ const playUrl=new URL('/',campaign.destination);playUrl.searchParams.set('tab','training');playUrl.searchParams.set('game',config.game);
+ const bytes=await readFile(file),target=path.join(destination,`${id}.mp4`);await copyFile(file,target);
+ await writeFile(path.join(destination,`${id}-legende.txt`),`${config.title} — ${config.hook}\n\n${config.cta}\n${playUrl.href}\n\nDémonstration scénarisée du jeu, pas une partie humaine enregistrée.\n#SlapTax #DefiEntreAmis\n`);
+ execFileSync(ffmpeg,['-y','-v','error','-i',file,'-vf','fps=1/4,scale=270:480,tile=4x1','-frames:v','1',path.join(destination,`${id}-controle.png`)],{stdio:['ignore','ignore','pipe']});
+ execFileSync(ffmpeg,['-y','-v','error','-ss','1.5','-i',file,'-vf','scale=360:640','-frames:v','1',path.join(destination,`${id}-affiche.jpg`)],{stdio:['ignore','ignore','pipe']});
+ results.push({id,game:config.game,playUrl:playUrl.href,filename:`${id}.mp4`,width:video.width,height:video.height,seconds:Number(metadata.format.duration),fps:30,frames:450,audioTracks:audio.length,decoded:true,sha256:createHash('sha256').update(bytes).digest('hex')});console.log(`PASS ${id}: 1080x1920, 15 s, 450 frames, H.264, silent, fully decoded`);
+}
+await writeFile(path.join(destination,'verification.json'),JSON.stringify({verifiedAt:new Date().toISOString(),published:false,editorialStatus:'local demos for human review',scenario:'production engine inputs, not human footage',results},null,2)+'\n');
+await copyFile(path.join(root,'PLAN_SIX_JEUX.md'),path.join(destination,'LIRE-AVANT-DIFFUSION.md'));
+const escape=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('\"','&quot;');
+const cards=results.map(result=>{const video=videos.find(v=>v.id===result.id);return `<article><h2>${escape(video.title)}</h2><p>${escape(video.hook)}</p><video controls playsinline preload="metadata" poster="${result.id}-affiche.jpg" src="${result.filename}"></video><p><a href="${result.filename}" download>Télécharger le MP4</a> · <a href="${result.id}-legende.txt">Légende</a> · <a href="${escape(result.playUrl)}" target="_blank" rel="noopener">Jouer à ce jeu</a></p></article>`;}).join('');
+await writeFile(path.join(destination,'visionner.html'),`<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Slap Tax — six vidéos</title><style>body{margin:0;background:#20374c;color:#fff3da;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;padding:28px 20px;margin:auto}h1{font-size:36px;line-height:1.15}header p{max-width:65ch;color:#d6e1eb}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px}article{min-width:0}h2{font-size:23px;margin-bottom:6px}article>p{min-height:48px}video{display:block;width:100%;aspect-ratio:9/16;background:#142a3b;border-radius:12px}a{color:#ffdf86;text-underline-offset:3px}footer{padding:26px 0;color:#d6e1eb}</style><main><header><h1>Six jeux. Six défis.</h1><p>Six propositions de 15 secondes, muettes, en 1080 × 1920. Démonstrations scénarisées : gestes et conséquences issus des moteurs du jeu. Rien n’a été publié.</p></header><section class="grid">${cards}</section><footer>Revoir sur téléphone avant diffusion. Le son est volontairement absent. <a href="LIRE-AVANT-DIFFUSION.md">Notes de montage</a> · <a href="verification.json">Vérification technique</a></footer></main></html>`);
+console.log(`Six videos delivered to ${destination}`);

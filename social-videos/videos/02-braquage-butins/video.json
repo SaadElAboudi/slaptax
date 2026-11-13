@@ -2,40 +2,39 @@
   "id": "02-braquage-butins",
   "day": 2,
   "game": "snack",
-  "series": "Défi solo",
-  "hook": "Rends. Le. Goûter.",
-  "duration": 12,
-  "cta": "Défie ton pote. Joue sur SlapTax.",
+  "title": "Braquage du Goûter",
+  "series": "Six jeux. Six défis.",
+  "hook": "Ton goûter. Son problème.",
+  "duration": 15,
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
   "status": "demo",
   "footage": null,
   "voice": null,
   "music": null,
-  "voiceText": "L’Intendant a taxé ton goûter. Reprends les caisses. Son stagiaire n’a rien demandé.",
+  "effects": false,
+  "voiceText": "Ton goûter. Son problème. Attrape le goûter. Une baffe peut tout faire tomber. Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Extrait de duel scénarisé.",
   "scenes": [
     {
       "from": 0,
       "to": 3,
-      "text": "Son plan : garder ton goûter."
+      "text": "Attrape le goûter."
     },
     {
       "from": 3,
-      "to": 6,
-      "text": "Le rival arrive. PAF : le goûter tombe !"
+      "to": 7,
+      "text": "Une baffe peut tout faire tomber."
     },
     {
-      "from": 6,
-      "to": 9.5,
-      "text": "Ton plan : tout ramener au dépôt."
-    },
-    {
-      "from": 9.5,
+      "from": 7,
       "to": 12,
-      "text": "Défie ton pote au Braquage."
+      "text": "Ramène trois caisses au dépôt."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Tu peux faire mieux ?"
     }
-  ],
-  "renderer": "snack-engine-demo",
-  "setup": "Reprends les caisses. Son stagiaire n’a rien demandé.",
-  "demoStart": 0,
-  "demoSpeed": 1,
-  "closeup": true
+  ]
 }

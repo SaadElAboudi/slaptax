@@ -2,47 +2,39 @@
   "id": "01-decoupe-37",
   "day": 1,
   "game": "decoupe",
-  "series": "Défi solo",
-  "hook": "Découpe exactement 37 %.",
+  "title": "Chef Couic",
+  "series": "Six jeux. Six défis.",
+  "hook": "37 %. Tu couperais où ?",
   "duration": 15,
-  "cta": "Défie ton pote. Lien en bio.",
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
   "status": "demo",
   "footage": null,
   "voice": null,
   "music": null,
-  "voiceText": "Découpe trente-sept pour cent. Trace une ligne. Touche le morceau à servir. Tu fais mieux ?",
+  "effects": false,
+  "voiceText": "37 %. Tu couperais où ? Trace une ligne. Touche la part à servir. Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Une portion montrée sur trois.",
   "scenes": [
     {
       "from": 0,
-      "to": 2.7,
-      "text": "Découpe 37 %. À vue d’œil."
-    },
-    {
-      "from": 2.7,
-      "to": 4.5,
+      "to": 3,
       "text": "Trace une ligne."
     },
     {
-      "from": 4.5,
-      "to": 6.5,
-      "text": "Choisis le côté à garder."
+      "from": 3,
+      "to": 7,
+      "text": "Touche la part à servir."
     },
     {
-      "from": 6.5,
-      "to": 7.033333333333333,
-      "text": "Le morceau est servi."
-    },
-    {
-      "from": 7.033333333333333,
+      "from": 7,
       "to": 12,
-      "text": "43,3 % gardés. 6,3 points d’écart."
+      "text": "Le jeu mesure ton écart."
     },
     {
       "from": 12,
       "to": 15,
-      "text": "Tu fais mieux ? À toi de jouer."
+      "text": "Tu peux faire mieux ?"
     }
-  ],
-  "renderer": "decoupe-engine-demo",
-  "effects": false
+  ]
 }

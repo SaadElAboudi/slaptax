@@ -1,0 +1,40 @@
+{
+  "id": "22-table-dehors",
+  "day": 22,
+  "game": "table",
+  "title": "Bagarre de Table",
+  "series": "Six jeux. Six défis.",
+  "hook": "Un bon angle. Il est dehors.",
+  "duration": 15,
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": null,
+  "effects": false,
+  "voiceText": "Un bon angle. Il est dehors. Vise le rival. Relâche pour le propulser. Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Extrait et ralenti du même choc.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Vise le rival."
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "text": "Relâche pour le propulser."
+    },
+    {
+      "from": 7,
+      "to": 12,
+      "text": "REPLAY · le choc décisif."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Tu peux faire mieux ?"
+    }
+  ]
+}

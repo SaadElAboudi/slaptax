@@ -9,7 +9,7 @@ const videos=await loadVideos();
 if(!videos.some(v=>v.id===id)) throw Error('Usage: npm run render -- 01-decoupe-37 [--publish]');
 const v=videos.find(v=>v.id===id);
 if(process.argv.includes('--publish') && (!v.footage || v.status!=='approved')) throw Error('Publication requires real footage and status=approved after editorial/audio review.');
-await prepare();
+if(!process.argv.includes('--prepared'))await prepare();
 await mkdir(path.join(root,'exports',id),{recursive:true});
 // Prefer an explicitly configured browser, then an existing Playwright cache.
 // Avoid an unnecessary Chromium download on machines already used for game QA.
@@ -32,5 +32,5 @@ if(legacy)await rm(frames,{recursive:true,force:true});
 const args=legacy?['render','src/index.jsx',id,frames,'--sequence','--muted','--image-format=jpeg','--concurrency=2',...browserArgs]:['render','src/index.jsx',id,output,'--codec=h264','--pixel-format=yuv420p','--concurrency=2',...browserArgs];
 const result=spawnSync(path.join(root,'node_modules/.bin/remotion'),args,{cwd:root,stdio:'inherit'});
 if(result.error) throw result.error;
-if(result.status===0&&legacy)await encodeLegacy(root,v,frames,output);
+if(result.status===0&&legacy){await encodeLegacy(root,v,frames,output);if(!process.argv.includes('--keep-frames'))await rm(frames,{recursive:true,force:true});}
 process.exitCode=result.status??1;

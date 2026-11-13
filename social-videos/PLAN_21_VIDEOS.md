@@ -1,3 +1,5 @@
+> Archive. Le lot actif est désormais décrit dans [PLAN_SIX_JEUX.md](PLAN_SIX_JEUX.md). Les sélections de quatre jeux et les 21 concepts ci-dessous sont historiques.
+
 ## Direction corrigée : un format par mécanique
 
 Le lot actuel retient **02 Cantine · 01 Chef Couic · 07 Tour de Trop · 19 Passe ou BOUM**.

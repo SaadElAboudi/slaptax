@@ -1,0 +1,38 @@
+[
+  {
+    "id": "02-braquage-butins",
+    "game": "snack",
+    "duration": 12,
+    "dimensions": "1080x1920",
+    "fps": 30,
+    "silent": true,
+    "sha256": "1fd09a0e394b49e7cc06bd422e1d45747011695ef91ccdaf2e33168943c4690d"
+  },
+  {
+    "id": "01-decoupe-37",
+    "game": "decoupe",
+    "duration": 15,
+    "dimensions": "1080x1920",
+    "fps": 30,
+    "silent": true,
+    "sha256": "322e0d05ae7582343a3957cbc9bb9777e98a665f9ee3ca27527747147d026fe4"
+  },
+  {
+    "id": "07-encore-un",
+    "game": "onemore",
+    "duration": 12,
+    "dimensions": "1080x1920",
+    "fps": 30,
+    "silent": true,
+    "sha256": "b26a67d86fcd7d9cc48c650f3030ae5ad29e8e75ea0cd2c6bb6fd46be45d04af"
+  },
+  {
+    "id": "19-bombpass-pression",
+    "game": "bombpass",
+    "duration": 10,
+    "dimensions": "1080x1920",
+    "fps": 30,
+    "silent": true,
+    "sha256": "3f8230a0427e3caa50566cc283bf1424ea623cc88e51d6018749b01836d9c127"
+  }
+]

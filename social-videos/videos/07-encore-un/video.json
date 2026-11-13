@@ -2,22 +2,39 @@
   "id": "07-encore-un",
   "day": 7,
   "game": "onemore",
-  "series": "Moment décisif",
-  "hook": "« Encore un. »",
-  "duration": 12,
-  "cta": "Défie ton pote. Lien en bio.",
+  "title": "Tour de Trop",
+  "series": "Six jeux. Six défis.",
+  "hook": "Encore un. Mauvaise idée ?",
+  "duration": 15,
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
   "status": "demo",
   "footage": null,
   "voice": null,
   "music": null,
-  "voiceText": "« Encore un. » Défie ton pote sur SlapTax.",
+  "effects": false,
+  "voiceText": "Encore un. Mauvaise idée ? Aligne. Pose. Empile. Six blocs. Tu sécurises ? Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Pause éditoriale au moment du choix.",
   "scenes": [
     {
       "from": 0,
+      "to": 3,
+      "text": "Aligne. Pose. Empile."
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "text": "Six blocs. Tu sécurises ?"
+    },
+    {
+      "from": 7,
       "to": 12,
-      "text": "« Encore un. »"
+      "text": "Un bloc de trop. Tout est perdu."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Tu peux faire mieux ?"
     }
-  ],
-  "renderer": "tower-engine-demo",
-  "effects": false
+  ]
 }

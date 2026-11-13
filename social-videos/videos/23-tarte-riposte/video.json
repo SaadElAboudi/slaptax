@@ -1,0 +1,40 @@
+{
+  "id": "23-tarte-riposte",
+  "day": 23,
+  "game": "pie",
+  "title": "Tarte ta Face",
+  "series": "Six jeux. Six défis.",
+  "hook": "Il vise. Tu te baisses.",
+  "duration": 15,
+  "cta": "Joue. Défie un ami. Prends ta revanche.",
+  "status": "demo",
+  "footage": null,
+  "voice": null,
+  "music": null,
+  "effects": false,
+  "voiceText": "Il vise. Tu te baisses. Touche le rival pour lancer. Esquive sa réponse. Tu peux faire mieux ? Joue sur Slap Tax.",
+  "renderer": "campaign-engine-demo",
+  "disclosure": "Extrait de duel scénarisé.",
+  "scenes": [
+    {
+      "from": 0,
+      "to": 3,
+      "text": "Touche le rival pour lancer."
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "text": "Esquive sa réponse."
+    },
+    {
+      "from": 7,
+      "to": 12,
+      "text": "À toi de lui rendre la tarte."
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "text": "Tu peux faire mieux ?"
+    }
+  ]
+}

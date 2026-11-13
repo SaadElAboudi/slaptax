@@ -9,7 +9,9 @@
     "studio": "node scripts/prepare.mjs && remotion studio src/index.jsx",
     "render": "node scripts/render.mjs",
     "voice": "node --env-file=.env scripts/voice.mjs",
-    "render:batch": "node scripts/render-batch.mjs"
+    "render:batch": "node scripts/render-batch.mjs",
+    "test:campaign": "node --test scripts/tests/campaign.test.mjs",
+    "verify:campaign": "node scripts/verify-campaign.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.366",
