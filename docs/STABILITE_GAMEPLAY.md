@@ -1,8 +1,8 @@
 # Stabilité du gameplay mobile
 
-## Course : garder les commandes réactives
+## Course et table : garder les commandes réactives
 
-Sur les navigateurs compatibles, le rendu Three.js de la course utilise un Worker
+Sur les navigateurs compatibles, le rendu Three.js de la course et de la table utilise un Worker
 et OffscreenCanvas. Les commandes, le maintien toutes les 100 ms et l’interface
 restent sur le fil principal. La scène et les règles restent les mêmes.
 Le Worker reçoit les états réels du serveur ; il ne calcule aucun score.
@@ -12,7 +12,10 @@ Sans Worker/OffscreenCanvas, ou si le Worker échoue, une nouvelle surface repre
 le rendu 3D sur le fil principal. Si WebGL est réellement indisponible, la vue
 légère existante explique la situation et propose de réessayer. Une baisse de
 performance adapte la résolution et la cadence sans supprimer la scène 3D.
-Cette séparation concerne la course ; la table conserve son rendu classique.
+La visée de la table reste calculée immédiatement à partir d’une copie de la
+caméra réelle. La projection est actualisée après un changement de taille ; une
+visée en cours est annulée pendant cette transition. Le replay continue à recevoir
+les états réels des dernières secondes de la manche.
 
 ## Biscuit : conserver le geste
 

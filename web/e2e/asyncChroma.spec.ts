@@ -80,5 +80,5 @@ test('CHROMA link supports an offline host, three private rounds, recap and fres
 test('unavailable presence is not displayed as zero players',async({page})=>{
     await page.addInitScript(()=>{localStorage.setItem('slaptax_onboarded','1');localStorage.setItem('slaptax_lang','fr');});
     await page.route('**/api/presence',route=>route.fulfill({status:503,body:'{}'}));
-    await page.goto('/');await expect(page.getByTestId('online-players')).toHaveText('Presence indisponible');
+    await page.goto('/');await expect(page.getByText(/^0 joueurs en ligne$/)).toHaveCount(0);await page.getByRole('button',{name:'Jouer Tarte ta Face',exact:true}).click();await expect(page.getByRole('button',{name:'Entrer dans l arene'})).toBeEnabled();
 });

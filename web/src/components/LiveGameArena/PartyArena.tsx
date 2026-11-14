@@ -213,7 +213,7 @@ export function PartyArena({ gameId, round, isFr, session, finish }: Props) {
         return () => { observer.disconnect(); stopLoop(); };
     }, [gameId, identity]);
 
-    const status = event?.phase==='cancelled' ? (isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.') : error || (!connected || (event?.phase==='playing'&&!fresh) ? (isFr ? 'Synchronisation interrompue · commandes en pause. Reconnexion…' : 'Sync interrupted · controls paused. Reconnecting…')
+    const status = event?.phase==='cancelled' ? (isFr?'Partie annulée : mise remboursée, aucun gagnant.':'Match cancelled: stake refunded, no winner.') : error || (!event ? (isFr?'Connexion en cours…':'Connecting…') : !connected || (event?.phase==='playing'&&!fresh) ? (isFr ? 'Synchronisation interrompue · commandes en pause. Reconnexion…' : 'Sync interrupted · controls paused. Reconnecting…')
         : event?.phase === 'waiting' ? (isFr ? 'Reconnexion ou attente du rival · annulation sans gagnant si la connexion échoue' : 'Waiting or reconnecting · cancelled without a winner if connection fails')
             : event?.phase === 'countdown' ? `${Math.max(1, Math.ceil(((event.resumeAt || 0) - clock - offset.current) / 1000))}` : '');
     const feedback = party?.feedback;

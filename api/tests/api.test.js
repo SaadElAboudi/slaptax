@@ -35,7 +35,7 @@ async function withWebServer(run) {
     const webDistPath = fs.mkdtempSync(path.join(os.tmpdir(), "slaptax-web-test-"));
     fs.mkdirSync(path.join(webDistPath, "assets"), { recursive: true });
     fs.writeFileSync(path.join(webDistPath, "index.html"), "<!doctype html><div id=\"root\">SLAPTAX</div>");
-    fs.writeFileSync(path.join(webDistPath, "assets", "app.js"), "console.log('slaptax')");
+    fs.writeFileSync(path.join(webDistPath, "assets", "app-AbCd1234.js"), "console.log('slaptax')");
     const server = createServer({ dbPath, webDistPath });
 
     await new Promise((resolve) => server.listen(0, resolve));
@@ -727,7 +727,7 @@ test("production server serves the React app and SPA routes", async () => {
     await withWebServer(async (baseUrl) => {
         const home = await fetch(`${baseUrl}/`);
         const route = await fetch(`${baseUrl}/invite/friend`);
-        const asset = await fetch(`${baseUrl}/assets/app.js`);
+        const asset = await fetch(`${baseUrl}/assets/app-AbCd1234.js`);
 
         assert.equal(home.status, 200);
         assert.match(await home.text(), /SLAPTAX/);
@@ -735,6 +735,12 @@ test("production server serves the React app and SPA routes", async () => {
         assert.match(await route.text(), /SLAPTAX/);
         assert.equal(asset.status, 200);
         assert.match(asset.headers.get("cache-control"), /immutable/);
+        assert.equal(asset.headers.get('x-content-type-options'),'nosniff');
+        const missing=await fetch(`${baseUrl}/assets/old-deleted-chunk.js`);
+        assert.equal(missing.status,404);assert.equal(missing.headers.get('cache-control'),'no-store');
+        assert.equal((await fetch(`${baseUrl}/%E0%A4%A`)).status,400);
+        const health=await fetch(`${baseUrl}/api/health`);
+        assert.equal(health.headers.get('cache-control'),'no-store');
     });
 });
 

@@ -7,6 +7,8 @@ Tagline: `Tape. Encaisse. Encaisse encore.`
 
 Catalogue actuel : **6 jeux** — Chef Couic, CHROMA, Tour de Trop, Braquage du Goûter, Bagarre de Table et Tarte ta Face. Les autres jeux sont retirés des menus et des rotations automatiques ; les moteurs historiques restent lisibles pour les anciennes parties. [Simplification et sélection](docs/SIMPLIFICATION_2026-11-05.md).
 
+[Validation de lancement et commandes de contrôle](docs/VALIDATION_PRODUCTION.md).
+
 [Qualité des douze jeux : commandes, rendu et retours de jeu](docs/QUALITE_JEUX.md).
 
 [Combat tactique de l’arène : réserves, récupération et trois supers](docs/COMBAT_ARENE.md).
@@ -40,7 +42,7 @@ Core idea:
 ### 1) Direct Challenge (1v1)
 - Best of 3 format.
 - Ban/Pick game selection flow.
-- Winner takes the pot (after platform fee in real-money mode).
+- Free virtual tokens only, with the fee and net result shown before a duel.
 
 ### 2) Tournament Mode
 - Single-elimination bracket.

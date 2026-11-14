@@ -10,3 +10,12 @@ for(const unresponsive of [false,true])test(`server shutdown drains ${unresponsi
  const started=Date.now();await new Promise(resolve=>server.close(resolve));assert.ok(Date.now()-started<2500);assert.equal(server.listening,false);assert.equal(server.realtime.wss.clients.size,0);
  if(unresponsive)socket._socket.resume();else assert.equal(await socketClosed,1001);
 });
+
+test('an oversized WebSocket frame closes only the offending client and the server stays usable',{timeout:10000},async t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'slaptax-frame-')),server=createServer({dbPath:path.join(dir,'db.json')});let socket;
+ t.after(async()=>{socket?.terminate();await new Promise(resolve=>server.close(resolve));await server.store.close();fs.rmSync(dir,{recursive:true,force:true});});
+ await server.ready;await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${server.address().port}`;
+ socket=new WebSocket(base.replace('http','ws')+'/api/realtime');await once(socket,'open');const closed=new Promise(resolve=>socket.once('close',resolve));socket.send('x'.repeat(4097));assert.equal(await closed,1009);
+ assert.equal((await fetch(base+'/api/health')).status,200);
+ const valid=new WebSocket(base.replace('http','ws')+'/api/realtime');await once(valid,'open');valid.close();await once(valid,'close');
+});

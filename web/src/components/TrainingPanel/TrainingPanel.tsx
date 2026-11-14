@@ -1,3 +1,4 @@
+import {newRandomId} from '../../platform/identity';
 import {factoryAftermath} from '../../gameplay/factoryComedy';
 import {gameChapter} from '../../gameplay/world';
 import {hasScoreChallenge,preferredGame,prepareGameMode} from '../../gameplay/gameExperience';
@@ -36,7 +37,8 @@ export function TrainingPanel() {
     const [attempt, setAttempt] = useState(1);
     const [result, setResult] = useState<TrainingResult | null>(null);
     const [playing, setPlaying] = useState(false);
-    const recorded=useRef(''),sessionId=useRef(crypto.randomUUID());
+    const recorded=useRef(''),sessionId=useRef('');
+    if(!sessionId.current)sessionId.current=newRandomId();
     const userId=useGameStore(s=>s.userId),recordAchievement=useAchievements(s=>s.record);
     const [guideSeen,setGuideSeen]=useBooleanPreference(`slaptax.tutorial.training.${userId||'guest'}.${gameId}`,false);
     const [replayGuide,setReplayGuide]=useState(false);
@@ -114,8 +116,6 @@ export function TrainingPanel() {
 
     return (
         <section className={styles.panel}>
-            {!playing&&guideOpen&&<TrainingTutorial key={gameId} gameId={gameId} isFr={isFr} isParty={isPartyGame(gameId)} onClose={closeGuide}/> }
-            {!playing&&!guideOpen&&<button type="button" className={styles.linkChallengeButton} data-testid="training-guide-replay" onClick={()=>setReplayGuide(true)}>{isFr?'Revoir le guide':'Replay guide'}</button>}
             <LiveGameArena
                 key={`${gameId}-${level}-${attempt}`}
                 mode="training"
@@ -127,6 +127,8 @@ export function TrainingPanel() {
                 onComplete={complete}
                 onStart={() => {setPlaying(true);setGuideSeen(true);setReplayGuide(false);}}
             />
+            {!playing&&guideOpen&&<TrainingTutorial key={gameId} gameId={gameId} isFr={isFr} isParty={isPartyGame(gameId)} onClose={closeGuide}/> }
+            {!playing&&!guideOpen&&<button type="button" className={styles.linkChallengeButton} data-testid="training-guide-replay" onClick={()=>setReplayGuide(true)}>{isFr?'Revoir le guide':'Replay guide'}</button>}
             {!playing&&<>
             <details className={styles.config}><summary>{isFr?'Changer de jeu':'Change game'}<span>{gameLabel(gameId,isFr)}</span></summary>
                 <div className={styles.games}>

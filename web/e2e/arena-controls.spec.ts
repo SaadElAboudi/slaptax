@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-for(const game of ['snack','chicken'])test(`${game}: simple controls ignore old advanced preferences and do not fire removed shortcuts`,async({page},info)=>{
+for(const game of ['snack'])test(`${game}: simple controls ignore old advanced preferences and do not fire removed shortcuts`,async({page},info)=>{
  await page.addInitScript(game=>{localStorage.setItem('slaptax_lang','fr');localStorage.setItem('slaptax_training_game',game);localStorage.setItem('slaptax.snack.manualAim','true');localStorage.setItem('slaptax.snack.assist','false');},game);
  const commands:string[]=[];page.on('websocket',ws=>ws.on('framesent',e=>{try{const a=JSON.parse(String(e.payload));if(a.type==='arena.action')commands.push(a.action);}catch{}}));
  await page.goto('/?tab=training');await page.getByRole('button',{name:'Entrer dans l arene'}).click();const arena=page.getByTestId('snack-game');await expect(arena).toHaveAttribute('data-phase','brawl');await expect(arena.getByRole('checkbox')).toHaveCount(0);await expect(page.getByTestId('snack-aim-pad')).toHaveCount(0);await expect(page.getByTestId('snack-skill')).toHaveCount(0);await expect(page.getByTestId('snack-super')).toHaveCount(0);

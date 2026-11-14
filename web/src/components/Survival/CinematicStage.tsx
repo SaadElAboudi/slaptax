@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState,type MutableRefObject} from 'react';
 import type {PartyState} from '../../gameplay/party';
 import {startGameLoop} from '../../gameplay/gameLoop';
-import {createStage} from '../../gameplay/cinematic/stage';
+import {createStage,stageProjection} from '../../gameplay/cinematic/stage';
 import styles from './Survival.module.css';
 export type StageProjection=((x:number,y:number)=>{x:number;y:number}|null)|null;
 export function CinematicStage({party,identity,botIds=[],kind='race',projection,onReady,aim,snapshot,isFr=true}:{party:PartyState;identity:string;botIds?:string[];kind?:'race'|'table';projection?:MutableRefObject<StageProjection>;onReady?:(ready:boolean)=>void;aim?:{dx:number;dy:number;power:number}|null;snapshot?:()=>PartyState;isFr?:boolean}){
@@ -10,24 +10,25 @@ export function CinematicStage({party,identity,botIds=[],kind='race',projection,
  useEffect(()=>{
   const canvas=ref.current;if(!canvas)return;
   setFailed(false);setReady(false);setQuality(0);
-  if(kind==='race'&&!mainOnly.current&&typeof Worker!=='undefined'&&typeof canvas.transferControlToOffscreen==='function'){
-   let disposed=false,level=0,slow=0;const coarse=matchMedia('(pointer:coarse)').matches;
+  if(!mainOnly.current&&typeof Worker!=='undefined'&&typeof canvas.transferControlToOffscreen==='function'){
+   let disposed=false,level=0,slow=0,workerReady=false;const coarse=matchMedia('(pointer:coarse)').matches;
    const viewport=()=>{const r=canvas.getBoundingClientRect();return{width:r.width,height:r.height,dpr:devicePixelRatio||1,coarse};};
    const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true';
    const active=()=>!document.hidden&&document.documentElement.dataset.appActive!=='false';
    const fail=()=>{if(disposed)return;mainOnly.current=true;setAttempt(n=>n+1);};
    let renderer:Worker;
    try{renderer=new Worker(new URL('../../gameplay/cinematic/raceWorker.ts',import.meta.url),{type:'module'});worker.current=renderer;
-    renderer.onmessage=e=>{if(disposed)return;const data=e.data;if(data.type==='failed'){fail();return;}if(data.type==='ready'){setReady(true);onReady?.(true);}if(data.type==='frame'){
+    renderer.onmessage=e=>{if(disposed)return;const data=e.data;if(data.type==='failed'){fail();return;}if(data.type==='ready'){workerReady=true;if(projection&&data.camera)projection.current=stageProjection(data.camera);setReady(true);onReady?.(true);}if(data.type==='projection'&&workerReady&&projection&&data.camera){projection.current=stageProjection(data.camera);onReady?.(true);}if(data.type==='frame'){
      canvas.dataset.frames=String(data.frames);canvas.dataset.renderMs=String(data.cost);const cost=Number(canvas.dataset.renderMs);
      slow=data.frames>3&&(cost>65||data.gap>110)?slow+1:Math.max(0,slow-1);
      if(level<2&&slow>=6){renderer.postMessage({type:'quality',level:++level});canvas.dataset.quality=String(level);setQuality(level);slow=0;}
     }};
-    renderer.onerror=fail;const offscreen=canvas.transferControlToOffscreen();renderer.postMessage({type:'init',canvas:offscreen,identity,party:latest.current.party,botIds:latest.current.botIds,viewport:viewport(),reduced:reduced()},[offscreen]);canvas.dataset.thread='worker';
+    renderer.onerror=fail;const offscreen=canvas.transferControlToOffscreen();renderer.postMessage({type:'init',kind,canvas:offscreen,identity,party:latest.current.party,botIds:latest.current.botIds,viewport:viewport(),reduced:reduced()},[offscreen]);canvas.dataset.thread='worker';
    }catch{worker.current?.terminate();worker.current=null;mainOnly.current=true;setAttempt(n=>n+1);return;}
+   let lastSnapshot=0;const stopSnapshots=kind==='table'?startGameLoop(now=>{if(now-lastSnapshot<40)return;lastSnapshot=now;renderer.postMessage({type:'state',party:latest.current.snapshot?.()||latest.current.party,botIds:latest.current.botIds,aim:latest.current.aim,reduced:reduced()});}):()=>{};
    const resize=new ResizeObserver(()=>renderer.postMessage({type:'resize',viewport:viewport()}));resize.observe(canvas);
    const visibility=()=>renderer.postMessage({type:'active',value:active()});visibility();document.addEventListener('visibilitychange',visibility);window.addEventListener('slaptax:app-state',visibility);
-   return()=>{disposed=true;resize.disconnect();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('slaptax:app-state',visibility);renderer.postMessage({type:'dispose'});renderer.terminate();if(worker.current===renderer)worker.current=null;onReady?.(false);};
+   return()=>{disposed=true;stopSnapshots();if(projection)projection.current=null;resize.disconnect();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('slaptax:app-state',visibility);renderer.postMessage({type:'dispose'});renderer.terminate();if(worker.current===renderer)worker.current=null;onReady?.(false);};
   }
   let stage:ReturnType<typeof createStage>|undefined,disposed=false,stop=()=>{};
   const fallback=()=>{stop();if(projection)projection.current=null;setFailed(true);setReady(false);onReady?.(false);};
@@ -50,7 +51,7 @@ export function CinematicStage({party,identity,botIds=[],kind='race',projection,
   const lost=(e:Event)=>{e.preventDefault();fallback();};canvas.addEventListener('webglcontextlost',lost);
   return()=>{disposed=true;stop();canvas.removeEventListener('webglcontextlost',lost);if(projection)projection.current=null;stage?.dispose();onReady?.(false);};
  },[kind,identity,attempt]);
- useEffect(()=>{worker.current?.postMessage({type:'state',party,botIds,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true'});},[party,botIds,attempt]);
+ useEffect(()=>{worker.current?.postMessage({type:'state',party:latest.current.snapshot?.()||party,botIds,aim,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.reduceMotion==='true'});},[party,botIds,aim,attempt]);
  return <><canvas key={attempt} ref={ref} className={styles.stageCanvas} data-testid={`${kind}-scene-3d`} data-renderer={failed?'fallback':ready?'webgl':'warming'} aria-hidden="true" style={failed?{display:'none'}:{opacity:ready?1:0}}/>
   <div className={styles.renderStatus} data-testid="scene-render-status" role="status"><span>{failed?(isFr?'Vue légère · 3D indisponible':'Light view · 3D unavailable'):ready?(quality?(isFr?'3D · qualité adaptée':'3D · adaptive quality'):(isFr?'ARÈNE 3D':'3D ARENA')):(isFr?'Préparation de la 3D…':'Preparing 3D…')}</span>{failed&&<button type="button" onClick={()=>setAttempt(n=>n+1)}>{isFr?'Réessayer la 3D':'Retry 3D'}</button>}</div>
  </>;

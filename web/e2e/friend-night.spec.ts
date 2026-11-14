@@ -16,9 +16,7 @@ test('four identities join one night, reconnect and keep the shared journey',asy
  };
  const send=(g:typeof guests[number],type:string)=>g.ws.send(JSON.stringify({type:`snack.team.${type}`}));
  try{
-  await page.goto('/');
-  await expect(page.getByRole('tabpanel').locator('article')).toHaveCount(4);
-  await page.getByRole('button',{name:'Créer une soirée à quatre',exact:true}).click();
+  await page.goto('/?tab=team&mode=night');
   await page.getByRole('button',{name:'Créer une soirée à quatre',exact:true}).click();
   const code=await page.getByTestId('snack-team-code').innerText();
   const url=new URL((await page.getByRole('textbox',{name:'Lien d’invitation'}).inputValue()));

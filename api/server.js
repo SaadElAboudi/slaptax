@@ -30,11 +30,16 @@ function serveWebApp(req, res, distPath = WEB_DIST_PATH) {
     if (!fs.existsSync(distPath)) return false;
 
     const url = new URL(req.url, "http://localhost");
-    const requestedPath = decodeURIComponent(url.pathname);
+    let requestedPath;
+    try { requestedPath = decodeURIComponent(url.pathname); }
+    catch { json(res,400,{error:'Invalid URL path'});return true; }
     const relativePath = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\/+/, "");
     const candidate = path.resolve(distPath, relativePath);
     const distRoot = path.resolve(distPath);
     const safeCandidate = candidate.startsWith(`${distRoot}${path.sep}`) ? candidate : "";
+    if(requestedPath.startsWith('/assets/')&&(!safeCandidate||!fs.existsSync(safeCandidate)||!fs.statSync(safeCandidate).isFile())){
+        res.setHeader('Cache-Control','no-store');json(res,404,{error:'Asset unavailable. Reload the application.'});return true;
+    }
     const filePath = safeCandidate && fs.existsSync(safeCandidate) && fs.statSync(safeCandidate).isFile()
         ? safeCandidate
         : path.join(distRoot, "index.html");
@@ -44,8 +49,10 @@ function serveWebApp(req, res, distPath = WEB_DIST_PATH) {
     const extension = path.extname(filePath).toLowerCase();
     const cacheControl = path.basename(filePath) === "index.html"
         ? "no-cache"
-        : "public, max-age=31536000, immutable";
+        : requestedPath.startsWith('/assets/')&&/-[\w-]{8,}\.[\w]+$/.test(filePath)
+            ? "public, max-age=31536000, immutable" : "public, max-age=3600";
     res.writeHead(200, {
+        "X-Content-Type-Options": "nosniff",
         "Content-Type": CONTENT_TYPES[extension] || "application/octet-stream",
         "Cache-Control": cacheControl,
     });
@@ -71,7 +78,9 @@ function createServer(options = {}) {
 
     const server = http.createServer(async (req, res) => {
         try {
+            res.setHeader('X-Content-Type-Options','nosniff');
             const url = new URL(req.url, "http://localhost");
+            if(url.pathname.startsWith('/api/'))res.setHeader('Cache-Control','no-store');
             if(url.pathname==='/api/startup'&&req.method==='GET'){
                 res.setHeader('Cache-Control','no-store');
                 json(res,startupVerified&&!startupFailed&&(!serving||canServe())?200:503,{processStarted:startupVerified&&!startupFailed,ready:canServe(),release:process.env.RENDER_GIT_COMMIT||null});return;

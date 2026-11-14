@@ -19,12 +19,10 @@ test('a real banked tower earns one server reward, persists badges and credits t
  await page.screenshot({path:info.outputPath('reward.png'),fullPage:true});
  const userId=await page.evaluate(()=>localStorage.getItem('slaptax_user_id'));
  await page.getByRole('button',{name:'Accueil Slap Tax'}).click();await page.reload();
- await expect(page.getByTestId('solo-journey')).toBeVisible();
- await page.getByTestId('solo-journey').locator('summary').filter({hasText:'Ma collection'}).click();
- await expect(page.getByTestId('solo-journey').locator('article[data-earned="true"]')).toContainText(['Premier pas']);
+ await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','27');
  const clientId=await page.evaluate(()=>localStorage.getItem('slaptax_client_id'));
  const state=await (await page.request.get(`/api/state?userId=${userId}&clientId=${clientId}`,{headers:{'X-SlapTax-User':userId||'','X-SlapTax-Client':clientId||''}})).json();
- expect(state.progression.solo.plays).toBe(1);expect(state.progression.xp).toBe(15);
+ expect(state.progression.solo.plays).toBe(1);expect(state.progression.xp).toBe(15);expect(state.progression.solo.badges).toContain('first-step');
  await page.screenshot({path:info.outputPath('collection.png'),fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

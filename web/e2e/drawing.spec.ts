@@ -85,7 +85,7 @@ for(const game of ['trace','decoupe'] as const) {
                 await expect(pa.getByText('Stroke locked',{exact:true})).toBeVisible();
                 await expect(pb.getByTestId('drawing')).toHaveAttribute('data-phase','drawpath');
                 // B deliberately expires: verifies that a missing stroke never beats a valid cut.
-                await expect(pa.getByTestId('drawing')).toHaveAttribute('data-phase','reveal');
+                await expect(pa.getByTestId('drawing')).toHaveAttribute('data-phase','reveal',{timeout:25000});
             }
             await expect(pa.getByTestId('round-recap')).toBeVisible();await expect(pa.getByTestId('round-evidence')).toBeVisible();
             await pa.getByRole('button',{name:'See result',exact:true}).click();

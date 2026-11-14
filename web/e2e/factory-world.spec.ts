@@ -16,6 +16,6 @@ test('a previous practice does not hide games or change the primary entry',async
  await page.goto('/');await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
  await page.evaluate(()=>{const id=localStorage.getItem('slaptax_user_id')||'';localStorage.setItem(`slaptax_practice_history_${id}`,JSON.stringify([{id:'local-incident',gameId:'snack',score:500,completedAt:1}]));});
  await page.reload();await expect(page.locator('#games article')).toHaveCount(6);
- await page.getByRole('button',{name:'Jouer maintenant',exact:true}).click();
+ await page.getByRole('button',{name:'Jouer Chef Couic',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Chef Couic',exact:true})).toBeVisible();
 });

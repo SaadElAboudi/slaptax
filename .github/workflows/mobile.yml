@@ -14,6 +14,7 @@ concurrency:
 jobs:
   shared-validation:
     runs-on: ubuntu-24.04
+    timeout-minutes: 60
     env:
       VITE_API_BASE_URL: https://slaptax-r9na.onrender.com
       VITE_PUBLIC_SITE_URL: https://slaptax-r9na.onrender.com
@@ -30,6 +31,9 @@ jobs:
       - run: npm --prefix web ci
       - run: npm test
       - run: npm --prefix web run test:build-tools
+      - run: npm --prefix web run test:unit
+      - run: npm audit --omit=dev
+      - run: npm --prefix web audit --omit=dev
       - name: Build the E2E website against the local test API
         run: npm --prefix web run build
         env:
@@ -43,7 +47,17 @@ jobs:
         env:
           APP_DISTRIBUTION: store
         working-directory: web
-        run: npx playwright test e2e/mobile-readiness.spec.ts e2e/friend-vision.spec.ts e2e/friend-night.spec.ts e2e/tokens.spec.ts e2e/solo-rewards.spec.ts e2e/arena-entry.spec.ts e2e/arena-controls.spec.ts e2e/arena-reliability.spec.ts e2e/mobile-catalog.spec.ts e2e/factory-world.spec.ts e2e/arena-reconnect.spec.ts
+        run: npx playwright test --config=playwright.release.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-browser-report
+          path: |
+            web/playwright-report
+            web/test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
   android:
     needs: shared-validation
     runs-on: ubuntu-24.04

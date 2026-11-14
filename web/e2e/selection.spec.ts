@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {PRACTICE_GAMES} from '../src/gameplay/catalog';
 import selection from '../../shared/game-selection.json' with {type:'json'};
 for(const language of ['fr','en'] as const)test(`selected catalogue has the full friend-challenge collection in ${language}`,async({page},info)=>{
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
@@ -12,10 +13,10 @@ for(const language of ['fr','en'] as const)test(`selected catalogue has the full
  // Stored retired preferences cannot silently launch a removed solo game.
  await page.goto('/?tab=training');await expect(page.getByRole('heading',{level:3,name:language==='fr'?'Chef Couic':'Chef Snip',exact:true})).toBeVisible();
  await page.locator('summary').filter({hasText:language==='fr'?'Changer de jeu':'Change game'}).click();
- const picker=page.locator('details[open]');await expect(picker.getByRole('button')).toHaveCount(selection.length);
+ const picker=page.locator('details[open]');await expect(picker.getByRole('button')).toHaveCount(PRACTICE_GAMES.length);
  await expect(page.getByTestId('player-wallet')).toHaveAttribute('data-balance','25');
  const userId=await page.evaluate(()=>localStorage.getItem('slaptax_user_id')),clientId=await page.evaluate(()=>localStorage.getItem('slaptax_client_id'));
- const state=await (await page.request.get(`/api/state?userId=${userId}&clientId=${clientId}`)).json();
+ const state=await (await page.request.get(`/api/state?userId=${userId}&clientId=${clientId}`,{headers:{'X-SlapTax-User':userId||'','X-SlapTax-Client':clientId||''}})).json();
  expect(state.progression.solo.daily.games.every((id:string)=>selection.some(game=>game.id===id))).toBe(true);
  expect(errors).toEqual([]);
 });

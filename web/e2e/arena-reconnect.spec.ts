@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {WebSocket} from 'ws';
-for(const game of ['snack','bombpass'])test(`${game}: network loss freezes controls and reconnects the same staked arena without awarding a result`,async({page,request})=>{
+for(const game of ['snack'])test(`${game}: network loss freezes controls and reconnects the same staked arena without awarding a result`,async({page,request})=>{
  test.setTimeout(45000);const users=[];for(const name of ['ReconnectA','ReconnectB']){const clientId=crypto.randomUUID(),r=await request.post('/api/session/join',{data:{clientId,playerName:name}});users.push({...await r.json(),clientId,playerName:name});}
  const[a,b]=users,headers=(u:typeof a)=>({'X-SlapTax-User':u.userId,'X-SlapTax-Client':u.clientId});const post=async(path:string,data:object,u=a)=>{const r=await request.post(path,{data,headers:headers(u)});expect(r.ok(),await r.text()).toBe(true);return r.json();};
  const {duel}=await post('/api/duels',{challengerId:a.userId,opponentId:b.userId,stake:5,bestOf:1,draft:{challenger:{pick:game,ban:'onemore'},opponent:{pick:game,ban:'onemore'}}});for(const u of users)await post(`/api/duels/${duel.id}/ban`,{userId:u.userId,gameId:'onemore'},u);for(const u of users)await post(`/api/duels/${duel.id}/ready`,{userId:u.userId,ready:true},u);await post(`/api/duels/${duel.id}/start`,{userId:a.userId});

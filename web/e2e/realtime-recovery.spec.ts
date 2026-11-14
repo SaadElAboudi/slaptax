@@ -10,6 +10,6 @@ test('a missing initial state reconnects automatically instead of leaving the ga
  await page.addInitScript(u=>{for(const [key,value] of Object.entries({client_id:u.clientId,user_id:u.userId,player_name:u.playerName,lang:'fr'}))localStorage.setItem(`slaptax_${key}`,value);},{clientId,userId,playerName});
  await page.goto('/');await page.getByRole('button',{name:'Jouer Tarte ta Face',exact:true}).click();await page.getByRole('button',{name:'Entrer dans l arene'}).click();
  await expect(page.getByText('Connexion en cours…',{exact:true})).toBeVisible();await expect(page.getByTestId('pie-canvas')).toHaveCount(0);
- await expect.poll(()=>joins,{timeout:13000}).toBeGreaterThan(1);await expect(page.getByTestId('pie-canvas')).toBeVisible();await expect(page.getByRole('slider',{name:'Viser la tarte'})).toBeEnabled({timeout:7000});
+ await expect.poll(()=>joins,{timeout:13000}).toBeGreaterThan(1);await expect(page.getByTestId('pie-canvas')).toBeVisible();await expect(page.getByRole('button',{name:'ENTARTE !',exact:true})).toBeEnabled({timeout:7000});
  expect(new Set(practiceIds).size).toBe(1);expect(errors).toEqual([]);
 });

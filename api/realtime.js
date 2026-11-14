@@ -21,6 +21,8 @@ function createRealtimeHub(server, store, service,options={}) {
     });
 
     wss.on("connection", (client, request) => {
+        // Invalid/oversized frames must close only this connection, never the process.
+        client.on("error", () => client.terminate());
         client.isAlive = true;
         client.userId = request.userId;
         client.clientId = request.clientId;

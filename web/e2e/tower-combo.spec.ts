@@ -1,6 +1,7 @@
 import economy from '../../shared/token-economy.json' with {type:'json'};
 import {test,expect} from '@playwright/test';
 import {interpolateTower,type PartyRun} from '../src/gameplay/party';
+test.use({trace:'off'});
 for(const mode of ['practice','shared'])test(`three real perfect drops earn automatic protection without a repair choice in ${mode}`,async({page},info)=>{
  test.setTimeout(35000);if(info.project.name.includes('mobile'))await page.setViewportSize({width:320,height:650});let run:PartyRun|undefined;const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  page.on('response',async response=>{if(response.url().includes('/api/link-challenges/')){try{const data=await response.json();if(data.party?.id==='onemore')run=Object.values(data.party.runs)[0] as PartyRun;}catch{}}});
@@ -17,9 +18,9 @@ for(const mode of ['practice','shared'])test(`three real perfect drops earn auto
   // UI drop input is separately exercised by friend-vision; repair stays a real tap/click.
   const headers={'Content-Type':'application/json','X-SlapTax-User':actor.userId,'X-SlapTax-Client':actor.clientId},sentAt=Date.now();
   const response=await fetch(`http://127.0.0.1:3100${endpoint}/state`,{method:'POST',body:JSON.stringify(actor),headers});expect(response.ok).toBe(true);const data=await response.json(),r=data.party.runs[actor.userId] as PartyRun,base=r.layers!.slice(-1)[0],speed=r.motion!.speed;
-  const target=(base.x+(perfect?0:.08))/(1-base.width)/speed*1000,period=2000/speed,age=r.motion!.ageMs+(Date.now()-sentAt);
-  let at=target;while(at<age+25)at+=period;
-  await new Promise(resolve=>setTimeout(resolve,Math.max(0,at-age-12)));
+  const target=(base.x+(perfect?0:.08))/(1-base.width)/speed*1000,period=2000/speed,rtt=Date.now()-sentAt,age=r.motion!.ageMs+rtt/2;
+  let at=target;while(at<age+rtt/2+25)at+=period;
+  await new Promise(resolve=>setTimeout(resolve,Math.max(0,at-age-rtt/2)));
   const action=await fetch(`http://127.0.0.1:3100${endpoint}/action`,{method:'POST',body:JSON.stringify({...actor,action:'drop',turn:data.party.turn}),headers});expect(action.ok).toBe(true);
 
  }

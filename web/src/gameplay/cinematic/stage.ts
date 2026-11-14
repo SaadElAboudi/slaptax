@@ -5,6 +5,13 @@ import type {PartyState} from '../party';
 const palette=[0xffc84b,0xff667e,0x55d7c2,0xae86ff];
 type Avatar={group:T.Group;left:T.Mesh;right:T.Mesh;armL:T.Mesh;armR:T.Mesh;ring:T.Mesh;wasOut:boolean};
 export type StageViewport={width:number;height:number;dpr:number;coarse:boolean};
+export type StageCamera={projectionInverse:number[];world:number[]};
+/** A copied camera keeps pointer projection synchronous while rendering runs elsewhere. */
+export function stageProjection(snapshot:StageCamera){
+ const camera=new T.PerspectiveCamera();camera.projectionMatrixInverse.fromArray(snapshot.projectionInverse);camera.matrixWorld.fromArray(snapshot.world);
+ const ray=new T.Raycaster(),plane=new T.Plane(new T.Vector3(0,1,0),0),hit=new T.Vector3(),point=new T.Vector2();
+ return(nx:number,ny:number)=>{ray.setFromCamera(point.set(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};};
+}
 export function createStage(canvas:HTMLCanvasElement|OffscreenCanvas,kind:'race'|'table',identity:string,initial:PartyState,initialBots:string[],initialViewport?:StageViewport){
  let viewport=initialViewport;
  const coarse=viewport?.coarse??matchMedia('(pointer:coarse)').matches;
@@ -117,5 +124,5 @@ export function createStage(canvas:HTMLCanvasElement|OffscreenCanvas,kind:'race'
   if(now-lastShadow>200){renderer.shadowMap.needsUpdate=true;lastShadow=now;}
   const before=performance.now();renderer.render(scene,camera);const cost=performance.now()-before;if('dataset' in canvas)(canvas as HTMLCanvasElement).dataset.renderMs=cost.toFixed(1);return cost;
  }
- return{ready,render,resize,reduceQuality(level:number){renderer.setPixelRatio(Math.min(dpr,level===1?.8:.6));renderer.shadowMap.enabled=false;resize();},project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer?.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
+ return{ready,render,resize,cameraSnapshot():StageCamera{camera.updateMatrixWorld();return{projectionInverse:camera.projectionMatrixInverse.toArray(),world:camera.matrixWorld.toArray()};},reduceQuality(level:number){renderer.setPixelRatio(Math.min(dpr,level===1?.8:.6));renderer.shadowMap.enabled=false;resize();},project(nx:number,ny:number){ray.setFromCamera(new T.Vector2(nx*2-1,1-ny*2),camera);if(!ray.ray.intersectPlane(plane,hit))return null;return{x:hit.x*50+300,y:hit.z*50+300};},dispose(){observer?.disconnect();aimArrow.dispose();for(const g of geometries)g.dispose();for(const m of materials)m.dispose();key.shadow.dispose();renderer.dispose();renderer.forceContextLoss();}};
 }
