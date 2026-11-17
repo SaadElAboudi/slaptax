@@ -16,13 +16,19 @@ ils ne constituent pas le contrôle de lancement de l’interface actuelle.
 Les scénarios d’un jeu archivé et les contrôles réservés à un autre format d’écran
 sont explicitement ignorés par leurs propres conditions, sans ignorer un échec actif.
 
-La CI mobile exécute la suite de lancement, les tests web et les contrôles des
+La CI mobile valide les formats ordinateur et mobile sur deux runners séparés,
+avec leurs propres bases et rapports. Elle exécute la suite de lancement, les tests web et les contrôles des
 outils de build, puis compile Android et iOS. Un workflow distinct vérifie un duel
 Safari/Chrome et le catalogue sur WebKit. Les rapports navigateur sont conservés
 en artefacts, y compris en cas d’échec.
 
 ## Corrections de cette passe
 
+- L’en-tête et les actions de bas de page restent dans la largeur des écrans étroits, y compris
+  avec les polices de remplacement du navigateur. Le contrôle de largeur ne se
+  contente plus de la largeur interne éventuellement agrandie par le navigateur.
+- Le défilement automatique ne déplace plus une cible entre sa mise au point
+  et son activation sur mobile.
 - L’entraînement emploie l’identifiant aléatoire compatible avec les navigateurs
   sans `crypto.randomUUID`, une seule fois par session.
 - Le guide reste facultatif et suit la préparation du jeu : il ne repousse plus

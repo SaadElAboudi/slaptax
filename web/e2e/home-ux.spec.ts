@@ -1,4 +1,6 @@
 import {test,expect} from '@playwright/test';
+// Trace screenshots stall WebGL; retain real frame checks and failure screenshots.
+test.use({reducedMotion:'no-preference',trace:'off'});
 import selection from '../../shared/game-selection.json' with {type:'json'};
 
 test.beforeEach(async({page},info)=>{
@@ -13,9 +15,11 @@ test('home offers six distinct games and an immediate first play',async({page},i
  await expect(games.getByRole('heading',{level:3})).toHaveText(selection.map(g=>g.labelFr));
  const start=page.getByRole('button',{name:'Jouer à quatre',exact:true});await expect(start).toBeInViewport();
  for(const id of ['toilet','pigeon','lift','balloon','garde','bombpass'])await expect(games.locator(`[data-game="${id}"]`)).toHaveCount(0);
- for(const button of await games.locator('button,a').all()){const box=(await button.boundingBox())!;expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);}
- expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.screenshot({path:info.outputPath('home-six-games.png'),fullPage:true});
+ const targets=await games.locator('button,a').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{width:r.width,height:r.height};}));
+ for(const box of targets){expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width+1);
+ expect(await page.evaluate(()=>innerWidth)).toBeLessThanOrEqual(page.viewportSize()!.width+1);
+ await page.screenshot({path:info.outputPath('home-six-games.png'),animations:'disabled',timeout:5000});
  await start.click();await expect(page.getByRole('heading',{name:'La compétition des potes.',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Créer une compétition',exact:true})).toBeEnabled();
 });
