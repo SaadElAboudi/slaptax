@@ -13,15 +13,15 @@ test('home offers six distinct games and an immediate first play',async({page},i
  const games=page.locator('#games');
  await expect(games.locator('article')).toHaveCount(6);
  await expect(games.getByRole('heading',{level:3})).toHaveText(selection.map(g=>g.labelFr));
- const start=page.getByRole('button',{name:'Jouer à quatre',exact:true});await expect(start).toBeInViewport();
+ const start=page.getByRole('button',{name:'Jouer au combat',exact:true});await expect(start).toBeInViewport();
  for(const id of ['toilet','pigeon','lift','balloon','garde','bombpass'])await expect(games.locator(`[data-game="${id}"]`)).toHaveCount(0);
  const targets=await games.locator('button,a').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return{width:r.width,height:r.height};}));
  for(const box of targets){expect(box.height).toBeGreaterThanOrEqual(44);expect(box.width).toBeGreaterThanOrEqual(44);}
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width+1);
  expect(await page.evaluate(()=>innerWidth)).toBeLessThanOrEqual(page.viewportSize()!.width+1);
  await page.screenshot({path:info.outputPath('home-six-games.png'),animations:'disabled',timeout:5000});
- await start.click();await expect(page.getByRole('heading',{name:'La compétition des potes.',exact:true})).toBeVisible();
- await expect(page.getByRole('button',{name:'Créer une compétition',exact:true})).toBeEnabled();
+ await start.click();await expect(page.getByRole('heading',{name:'SLAP / ZONE',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Lancer le combat',exact:true})).toBeEnabled();
 });
 
 test('score challenge begins from its game card without a mode picker',async({page})=>{
@@ -44,7 +44,7 @@ test('joining from home validates a room code and recovers from a missing room',
 
 test('home exposes the actual 3D trials separately from the six-game catalogue',async({page})=>{
  test.setTimeout(60000);
- const trials=page.getByTestId('home-3d-trials');await expect(trials.locator('article')).toHaveCount(2);
+ const trials=page.getByTestId('home-3d-trials');await trials.locator('summary').click();await expect(trials.locator('article')).toHaveCount(2);
  await trials.getByRole('button',{name:'Jouer à la course 3D',exact:true}).click();
  await page.getByRole('button',{name:'Entrer dans l arene',exact:true}).click();
  const scene=page.getByTestId('race-scene-3d');await expect(scene).toHaveAttribute('data-renderer','webgl');await expect.poll(async()=>Number(await scene.getAttribute('data-frames'))).toBeGreaterThan(16);await expect(scene).toBeVisible();

@@ -5,7 +5,7 @@ import { api, type HistoryEntry, type LeaderboardEntry, type PlayerProgression }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Tab = 'survival' | 'team' | 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
+export type Tab = 'combat' | 'survival' | 'team' | 'training' | 'defy' | 'tournament' | 'leaderboard' | 'stats' | 'challenges';
 export type SkillPool = 'Rookie' | 'Contender' | 'Elite' | 'Legend';
 export type Language = 'en' | 'fr';
 export type DifficultyMode = 'casual' | 'standard' | 'hardcore';
@@ -159,7 +159,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     },
 
     // Navigation
-    activeTab: 'training',
+    activeTab: new URLSearchParams(window.location.search).get('tab')==='combat'?'combat':'training',
     setActiveTab: (tab) => set({ activeTab: tab }),
     language: (() => {
         try {
